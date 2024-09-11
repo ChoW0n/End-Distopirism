@@ -258,11 +258,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CharName: "\uD300"
   maxHp: 0
-  hp: 0
+  hp: 100
   dex: 0
   MaxDmg: 0
-  MinDmg: 0
+  Dmg: 0
+  MinDmg: 10
   DmgUp: 0
+  Live: 0
 --- !u!1 &860594099
 GameObject:
   m_ObjectHideFlags: 0
@@ -668,6 +670,7 @@ MonoBehaviour:
   isLive: 0
   EnemySelect: 0
   PlayerSelect: 0
+  drow: 0
   targetObject: {fileID: 0}
   playerObject: {fileID: 0}
 --- !u!4 &1424169345
@@ -966,11 +969,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   CharName: "\uC801"
   maxHp: 0
-  hp: 0
+  hp: 100
   dex: 0
   MaxDmg: 0
-  MinDmg: 0
+  Dmg: 0
+  MinDmg: 15
   DmgUp: 0
+  Live: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
