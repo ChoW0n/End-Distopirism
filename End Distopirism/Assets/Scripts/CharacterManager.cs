@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class CharacterManager : MonoBehaviour
 {
+    public string CharName;
     public int maxHp;   //최대 체력
     public int hp;      //현재 체력
 
