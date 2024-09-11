@@ -18,7 +18,7 @@ public class GameManager : MonoBehaviour
             return GameManager_instance;
         }
     }
-    //CharacterManager Character = GameObject.Find("CharacterManager").GetComponent<CharacterManager>();
+
     public enum GameState
     {
         start, playerTurn, enemyTurn, win, pause
@@ -28,24 +28,23 @@ public class GameManager : MonoBehaviour
     public bool isLive; //적 생존 시
     public bool EnemySelect; //적 선택 여부
     public bool PlayerSelect; //내 캐릭터 선택 여부
+    public int drow = 0; //교착 횟수
 
-    public int drow = 0;    //합 교착 횟수
-
-    public CharacterManager targetObject;
-    public CharacterManager playerObject;
+    //다수의 적과 플레이어를 선택할 수 있도록 List 사용
+    public List<CharacterManager> targetObjects = new List<CharacterManager>();
+    public List<CharacterManager> playerObjects = new List<CharacterManager>();
 
     void Awake()
     {
-        state = GameState.start;    //전투 시작 알림
+        state = GameState.start; // 전투 시작 알림
         BattleStart();
     }
 
     void BattleStart()
     {
-        //전투 시작시 캐릭터 등장 애니메이션 등 효과를 넣고 싶으면 여기 아래에
+        //전투 시작 시 캐릭터 등장 애니메이션 등 효과를 넣고 싶으면 여기 아래에
 
         //플레이어나 적에게 턴 넘기기
-
         state = GameState.playerTurn;
         StartCoroutine(SelectTarget());
         isLive = true;
@@ -54,24 +53,13 @@ public class GameManager : MonoBehaviour
     //공격&턴 종료 버튼
     public void PlayerAttackButton()
     {
-
         //플레이어 턴이 아닐 때 방지
-
-        if (state != GameState.playerTurn)
+        if (state != GameState.playerTurn || !PlayerSelect || !EnemySelect)
         {
             return;
-        }
-        if (!PlayerSelect)
-        {
-            return;
-        }
-        if (!EnemySelect)
-        {
-            return ;
         }
 
         StartCoroutine(PlayerAttack());
-        
     }
 
     IEnumerator SelectTarget()  //내 캐릭터&타겟 선택
@@ -86,98 +74,102 @@ public class GameManager : MonoBehaviour
 
                 if (clickObject != null)
                 {
-                    //적 캐릭터 선택 또는 재선택(플레이어를 선택 했을 때)
-                    if (PlayerSelect && clickObject.tag == "Enemy")
+                    if (clickObject.tag == "Enemy")
                     {
                         CharacterManager selectedEnemy = clickObject.GetComponent<CharacterManager>();
 
-                        //적 캐릭터가 이미 선택된 적과 동일한지 확인
-                        if (targetObject == selectedEnemy)
+                        //적이 이미 선택된 적 리스트에 있는지 확인
+                        if (targetObjects.Contains(selectedEnemy))
                         {
-                            //동일한 적 클릭 시 선택 취소
-                            targetObject = null;
-                            EnemySelect = false;
+                            //동일한 플레이어 클릭 시 선택 취소
+                            targetObjects.Remove(selectedEnemy);
                             Debug.Log("적 캐릭터 선택 취소됨");
                         }
                         else
                         {
                             //새로운 적 선택
-                            targetObject = selectedEnemy;
-                            EnemySelect = true;
+                            targetObjects.Add(selectedEnemy);
                             Debug.Log("적 캐릭터 선택됨");
                         }
                     }
                     //플레이어 캐릭터 선택 또는 재선택
-                    else if (!PlayerSelect && clickObject.tag == "Player")
-                    {
-                        playerObject = clickObject.GetComponent<CharacterManager>();
-                        PlayerSelect = true;
-                        Debug.Log("플레이어 캐릭터 선택됨");
-                    }
-                    //플레이어 캐릭터 재선택
-                    else if (PlayerSelect && clickObject.tag == "Player")
+                    else if (clickObject.tag == "Player")
                     {
                         CharacterManager selectedPlayer = clickObject.GetComponent<CharacterManager>();
 
-                        //플레이어가 이미 선택된 플레이어와 동일한지 확인
-                        if (playerObject == selectedPlayer)
+                        //플레이어가 이미 선택된 플레이어 리스트에 있는지 확인
+                        if (playerObjects.Contains(selectedPlayer))
                         {
                             //동일한 플레이어 클릭 시 선택 취소
-                            playerObject = null;
-                            PlayerSelect = false;
+                            playerObjects.Remove(selectedPlayer);
                             Debug.Log("플레이어 캐릭터 선택 취소됨");
                         }
                         else
                         {
                             //새로운 플레이어 선택
-                            playerObject = selectedPlayer;
-                            EnemySelect = false;    //적 선택을 취소
-                            Debug.Log("플레이어 캐릭터 재선택됨");
+                            playerObjects.Add(selectedPlayer);
+                            Debug.Log("플레이어 캐릭터 선택됨");
                         }
                     }
+
+                    //아군과 적이 모두 선택되었는지 확인
+                    PlayerSelect = playerObjects.Count > 0;
+                    EnemySelect = targetObjects.Count > 0;
                 }
-                
             }
             yield return null;
         }
-
     }
+
+
     IEnumerator PlayerAttack()  //플레이어 공격턴
     {
         yield return new WaitForSeconds(1f);
-        
+
         Debug.Log("플레이어 공격");
-        //공격 스킬, 데미지 등 코드 작성
-        playerObject.Dmg = Random.Range(playerObject.MinDmg, playerObject.MaxDmg);
-        targetObject.Dmg = Random.Range(targetObject.MinDmg, targetObject.MaxDmg);
-        if (targetObject.Dmg > playerObject.Dmg)
+
+        //리스트의 각 플레이어와 적이 1:1로 매칭되어 공격
+        int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
+        for (int i = 0; i < matchCount; i++)
         {
-            playerObject.hp = playerObject.hp - (targetObject.Dmg - playerObject.dex);
-            Debug.Log("합 패배: " + (targetObject.Dmg - playerObject.dex));
-            drow = 0;
+            CharacterManager playerObject = playerObjects[i];
+            CharacterManager targetObject = targetObjects[i];
+
+            //플레이어와 적의 공격력 및 피해 계산
+            playerObject.Dmg = Random.Range(playerObject.MinDmg, playerObject.MaxDmg);
+            targetObject.Dmg = Random.Range(targetObject.MinDmg, targetObject.MaxDmg);
+            if (targetObject.Dmg > playerObject.Dmg)
+            {
+                playerObject.hp = playerObject.hp - (targetObject.Dmg - playerObject.dex);
+                Debug.Log("합 패배: " + (targetObject.Dmg - playerObject.dex));
+                drow = 0;
+            }
+            else if (targetObject.Dmg < playerObject.Dmg)
+            {
+                targetObject.hp = targetObject.hp - (playerObject.Dmg - targetObject.dex);
+                Debug.Log("합 승리: " + (playerObject.Dmg - targetObject.dex));
+                drow = 0;
+            }
+            else if (targetObject.Dmg == playerObject.Dmg)
+            {
+
+                drow = drow + 1;
+                Debug.Log("합  교착: " + drow + "합");
+                StopCoroutine(PlayerAttack());
+                StartCoroutine(PlayerAttack());
+
+            }
         }
-        else if (targetObject.Dmg < playerObject.Dmg)
-        {
-            targetObject.hp = targetObject.hp - (playerObject.Dmg - targetObject.dex);
-            Debug.Log("합 승리: " + (playerObject.Dmg - targetObject.dex));
-            drow = 0;
-        }
-        else if (targetObject.Dmg == playerObject.Dmg)
-        {
-            
-            drow = drow + 1;
-            Debug.Log("합  교착: " + drow + "합");
-            StopCoroutine(PlayerAttack());
-            StartCoroutine(PlayerAttack());
-            
-        }
-        if (!isLive)
+
+            //전투 종료 여부 판단
+            if (!isLive)
         {
             state = GameState.win;
             EndBattle();
         }
-        else//적 공격 턴으로 전환
+        else
         {
+            //적 공격 턴으로 전환
             state = GameState.enemyTurn;
             StartCoroutine(EnemyTurn());
         }
