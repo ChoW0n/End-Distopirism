@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1db1306fda4998642a4f4050170ffa8c, type: 3}
+  m_Name: "\uCC38\uACA9"
+  m_EditorClassIdentifier: 
+  skillName: "\uCC38\uACA9"
+  MaxDmg: 0
+  MinDmg: 0
+  CoinCost: 0

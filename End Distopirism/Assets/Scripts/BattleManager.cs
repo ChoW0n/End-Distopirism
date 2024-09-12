@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEditor.Timeline.Actions;
 using UnityEngine;
 
@@ -33,7 +34,7 @@ public class BattleManager : MonoBehaviour
     public bool isLive; //적 생존 시
     public bool EnemySelect; //적 선택 여부
     public bool PlayerSelect; //내 캐릭터 선택 여부
-    public int drow = 0; //교착 횟수
+    public int draw = 0; //교착 횟수
     public int PlayerCheck = 0;
     public int EnemyCheck = 0;
     public bool AllTargetSelected = false; //모든 타겟을 설정했는가
@@ -104,20 +105,23 @@ public class BattleManager : MonoBehaviour
                 {
                     CharacterManager selectedEnemy = clickObject.GetComponent<CharacterManager>();
 
-                    //적이 이미 선택된 적 리스트에 있는지 확인
-                    if (targetObjects.Contains(selectedEnemy))
+                    if (Selecting)
                     {
-                        //동일한 플레이어 클릭 시 선택 취소
-                        targetObjects.Remove(selectedEnemy);
-                        Debug.Log("적 캐릭터 선택 취소됨");
-                    }
-                    else
-                    {
-                        //새로운 적 선택
-                        targetObjects.Add(selectedEnemy);
-                        Debug.Log("적 캐릭터 선택됨");
-                        Selecting = false;
-                    }
+                        //적이 이미 선택된 적 리스트에 있는지 확인
+                        if (targetObjects.Contains(selectedEnemy))
+                        {
+                            //동일한 플레이어 클릭 시 선택 취소
+                            targetObjects.Remove(selectedEnemy);
+                            Debug.Log("적 캐릭터 선택 취소됨");
+                        }
+                        else
+                        {
+                            //새로운 적 선택
+                            targetObjects.Add(selectedEnemy);
+                            Debug.Log("적 캐릭터 선택됨");
+                            Selecting = false;
+                        }
+                    }    
                 }
                 //플레이어 캐릭터 선택 또는 재선택
                 else if (clickObject.tag == "Player")
@@ -173,6 +177,7 @@ public class BattleManager : MonoBehaviour
     }
 
 
+    // 공격 레벨과 방어 레벨을 비교하여 보너스 및 패널티 적용
 
     IEnumerator PlayerAttack()  //플레이어 공격턴
     {
@@ -189,28 +194,133 @@ public class BattleManager : MonoBehaviour
             CharacterManager targetObject = targetObjects[i];
 
             //플레이어와 적의 공격력 및 피해 계산
-            playerObject.Dmg = Random.Range(playerObject.MinDmg, playerObject.MaxDmg);
-            targetObject.Dmg = Random.Range(targetObject.MinDmg, targetObject.MaxDmg);
-            if (targetObject.Dmg > playerObject.Dmg)
-            {
-                playerObject.hp = playerObject.hp - (targetObject.Dmg - playerObject.dex);
-                Debug.Log(playerObject.CharName + "의합 패배: " + (targetObject.Dmg - playerObject.dex) + "의 피해를 입음");
-                drow = 0;
-            }
-            else if (targetObject.Dmg < playerObject.Dmg)
-            {
-                targetObject.hp = targetObject.hp - (playerObject.Dmg - targetObject.dex);
-                Debug.Log(playerObject.CharName + "의 합 승리: " + (playerObject.Dmg - targetObject.dex) + "의 피해를 입힘");
-                drow = 0;
-            }
-            else if (targetObject.Dmg == playerObject.Dmg)
-            {
+            //공격레벨 방어레벨 대조
+            int PlayerBonusDmg = 0;
+            int EnemyBonusDmg = 0;
+            
+            int playercoinbonus = 0;
+            int playersuccessCount = 0;
 
-                drow = drow + 1;
-                Debug.Log("합  교착: " + drow + "합");
-                StopCoroutine(PlayerAttack());
-                StartCoroutine(PlayerAttack());
+            int enemycoinbonus = 0;
+            int enemysuccessCount = 0;
 
+            if (playerObject.DmgLevel > (targetObject.DefLevel + 4))
+            {
+                PlayerBonusDmg = ((playerObject.DmgLevel-playerObject.DefLevel)/4)*1;
+            }
+            if (targetObject.DmgLevel > (playerObject.DefLevel + 4))
+            {
+                EnemyBonusDmg = ((targetObject.DmgLevel - playerObject.DefLevel) / 4) * 1;
+            }
+            // 정신력에 비례하여 코인 결과 조정
+            float maxMenTality = 100f; // 최대 정신력
+            float maxProbability = 0.6f; // 최대 확률 (60%)
+
+            // 정신력에 따른 확률 계산
+            float currentProbability = Mathf.Max(0f, maxProbability * (playerObject.MenTality / maxMenTality));
+            
+            for (int j = 0; j < playerObject.Coin; j++)
+            {
+                // 코인 던지기: 현재 확률에 따라 성공 여부 결정
+                if (Random.value < currentProbability)
+                {
+                    playersuccessCount++;
+                }
+            }
+            playercoinbonus = playersuccessCount * playerObject.DmgUp;
+            Debug.Log($"{playerObject.CharName}의 코인 던지기 성공 횟수: {playersuccessCount}");
+            Debug.Log($"{playerObject.CharName}의 남은 코인: {playerObject.Coin} / {playerObject.MaxCoin}");
+            for (int j = 0; j < targetObject.Coin; j++)
+            {
+                // 코인 던지기: 현재 확률에 따라 성공 여부 결정
+                if (Random.value < currentProbability)
+                {
+                    enemysuccessCount++;
+                }
+            }
+            enemycoinbonus = enemysuccessCount * targetObject.DmgUp;
+            Debug.Log($"{targetObject.CharName}의 코인 던지기 성공 횟수: {enemysuccessCount}");
+            Debug.Log($"{targetObject.CharName}의 남은 코인: {targetObject.Coin} / {targetObject.MaxCoin}");
+
+
+
+            //최종 데미지
+            playerObject.Dmg = Random.Range(playerObject.MaxDmg, playerObject.MinDmg)+playercoinbonus+ PlayerBonusDmg;
+            targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + enemycoinbonus + EnemyBonusDmg;
+            // 디버그 로그 추가
+            Debug.Log($"{playerObject.CharName}의 최종 데미지: {playerObject.Dmg} (기본 데미지: {playerObject.MinDmg} - {playerObject.MaxDmg}, 코인 보너스: {playercoinbonus}, 공격 보너스: {PlayerBonusDmg})");
+            Debug.Log($"{targetObject.CharName}의 최종 데미지: {targetObject.Dmg} (기본 데미지: {targetObject.MinDmg} - {targetObject.MaxDmg}, 코인 보너스: {enemycoinbonus}, 공격 보너스: {EnemyBonusDmg})");
+
+            //합 진행
+            if (!(playerObject.Coin > 0 || targetObject.Coin > 0))  //둘 중 한명이라도 코인이 없다면 바로 피해주기
+            {
+                if (playerObject.Coin < 0)
+                {
+                    for (int j = 0; j < targetObject.Coin; j++)
+                    {
+                        playerObject.hp -= targetObject.Dmg - playerObject.DefLevel;
+                        Debug.Log($"{targetObject.CharName}이(가) 가한 피해: {targetObject.Dmg})");
+                    }
+                }
+                else if (targetObject.Coin < 0)
+                {
+                    for (int j = 0; j < playerObject.Coin; j++)
+                    {
+                        targetObject.hp -= playerObject.Dmg - targetObject.DefLevel;
+                        Debug.Log($"{playerObject.CharName}이(가) 가한 피해: {playerObject.Dmg})");
+                    }
+                }
+            }
+            else if ((playerObject.Coin > 0 || targetObject.Coin > 0))  //둘 다 코인이 있을 때
+            {
+                if (targetObject.Dmg == playerObject.Dmg)   //피해가 같다면
+                {
+                    draw++;
+                    Debug.Log($"교착 상태 발생 {draw} 회");
+                    i--;
+                }
+           
+                if (draw >= 3)  //교착이 3회 이상이라면
+                {
+                    targetObject.MenTality -= 10;
+                    playerObject.MenTality -= 10;
+                    Debug.Log($"{targetObject.CharName}과 {playerObject.CharName} 의 정신력 감소)");
+                    draw = 0;
+                }
+            
+            if (playerObject.Dmg > targetObject.Dmg)    //플레이어의 승리
+            {
+                if (targetObject.Coin > 0)
+                {
+                    targetObject.Coin--;
+                    i--;
+                }
+                else
+                {
+                    for (int j = 0; j < playerObject.Coin; j++)
+                    {
+                        targetObject.hp -= playerObject.Dmg - targetObject.DefLevel;
+                        Debug.Log($"{playerObject.CharName}이(가) 가한 피해: {playerObject.Dmg})");
+                    }
+                }
+            }
+            if (targetObject.Dmg > playerObject.Dmg)    //적의 승리
+            {
+                if (playerObject.Coin > 0)
+                {
+                    playerObject.Coin--;
+                    i--;
+                }
+                else
+                {
+                    for (int j = 0; j < targetObject.Coin; j++)
+                    {
+                        playerObject.hp -= targetObject.Dmg - playerObject.DefLevel;
+                        Debug.Log($"{targetObject.CharName}이(가) 가한 피해: {targetObject.Dmg})");
+                    }
+                }
+            }
+                
             }
             if (0 > playerObject.hp)
             {
