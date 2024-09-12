@@ -252,9 +252,9 @@ public class BattleManager : MonoBehaviour
             Debug.Log($"{targetObject.CharName}의 최종 데미지: {targetObject.Dmg} (기본 데미지: {targetObject.MinDmg} - {targetObject.MaxDmg}, 코인 보너스: {enemycoinbonus}, 공격 보너스: {EnemyBonusDmg})");
 
             //합 진행
-            if (!(playerObject.Coin > 0 || targetObject.Coin > 0))  //둘 중 한명이라도 코인이 없다면 바로 피해주기
+            if (!(playerObject.Coin > 0 || targetObject.Coin > 0))  //둘 중 한명이라도 코인이 없다면 바로 피해를 줌
             {
-                if (playerObject.Coin < 0)
+                if (playerObject.Coin == 0)
                 {
                     for (int j = 0; j < targetObject.Coin; j++)
                     {
@@ -262,7 +262,7 @@ public class BattleManager : MonoBehaviour
                         Debug.Log($"{targetObject.CharName}이(가) 가한 피해: {targetObject.Dmg})");
                     }
                 }
-                else if (targetObject.Coin < 0)
+                else if (targetObject.Coin == 0)
                 {
                     for (int j = 0; j < playerObject.Coin; j++)
                     {
@@ -290,7 +290,7 @@ public class BattleManager : MonoBehaviour
             
             if (playerObject.Dmg > targetObject.Dmg)    //플레이어의 승리
             {
-                if (targetObject.Coin > 0)
+                if (targetObject.Coin > 0)  //코인이 있다면 코인 감소 후 재대결
                 {
                     targetObject.Coin--;
                     i--;
@@ -306,8 +306,8 @@ public class BattleManager : MonoBehaviour
             }
             if (targetObject.Dmg > playerObject.Dmg)    //적의 승리
             {
-                if (playerObject.Coin > 0)
-                {
+                if (playerObject.Coin > 0) //코인이 있다면 코인 감소 후 재대결
+                    {
                     playerObject.Coin--;
                     i--;
                 }
