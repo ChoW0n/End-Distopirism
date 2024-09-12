@@ -790,7 +790,7 @@ GameObject:
   - component: {fileID: 1424169345}
   - component: {fileID: 1424169344}
   m_Layer: 0
-  m_Name: GameManager
+  m_Name: BattleManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -816,6 +816,8 @@ MonoBehaviour:
   PlayerCheck: 0
   EnemyCheck: 0
   AllTargetSelected: 0
+  Attaking: 0
+  Selecting: 0
   targetObjects: []
   playerObjects: []
 --- !u!4 &1424169345
@@ -827,7 +829,7 @@ Transform:
   m_GameObject: {fileID: 1424169343}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -262.77087, y: 165.35173, z: -5.6123457}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

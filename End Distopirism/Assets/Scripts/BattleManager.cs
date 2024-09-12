@@ -62,7 +62,7 @@ public class BattleManager : MonoBehaviour
         if (state == GameState.playerTurn && Input.GetMouseButtonDown(0))
         {
             SelectTarget();
-            //Debug.Log("선택 실행 중");
+            Debug.Log("선택 실행 중");
         }
     }
 
