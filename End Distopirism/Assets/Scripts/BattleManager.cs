@@ -37,6 +37,8 @@ public class BattleManager : MonoBehaviour
     public int PlayerCheck = 0;
     public int EnemyCheck = 0;
     public bool AllTargetSelected = false; //모든 타겟을 설정했는가
+    public bool Attaking = false;
+    public bool Selecting = false;  //적을 선택해야하는 상태일 때
 
     //다수의 적과 플레이어를 선택할 수 있도록 List 사용
     public List<CharacterManager> targetObjects = new List<CharacterManager>();
@@ -57,7 +59,7 @@ public class BattleManager : MonoBehaviour
     }
     public void Update()
     {
-        if (!AllTargetSelected && state == GameState.playerTurn)
+        if (state == GameState.playerTurn && Input.GetMouseButtonDown(0))
         {
             SelectTarget();
             //Debug.Log("선택 실행 중");
@@ -77,11 +79,14 @@ public class BattleManager : MonoBehaviour
     public void PlayerAttackButton()
     {
         //플레이어 턴이 아닐 때 방지
-        if (state != GameState.playerTurn || !PlayerSelect || !EnemySelect)
+        if (state != GameState.playerTurn || !AllTargetSelected)
         {
             return;
         }
-
+        if (Attaking)
+        {
+            return;
+        }
         StartCoroutine(PlayerAttack());
     }
 
@@ -111,25 +116,43 @@ public class BattleManager : MonoBehaviour
                         //새로운 적 선택
                         targetObjects.Add(selectedEnemy);
                         Debug.Log("적 캐릭터 선택됨");
+                        Selecting = false;
                     }
                 }
                 //플레이어 캐릭터 선택 또는 재선택
                 else if (clickObject.tag == "Player")
                 {
+                    if (Selecting)
+                    {
+                        Debug.Log("적을 선택해주세요.");
+                        return;
+                    }
                     CharacterManager selectedPlayer = clickObject.GetComponent<CharacterManager>();
 
                     //플레이어가 이미 선택된 플레이어 리스트에 있는지 확인
                     if (playerObjects.Contains(selectedPlayer))
                     {
+                        //매칭된 적 삭제
+                        int index = playerObjects.IndexOf(selectedPlayer);
+                        if (index != -1)
+                        {
+                            if (index < targetObjects.Count)
+                            {
+                                targetObjects.RemoveAt(index);
+                            }
+                            
+                        }
                         //동일한 플레이어 클릭 시 선택 취소
                         playerObjects.Remove(selectedPlayer);
                         Debug.Log("플레이어 캐릭터 선택 취소됨");
+                        
                     }
                     else
                     {
                         //새로운 플레이어 선택
                         playerObjects.Add(selectedPlayer);
                         Debug.Log("플레이어 캐릭터 선택됨");
+                        Selecting = true;
                     }
                 }
 
@@ -153,6 +176,7 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator PlayerAttack()  //플레이어 공격턴
     {
+        Attaking = true;
         yield return new WaitForSeconds(1f);
 
         Debug.Log("플레이어 공격");
@@ -170,13 +194,13 @@ public class BattleManager : MonoBehaviour
             if (targetObject.Dmg > playerObject.Dmg)
             {
                 playerObject.hp = playerObject.hp - (targetObject.Dmg - playerObject.dex);
-                Debug.Log("합 패배: " + (targetObject.Dmg - playerObject.dex));
+                Debug.Log(playerObject.CharName + "의합 패배: " + (targetObject.Dmg - playerObject.dex) + "의 피해를 입음");
                 drow = 0;
             }
             else if (targetObject.Dmg < playerObject.Dmg)
             {
                 targetObject.hp = targetObject.hp - (playerObject.Dmg - targetObject.dex);
-                Debug.Log("합 승리: " + (playerObject.Dmg - targetObject.dex));
+                Debug.Log(playerObject.CharName + "의 합 승리: " + (playerObject.Dmg - targetObject.dex) + "의 피해를 입힘");
                 drow = 0;
             }
             else if (targetObject.Dmg == playerObject.Dmg)
@@ -196,6 +220,7 @@ public class BattleManager : MonoBehaviour
             {
                 EnemyCheck--;
             }
+            Attaking = false;
         }
 
         //전투 종료 여부 판단
@@ -215,6 +240,8 @@ public class BattleManager : MonoBehaviour
         {
             //적 공격 턴으로 전환
             state = GameState.enemyTurn;
+            playerObjects.Clear();
+            targetObjects.Clear();
             StartCoroutine(EnemyTurn());
         }
     }

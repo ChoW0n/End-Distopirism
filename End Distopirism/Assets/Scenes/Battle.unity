@@ -136,7 +136,7 @@ GameObject:
   - component: {fileID: 218051724}
   - component: {fileID: 218051723}
   m_Layer: 0
-  m_Name: Player
+  m_Name: Player1
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -257,12 +257,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CharName: "\uD300 1"
-  maxHp: 0
+  maxHp: 100
   hp: 100
-  dex: 0
-  MaxDmg: 0
+  dex: 4
+  MaxDmg: 20
   Dmg: 0
-  MinDmg: 10
+  MinDmg: 4
   DmgUp: 0
   Live: 0
 --- !u!1 &457463736
@@ -278,7 +278,7 @@ GameObject:
   - component: {fileID: 457463738}
   - component: {fileID: 457463737}
   m_Layer: 0
-  m_Name: Player (1)
+  m_Name: Player2
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -332,12 +332,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CharName: "\uD300 2"
-  maxHp: 0
+  maxHp: 100
   hp: 100
-  dex: 0
-  MaxDmg: 0
+  dex: 4
+  MaxDmg: 20
   Dmg: 0
-  MinDmg: 10
+  MinDmg: 4
   DmgUp: 0
   Live: 0
 --- !u!212 &457463739
@@ -813,6 +813,9 @@ MonoBehaviour:
   EnemySelect: 0
   PlayerSelect: 0
   drow: 0
+  PlayerCheck: 0
+  EnemyCheck: 0
+  AllTargetSelected: 0
   targetObjects: []
   playerObjects: []
 --- !u!4 &1424169345
@@ -989,7 +992,7 @@ GameObject:
   - component: {fileID: 2099459612}
   - component: {fileID: 2099459611}
   m_Layer: 0
-  m_Name: Enemy (1)
+  m_Name: Enemy2
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1043,12 +1046,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CharName: "\uC801 2"
-  maxHp: 0
+  maxHp: 100
   hp: 100
-  dex: 0
-  MaxDmg: 0
+  dex: 4
+  MaxDmg: 20
   Dmg: 0
-  MinDmg: 15
+  MinDmg: 4
   DmgUp: 0
   Live: 0
 --- !u!212 &2099459613
@@ -1131,7 +1134,7 @@ GameObject:
   - component: {fileID: 2115570237}
   - component: {fileID: 2115570236}
   m_Layer: 0
-  m_Name: Enemy
+  m_Name: Enemy1
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1252,12 +1255,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   CharName: "\uC801 1"
-  maxHp: 0
+  maxHp: 100
   hp: 100
-  dex: 0
-  MaxDmg: 0
+  dex: 4
+  MaxDmg: 20
   Dmg: 0
-  MinDmg: 15
+  MinDmg: 4
   DmgUp: 0
   Live: 0
 --- !u!1660057539 &9223372036854775807

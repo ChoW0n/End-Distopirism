@@ -38,7 +38,7 @@ public class UIManager : MonoBehaviour
         Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         // 디버그: 마우스 위치 출력
-        Debug.Log("마우스 월드 좌표: " + pos);
+        //Debug.Log("마우스 월드 좌표: " + pos);
 
         // 레이캐스트로 오브젝트를 탐지
         RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
@@ -55,7 +55,7 @@ public class UIManager : MonoBehaviour
         }
 
         // 디버그: 맞춘 오브젝트가 없을 때
-        Debug.LogWarning("레이캐스트가 오브젝트를 맞추지 못했습니다.");
+        //Debug.LogWarning("레이캐스트가 오브젝트를 맞추지 못했습니다.");
         return null;
     }
 }
