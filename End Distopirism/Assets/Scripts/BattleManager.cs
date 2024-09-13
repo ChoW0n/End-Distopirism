@@ -205,7 +205,7 @@ public class BattleManager : MonoBehaviour
                 }
             }
             coinBonus = succesCount * Object.DmgUp;
-            Debug.Log($"{Object.CharName}의 코인 던지기 성공 횟수: {succesCount}");
+            Debug.Log($"{Object.CharName}의 코인 던지기 성공 횟수: {succesCount} / {Object.Coin} ");
             Debug.Log($"{Object.CharName}의 남은 코인: {Object.Coin} / {Object.MaxCoin}");
         }
     }
@@ -249,6 +249,7 @@ public class BattleManager : MonoBehaviour
 
             //코인 리롤
             playersuccessCount = enemysuccessCount = 0;
+            Debug.Log($"플레이어: {playerObject.CharName}, 적: {targetObject.CharName}");
             CoinRoll(playerObject, ref playersuccessCount, ref playercoinbonus);
             CoinRoll(targetObject, ref enemysuccessCount, ref enemycoinbonus);
 
@@ -312,11 +313,17 @@ public class BattleManager : MonoBehaviour
     //남아있는 코인 만큼 타격
     void ApplyRemainingDamage(CharacterManager attacker, CharacterManager victim)
     {
-        for (int j = 0; 0 < attacker.Coin; j++)
+        for (int j = 0; j < attacker.Coin; j++)
         {
             victim.hp -= attacker.Dmg - victim.DefLevel;
+            victim.MenTality -= 2;  //패배 시 정신력 -2
+            if (attacker.MenTality < 100)
+            {
+                attacker.MenTality += 1;    //승리 시 정신력 +1
+            }
             Debug.Log($"{attacker.CharName}이(가) 가한 피해: {attacker.Dmg}");
         }
+        
     }
 
     //교착 상태 함수
@@ -324,8 +331,11 @@ public class BattleManager : MonoBehaviour
     {
         draw++;
         Debug.Log($"교착 상태 발생 {draw} 회");
-        i--;
-
+        
+        if (draw < 3)
+        {
+            i--;
+        }
         if (draw >= 3)
         {
             playerObject.MenTality -= 10;
