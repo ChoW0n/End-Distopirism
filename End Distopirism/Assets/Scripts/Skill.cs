@@ -7,6 +7,7 @@ using UnityEngine;
 public class Skill : ScriptableObject
 {
     public string skillName;    // 스킬 이름
+    public Sprite Sprite;       // 스킬 아이콘
     public int MaxDmg;         // 스킬의 최대 데미지
     public int MinDmg;         // 스킬의 최소 데미지
     public int DmgUp;           //코인 성공 시 상승 피해량

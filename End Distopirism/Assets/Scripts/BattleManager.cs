@@ -6,19 +6,8 @@ using UnityEngine;
 
 public class BattleManager : MonoBehaviour
 {
-    private static BattleManager BattleManager_instance;
-    //외부 접근용 프로퍼티
-    public static BattleManager Instance
-    {
-        get
-        {
-            if (BattleManager_instance == null)
-            {
-                BattleManager_instance = FindObjectOfType<BattleManager>();
-            }
-            return BattleManager_instance;
-        }
-    }
+    public static BattleManager Instance { get; private set; }
+    
 
     public enum GameState
     {
@@ -48,7 +37,14 @@ public class BattleManager : MonoBehaviour
     void Awake()
     {
         state = GameState.start; // 전투 시작 알림
-        
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
     }
     public void Start()
     {
