@@ -269,7 +269,9 @@ MonoBehaviour:
   Coin: 0
   MenTality: 100
   Live: 0
-  skill: {fileID: 0}
+  skills:
+  - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+  - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
 --- !u!1 &457463736
 GameObject:
   m_ObjectHideFlags: 0
@@ -288,7 +290,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!70 &457463737
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -349,7 +351,7 @@ MonoBehaviour:
   Coin: 2
   MenTality: 100
   Live: 0
-  skill: {fileID: 0}
+  skills: []
 --- !u!212 &457463739
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -828,6 +830,12 @@ MonoBehaviour:
   AllTargetSelected: 0
   Attaking: 0
   Selecting: 0
+  playerbonusdmg: 0
+  enemybonusdmg: 0
+  playercoinbonus: 0
+  playersuccessCount: 0
+  enemycoinbonus: 0
+  enemysuccessCount: 0
   targetObjects: []
   playerObjects: []
 --- !u!4 &1424169345
@@ -1040,7 +1048,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!70 &2099459611
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1101,7 +1109,7 @@ MonoBehaviour:
   Coin: 0
   MenTality: 100
   Live: 0
-  skill: {fileID: 0}
+  skills: []
 --- !u!212 &2099459613
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1315,7 +1323,7 @@ MonoBehaviour:
   Coin: 0
   MenTality: 100
   Live: 0
-  skill: {fileID: 0}
+  skills: []
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

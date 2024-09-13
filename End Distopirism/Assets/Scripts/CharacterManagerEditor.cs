@@ -1,5 +1,6 @@
 using System.Linq;
 using UnityEditor;
+using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
 [CustomEditor(typeof(CharacterManager))]
@@ -16,7 +17,7 @@ public class CharacterManagerEditor : Editor
 
         if (characterManager.skills != null && characterManager.skills.Count > 0)
         {
-            EditorGUILayout.LabelField("스킬 목록", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("캐릭터 스킬 목록", EditorStyles.boldLabel);
 
             foreach (var skill in characterManager.skills)
             {
@@ -37,13 +38,13 @@ public class CharacterManagerEditor : Editor
         string skillName = skill.skillName;
         string skillAssetPath = AssetDatabase.GetAssetPath(skill);
         string skillFolderName = System.IO.Path.GetDirectoryName(skillAssetPath).Split('/').Last();
-        string skillFileName = System.IO.Path.GetFileNameWithoutExtension(skillAssetPath);
+        
 
         EditorGUILayout.BeginVertical("box");
 
-        DisplaySkillIcon(skill.Sprite);
+        DisplaySkillIcon(skill.Sprite, skill);
         EditorGUILayout.LabelField($"스킬: {skillName}");
-        EditorGUILayout.LabelField($"폴더 위치 / 스킬번호: {skillFolderName} / {skillFileName}");
+        EditorGUILayout.LabelField($"폴더: {skillFolderName}");
         EditorGUILayout.LabelField($"공격력: {skill.MinDmg}~{skill.MaxDmg}");
         EditorGUILayout.LabelField($"최대 공격력: {skill.MaxDmg}");
         EditorGUILayout.LabelField($"코인당 상승: {skill.DmgUp}");
@@ -52,8 +53,10 @@ public class CharacterManagerEditor : Editor
         EditorGUILayout.Space();
     }
 
-    private void DisplaySkillIcon(Sprite sprite)
+    private void DisplaySkillIcon(Sprite sprite, Skill skill)
     {
+        string skillAssetPath = AssetDatabase.GetAssetPath(skill);
+        string skillFileName = System.IO.Path.GetFileNameWithoutExtension(skillAssetPath);
         if (sprite != null)
         {
             Texture2D texture = sprite.texture;
@@ -61,13 +64,16 @@ public class CharacterManagerEditor : Editor
             float width = MaxIconSize * (aspectRatio > 1 ? 1 : aspectRatio);
             float height = MaxIconSize * (aspectRatio > 1 ? 1 / aspectRatio : 1);
 
-            EditorGUILayout.LabelField("스킬 아이콘");
-            Rect rect = GUILayoutUtility.GetRect(width, height);
-            EditorGUI.DrawPreviewTexture(rect, texture, null, ScaleMode.ScaleToFit);
+            EditorGUILayout.LabelField(skillFileName);
+
+            // 아이콘을 표시할 사각형 영역을 계산합니다.
+            Rect rect = GUILayoutUtility.GetRect(width, height, GUI.skin.box);
+            // GUI.DrawTexture를 사용하여 투명 배경을 지원합니다.
+            GUI.DrawTexture(rect, texture, ScaleMode.ScaleToFit, true);
         }
         else
         {
-            EditorGUILayout.LabelField("스킬 아이콘 없음");
+            EditorGUILayout.LabelField(skillFileName);
         }
     }
 }
