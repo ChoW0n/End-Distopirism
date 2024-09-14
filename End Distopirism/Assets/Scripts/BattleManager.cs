@@ -20,15 +20,15 @@ public class BattleManager : MonoBehaviour
     }
 
     public GameState state;
-    public bool isLive; //Àû »ýÁ¸ ½Ã
-    public bool EnemySelect; //Àû ¼±ÅÃ ¿©ºÎ
-    public bool PlayerSelect; //³» Ä³¸¯ÅÍ ¼±ÅÃ ¿©ºÎ
-    public int draw = 0; //±³Âø È½¼ö
+    public bool isLive; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
+    public bool EnemySelect; //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    public bool PlayerSelect; //ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+    public int draw = 0; //ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½
     public int PlayerCheck = 0;
     public int EnemyCheck = 0;
-    public bool AllTargetSelected = false; //¸ðµç Å¸°ÙÀ» ¼³Á¤Çß´Â°¡
+    public bool AllTargetSelected = false; //ï¿½ï¿½ï¿½ Å¸ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ß´Â°ï¿½
     public bool Attaking = false;
-    public bool Selecting = false;  //ÀûÀ» ¼±ÅÃÇØ¾ßÇÏ´Â »óÅÂÀÏ ¶§
+    public bool Selecting = false;  //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ø¾ï¿½ï¿½Ï´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½
 
 
 
@@ -36,13 +36,13 @@ public class BattleManager : MonoBehaviour
 
 
 
-    //´Ù¼öÀÇ Àû°ú ÇÃ·¹ÀÌ¾î¸¦ ¼±ÅÃÇÒ ¼ö ÀÖµµ·Ï List »ç¿ë
+    //ï¿½Ù¼ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î¸¦ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Öµï¿½ï¿½ï¿½ List ï¿½ï¿½ï¿½
     public List<CharacterManager> targetObjects = new List<CharacterManager>();
     public List<CharacterManager> playerObjects = new List<CharacterManager>();
 
     void Awake()
     {
-        state = GameState.start; // ÀüÅõ ½ÃÀÛ ¾Ë¸²
+        state = GameState.start; // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
         if (Instance == null)
         {
             Instance = this;
@@ -58,30 +58,30 @@ public class BattleManager : MonoBehaviour
         GameObject[] enemys = GameObject.FindGameObjectsWithTag("Enemy");
         PlayerCheck = players.Length;
         EnemyCheck = enemys.Length;
-        BattleStart();  //°ÔÀÓ ½ÃÀÛ½Ã ÀüÅõ ½ÃÀÛ
+        BattleStart();  //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Û½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     }
     public void Update()
     {
         if (state == GameState.playerTurn && Input.GetMouseButtonDown(0))
         {
             SelectTarget();
-            Debug.Log("¼±ÅÃ ½ÇÇà Áß");
+            Debug.Log("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½");
         }
     }
 
     void BattleStart()
     {
-        //ÀüÅõ ½ÃÀÛ ½Ã Ä³¸¯ÅÍ µîÀå ¾Ö´Ï¸ÞÀÌ¼Ç µî È¿°ú¸¦ ³Ö°í ½ÍÀ¸¸é ¿©±â ¾Æ·¡¿¡
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ö´Ï¸ï¿½ï¿½Ì¼ï¿½ ï¿½ï¿½ È¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ö°ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ·ï¿½ï¿½ï¿½
 
-        //ÇÃ·¹ÀÌ¾î³ª Àû¿¡°Ô ÅÏ ³Ñ±â±â
+        //ï¿½Ã·ï¿½ï¿½Ì¾î³ª ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ñ±ï¿½ï¿½
         state = GameState.playerTurn;
         isLive = true;
     }
 
-    //°ø°Ý&ÅÏ Á¾·á ¹öÆ°
+    //ï¿½ï¿½ï¿½ï¿½&ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Æ°
     public void PlayerAttackButton()
     {
-        //ÇÃ·¹ÀÌ¾î ÅÏÀÌ ¾Æ´Ò ¶§ ¹æÁö
+        //ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
         if (state != GameState.playerTurn || !AllTargetSelected)
         {
             return;
@@ -93,12 +93,12 @@ public class BattleManager : MonoBehaviour
         StartCoroutine(PlayerAttack());
     }
 
-    void SelectTarget()  //³» Ä³¸¯ÅÍ&Å¸°Ù ¼±ÅÃ
+    void SelectTarget()  //ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½&Å¸ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     {
-        //ÀûÀÇ ÅÏÀÌ ¾Æ´Ï°í ¸¶¿ì½º Å¬¸¯À» ÇÒ ¶§
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Æ´Ï°ï¿½ ï¿½ï¿½ï¿½ì½º Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½
         if (state != GameState.enemyTurn && Input.GetMouseButtonDown(0))
         {
-            //Å¬¸¯µÈ ¿ÀºêÁ§Æ® °¡Á®¿À±â
+            //Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             GameObject clickObject = UIManager.Instance.MouseGetObject();
 
             if (clickObject != null)
@@ -109,36 +109,36 @@ public class BattleManager : MonoBehaviour
 
                     if (Selecting)
                     {
-                        //ÀûÀÌ ÀÌ¹Ì ¼±ÅÃµÈ Àû ¸®½ºÆ®¿¡ ÀÖ´ÂÁö È®ÀÎ
+                        //ï¿½ï¿½ï¿½ï¿½ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
                         if (targetObjects.Contains(selectedEnemy))
                         {
-                            //µ¿ÀÏÇÑ ÇÃ·¹ÀÌ¾î Å¬¸¯ ½Ã ¼±ÅÃ Ãë¼Ò
+                            //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Å¬ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
                             targetObjects.Remove(selectedEnemy);
-                            Debug.Log("Àû Ä³¸¯ÅÍ ¼±ÅÃ Ãë¼ÒµÊ");
+                            Debug.Log("ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Òµï¿½");
                         }
                         else
                         {
-                            //»õ·Î¿î Àû ¼±ÅÃ
+                            //ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                             targetObjects.Add(selectedEnemy);
-                            Debug.Log("Àû Ä³¸¯ÅÍ ¼±ÅÃµÊ");
+                            Debug.Log("ï¿½ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½");
                             Selecting = false;
                         }
                     }    
                 }
-                //ÇÃ·¹ÀÌ¾î Ä³¸¯ÅÍ ¼±ÅÃ ¶Ç´Â Àç¼±ÅÃ
+                //ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ç´ï¿½ ï¿½ç¼±ï¿½ï¿½
                 else if (clickObject.tag == "Player")
                 {
                     if (Selecting)
                     {
-                        Debug.Log("ÀûÀ» ¼±ÅÃÇØÁÖ¼¼¿ä.");
+                        Debug.Log("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¼ï¿½ï¿½ï¿½.");
                         return;
                     }
                     CharacterManager selectedPlayer = clickObject.GetComponent<CharacterManager>();
 
-                    //ÇÃ·¹ÀÌ¾î°¡ ÀÌ¹Ì ¼±ÅÃµÈ ÇÃ·¹ÀÌ¾î ¸®½ºÆ®¿¡ ÀÖ´ÂÁö È®ÀÎ
+                    //ï¿½Ã·ï¿½ï¿½Ì¾î°¡ ï¿½Ì¹ï¿½ ï¿½ï¿½ï¿½Ãµï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½Ö´ï¿½ï¿½ï¿½ È®ï¿½ï¿½
                     if (playerObjects.Contains(selectedPlayer))
                     {
-                        //¸ÅÄªµÈ Àû »èÁ¦
+                        //ï¿½ï¿½Äªï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                         int index = playerObjects.IndexOf(selectedPlayer);
                         if (index != -1)
                         {
@@ -148,21 +148,21 @@ public class BattleManager : MonoBehaviour
                             }
                             
                         }
-                        //µ¿ÀÏÇÑ ÇÃ·¹ÀÌ¾î Å¬¸¯ ½Ã ¼±ÅÃ Ãë¼Ò
+                        //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Å¬ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
                         playerObjects.Remove(selectedPlayer);
-                        Debug.Log("ÇÃ·¹ÀÌ¾î Ä³¸¯ÅÍ ¼±ÅÃ Ãë¼ÒµÊ");
+                        Debug.Log("ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Òµï¿½");
                         
                     }
                     else
                     {
-                        //»õ·Î¿î ÇÃ·¹ÀÌ¾î ¼±ÅÃ
+                        //ï¿½ï¿½ï¿½Î¿ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½
                         playerObjects.Add(selectedPlayer);
-                        Debug.Log("ÇÃ·¹ÀÌ¾î Ä³¸¯ÅÍ ¼±ÅÃµÊ");
+                        Debug.Log("ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ Ä³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ãµï¿½");
                         Selecting = true;
                     }
                 }
 
-                //¾Æ±º°ú ÀûÀÌ ¸ðµÎ ¼±ÅÃµÇ¾ú´ÂÁö È®ÀÎ
+                //ï¿½Æ±ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ÃµÇ¾ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
                 PlayerSelect = playerObjects.Count > 0;
                 EnemySelect = targetObjects.Count > 0;
                 if (playerObjects.Count == PlayerCheck && targetObjects.Count == EnemyCheck)
@@ -180,32 +180,32 @@ public class BattleManager : MonoBehaviour
 
 
     
-    void CoinRoll(CharacterManager Object, ref int succesCount)// Á¤½Å·Â¿¡ ºñ·ÊÇÏ¿© ÄÚÀÎ °á°ú Á¶Á¤
+    void CoinRoll(CharacterManager Object, ref int succesCount)// ï¿½ï¿½ï¿½Å·Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
         {
-            float maxMenTality = 100f; // ÃÖ´ë Á¤½Å·Â
-            float maxProbability = 0.6f; // ÃÖ´ë È®·ü (60%)
+            float maxMenTality = 100f; // ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½Å·ï¿½
+            float maxProbability = 0.6f; // ï¿½Ö´ï¿½ È®ï¿½ï¿½ (60%)
 
-            // Á¤½Å·Â¿¡ µû¸¥ È®·ü °è»ê
+            // ï¿½ï¿½ï¿½Å·Â¿ï¿½ ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ï¿½
             float currentProbability = Mathf.Max(0f, maxProbability * (Object.MenTality / maxMenTality));
 
             for (int j = 0; j < Object.Coin - 1; j++)
             {
-                // ÄÚÀÎ ´øÁö±â: ÇöÀç È®·ü¿¡ µû¶ó ¼º°ø ¿©ºÎ °áÁ¤
+                // ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
                 if (Random.value < currentProbability)
                 {
                     Object.successCount++;
                 }
             }
             Object.coinbonus = succesCount * Object.DmgUp;
-            Debug.Log($"{Object.CharName}ÀÇ ÄÚÀÎ ´øÁö±â ¼º°ø È½¼ö: {succesCount} / {Object.Coin} ");
-            Debug.Log($"{Object.CharName}ÀÇ ³²Àº ÄÚÀÎ: {Object.Coin} / {Object.MaxCoin}");
+            Debug.Log($"{Object.CharName}ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ È½ï¿½ï¿½: {succesCount} / {Object.Coin} ");
+            Debug.Log($"{Object.CharName}ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: {Object.Coin} / {Object.MaxCoin}");
         }
     }
 
-    void DiffCheck()// °ø°Ý ·¹º§°ú ¹æ¾î ·¹º§À» ºñ±³ÇÏ¿© º¸³Ê½º ¹× ÆÐ³ÎÆ¼ Àû¿ë
+    void DiffCheck()// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½ ï¿½ï¿½ ï¿½Ð³ï¿½Æ¼ ï¿½ï¿½ï¿½ï¿½
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
@@ -224,75 +224,85 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
-    IEnumerator PlayerAttack()  //ÇÃ·¹ÀÌ¾î °ø°ÝÅÏ
+    IEnumerator PlayerAttack()  //ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     {
         Attaking = true;
         yield return new WaitForSeconds(1f);
 
-        Debug.Log("ÇÃ·¹ÀÌ¾î °ø°Ý");
-        //°ø°Ý·¹º§ ¹æ¾î·¹º§ ´ëÁ¶ for ¹Û¿¡ ÀÖ´Â ÀÌÀ¯´Â 1È¸¸¸ Ã¼Å©ÇÏ±â À§ÇØ. ÀÌ¹Ì ¹Ì¸® for µ¹¸²
+        Debug.Log("ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ ï¿½ï¿½ï¿½ï¿½");
+        //ï¿½ï¿½ï¿½Ý·ï¿½ï¿½ï¿½ ï¿½ï¿½î·¹ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ for ï¿½Û¿ï¿½ ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1È¸ï¿½ï¿½ Ã¼Å©ï¿½Ï±ï¿½ ï¿½ï¿½ï¿½ï¿½. ï¿½Ì¹ï¿½ ï¿½Ì¸ï¿½ for ï¿½ï¿½ï¿½ï¿½
         DiffCheck();
-        //¸®½ºÆ®ÀÇ °¢ ÇÃ·¹ÀÌ¾î¿Í ÀûÀÌ 1:1·Î ¸ÅÄªµÇ¾î °ø°Ý
+        //ï¿½ï¿½ï¿½ï¿½Æ®ï¿½ï¿½ ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ 1:1ï¿½ï¿½ ï¿½ï¿½Äªï¿½Ç¾ï¿½ ï¿½ï¿½ï¿½ï¿½
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
         {
             CharacterManager playerObject = playerObjects[i];
             CharacterManager targetObject = targetObjects[i];
 
-            //ÇÃ·¹ÀÌ¾î¿Í ÀûÀÇ °ø°Ý·Â ¹× ÇÇÇØ °è»ê
+            //ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ý·ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 
 
-            //ÄÚÀÎ ¸®·Ñ
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
             playerObject.successCount = targetObject.successCount = 0;
-            Debug.Log($"ÇÃ·¹ÀÌ¾î: {playerObject.CharName}, Àû: {targetObject.CharName}");
+            Debug.Log($"ï¿½Ã·ï¿½ï¿½Ì¾ï¿½: {playerObject.CharName}, ï¿½ï¿½: {targetObject.CharName}");
             CoinRoll(playerObject, ref playerObject.successCount);
             CoinRoll(targetObject, ref targetObject.successCount);
 
 
-            //ÃÖÁ¾ µ¥¹ÌÁö
+            //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             CalculateDamage(playerObject, targetObject);
 
 
-            //ÇÕ ÁøÇà
-            //µÑ Áß ÇÑ¸íÀÌ¶óµµ ÄÚÀÎÀÌ ¾ø´Ù¸é ¹Ù·Î ÇÇÇØ¸¦ ÁÜ
+            //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
+            //ï¿½ï¿½ ï¿½ï¿½ ï¿½Ñ¸ï¿½ï¿½Ì¶ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ù¸ï¿½ ï¿½Ù·ï¿½ ï¿½ï¿½ï¿½Ø¸ï¿½ ï¿½ï¿½
             if (!(playerObject.Coin > 0 || targetObject.Coin > 0))
             {
                 ApplyDamageNoCoins(playerObject, targetObject);
             }
             else
             {
-                //±³Âø »óÅÂ Ã³¸® È£Ãâ
+                //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ È£ï¿½ï¿½
                 if (targetObject.Dmg == playerObject.Dmg)
                 {
                     HandleDraw(ref i, playerObject, targetObject);
                 }
                 else
                 {
-                    //½ÂÆÐ Ã³¸®
+                    //ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
                     HandleBattleResult(playerObject, targetObject, ref i);
                 }
             }
 
-            //Ä³¸¯ÅÍµé Ã¼·Â È®ÀÎ ÈÄ »ç¸Á Ã³¸®
+            //Ä³ï¿½ï¿½ï¿½Íµï¿½ Ã¼ï¿½ï¿½ È®ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
             CheckHealth(playerObject, targetObject);
         }
 
         
 
-        //°ø°Ý ÀÎ½Ä Á¾·á
+        //ï¿½ï¿½ï¿½ï¿½ ï¿½Î½ï¿½ ï¿½ï¿½ï¿½ï¿½
         Attaking = false;
     }
 
-    //µ¥¹ÌÁö ¿¬»ê ÇÔ¼ö
+    //ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
     void CalculateDamage(CharacterManager playerObject, CharacterManager targetObject)
     {
-        playerObject.Dmg = Random.Range(playerObject.MaxDmg, playerObject.MinDmg) + playerObject.coinbonus + playerObject.bonusdmg;
-        targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + targetObject.coinbonus + targetObject.bonusdmg;
-        Debug.Log($"{playerObject.CharName}ÀÇ ÃÖÁ¾ µ¥¹ÌÁö: {playerObject.Dmg} (±âº» µ¥¹ÌÁö: {playerObject.MinDmg} - {playerObject.MaxDmg}, ÄÚÀÎ º¸³Ê½º: {playerObject.coinbonus}, °ø°Ý º¸³Ê½º: {playerObject.bonusdmg})");
-        Debug.Log($"{targetObject.CharName}ÀÇ ÃÖÁ¾ µ¥¹ÌÁö: {targetObject.Dmg} (±âº» µ¥¹ÌÁö: {targetObject.MinDmg} - {targetObject.MaxDmg}, ÄÚÀÎ º¸³Ê½º: {targetObject.coinbonus}, °ø°Ý º¸³Ê½º: {targetObject.bonusdmg})");
+        playerObject.Dmg = Random.Range(playerObject.MaxDmg, playerObject.MinDmg) + playercoinbonus + playerbonusdmg;
+        targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + enemycoinbonus + enemybonusdmg;
+        Debug.Log($"{playerObject.CharName}ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: {playerObject.Dmg} (ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: {playerObject.MinDmg} - {playerObject.MaxDmg}, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½: {playercoinbonus}, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½: {playerbonusdmg})");
+        Debug.Log($"{targetObject.CharName}ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: {targetObject.Dmg} (ï¿½âº» ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: {targetObject.MinDmg} - {targetObject.MaxDmg}, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½: {enemycoinbonus}, ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ê½ï¿½: {enemybonusdmg})");
+
+        //ï¿½Û¾ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+
+        //ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¡
+        Vector2 playerPosition = playerObject.transform.position;
+        Vector2 targetPosition = targetObject.transform.position;
+
+        //ï¿½Ã·ï¿½ï¿½Ì¾ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ó¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ç¥ï¿½ï¿½
+        UIManager.Instance.ShowDamageText(playerObject.Dmg, targetPosition + Vector2.up * 1f);
+        UIManager.Instance.ShowDamageText(targetObject.Dmg, playerPosition + Vector2.up * 1f);
     }
 
-    //ÄÚÀÎµéÀÌ ³²¾ÆÀÖÁö ¾Ê´Ù¸é
+    //ï¿½ï¿½ï¿½Îµï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ê´Ù¸ï¿½
     void ApplyDamageNoCoins(CharacterManager playerObject, CharacterManager targetObject)
     {
         if (playerObject.Coin == 0)
@@ -305,7 +315,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    //³²¾ÆÀÖ´Â ÄÚÀÎ ¸¸Å­ Å¸°Ý
+    //ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Å­ Å¸ï¿½ï¿½
     void ApplyRemainingDamage(CharacterManager attacker, CharacterManager victim)
     {
         for (int j = 0; j < attacker.Coin; j++)
@@ -318,21 +328,21 @@ public class BattleManager : MonoBehaviour
                 attacker.Dmg = Random.Range(attacker.MaxDmg, attacker.MinDmg) + coinBonus + attacker.bonusdmg;
             }
             victim.hp -= attacker.Dmg - victim.DefLevel;
-            victim.MenTality -= 2;  //ÆÐ¹è ½Ã Á¤½Å·Â -2
+            victim.MenTality -= 2;  //ï¿½Ð¹ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Å·ï¿½ -2
             if (attacker.MenTality < 100)
             {
-                attacker.MenTality += 1;    //½Â¸® ½Ã Á¤½Å·Â +1
+                attacker.MenTality += 1;    //ï¿½Â¸ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½Å·ï¿½ +1
             }
-            Debug.Log($"{attacker.CharName}ÀÌ(°¡) °¡ÇÑ ÇÇÇØ: {attacker.Dmg}");
+            Debug.Log($"{attacker.CharName}ï¿½ï¿½(ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½: {attacker.Dmg}");
         }
         
     }
 
-    //±³Âø »óÅÂ ÇÔ¼ö
+    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
     void HandleDraw(ref int i, CharacterManager playerObject, CharacterManager targetObject)
     {
         draw++;
-        Debug.Log($"±³Âø »óÅÂ ¹ß»ý {draw} È¸");
+        Debug.Log($"ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ {draw} È¸");
         
         if (draw < 3)
         {
@@ -342,12 +352,12 @@ public class BattleManager : MonoBehaviour
         {
             playerObject.MenTality -= 10;
             targetObject.MenTality -= 10;
-            Debug.Log($"{playerObject.CharName}°ú {targetObject.CharName} ÀÇ Á¤½Å·Â °¨¼Ò");
+            Debug.Log($"{playerObject.CharName}ï¿½ï¿½ {targetObject.CharName} ï¿½ï¿½ ï¿½ï¿½ï¿½Å·ï¿½ ï¿½ï¿½ï¿½ï¿½");
             draw = 0;
         }
     }
     
-    //Àç´ë°á
+    //ï¿½ï¿½ï¿½ï¿½
     void HandleBattleResult(CharacterManager playerObject, CharacterManager targetObject, ref int i)
     {
         CharacterManager winner;
@@ -366,7 +376,7 @@ public class BattleManager : MonoBehaviour
         if (loser.Coin > 0)
         {
             loser.Coin--;
-            i--;    //´Ù½Ã ½Î¿ì±â
+            i--;    //ï¿½Ù½ï¿½ ï¿½Î¿ï¿½ï¿½
         }
         else
         {
@@ -374,7 +384,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    //¹èÆ² ½ÃÀÛÇÒ ¶§ ÀÎ½ÄÇÑ ¾Æ±º&Àû±ºÀÇ ÃÑ °¹¼ö¸¦ Ã¼·ÂÀÌ 0ÀÌÇÏ°¡ µÆ´Ù¸é Â÷°¨ÇÏ±â.
+    //ï¿½ï¿½Æ² ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Î½ï¿½ï¿½ï¿½ ï¿½Æ±ï¿½&ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ Ã¼ï¿½ï¿½ï¿½ï¿½ 0ï¿½ï¿½ï¿½Ï°ï¿½ ï¿½Æ´Ù¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï±ï¿½.
     void CheckHealth(CharacterManager playerObject, CharacterManager targetObject)
     {
         if (playerObject.hp <= 0)
@@ -392,28 +402,28 @@ public class BattleManager : MonoBehaviour
         if (EnemyCheck == 0)
         {
             state = GameState.win;
-            Debug.Log("½Â¸®");
+            Debug.Log("ï¿½Â¸ï¿½");
             EndBattle();
         }
         else if (PlayerCheck == 0)
         {
             state = GameState.lose;
-            Debug.Log("ÆÐ¹è");
+            Debug.Log("ï¿½Ð¹ï¿½");
             EndBattle();
         }
     }
-    void EndBattle()    //ÀüÅõ Á¾·á
+    void EndBattle()    //ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
     {
-        Debug.Log("ÀüÅõ Á¾·á");
+        Debug.Log("ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½");
     }
 
-    IEnumerator EnemyTurn() //Àû °ø°ÝÅÏ
+    IEnumerator EnemyTurn() //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     {
         yield return new WaitForSeconds(1f);
-        //Àû °ø°Ý ÄÚµå
-        Debug.Log("Àû °ø°Ý");
+        //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Úµï¿½
+        Debug.Log("ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½");
 
-        //Àû °ø°Ý ³¡³µÀ¸¸é ÇÃ·¹ÀÌ¾î¿¡°Ô ÅÏ ³Ñ±â±â
+        //ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ã·ï¿½ï¿½Ì¾î¿¡ï¿½ï¿½ ï¿½ï¿½ ï¿½Ñ±ï¿½ï¿½
         state = GameState.playerTurn;
         AllTargetSelected = false;
     }
