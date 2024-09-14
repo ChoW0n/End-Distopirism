@@ -133,7 +133,6 @@ GameObject:
   m_Component:
   - component: {fileID: 218051722}
   - component: {fileID: 218051721}
-  - component: {fileID: 218051726}
   - component: {fileID: 218051724}
   - component: {fileID: 218051725}
   - component: {fileID: 218051727}
@@ -241,12 +240,6 @@ MonoBehaviour:
   Live: 0
   skills:
   - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
-  currentState: 0
-  idleAnimation: {fileID: 7400000, guid: ebd50d6494f6064458b8ccda7fe3994c, type: 2}
-  attackAnimation: {fileID: 7400000, guid: fac56df72801f524d89c12e42b4753ea, type: 2}
-  hitAnimation: {fileID: 7400000, guid: b4c85b7b86d107d4283ae16d9fec2a47, type: 2}
-  skillAnimation: {fileID: 0}
-  animationController: {fileID: 218051726}
 --- !u!95 &218051725
 Animator:
   serializedVersion: 5
@@ -268,20 +261,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!114 &218051726
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 218051720}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9477d6facd87fea478e54e59f316bf32, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  animator: {fileID: 218051725}
-  characterManager: {fileID: 218051724}
 --- !u!70 &218051727
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -1074,12 +1053,6 @@ MonoBehaviour:
   successCount: 0
   Live: 0
   skills: []
-  currentState: 0
-  idleAnimation: {fileID: 0}
-  attackAnimation: {fileID: 0}
-  hitAnimation: {fileID: 0}
-  skillAnimation: {fileID: 0}
-  animationController: {fileID: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
