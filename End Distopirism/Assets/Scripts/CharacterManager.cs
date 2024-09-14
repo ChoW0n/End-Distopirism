@@ -18,6 +18,11 @@ public class CharacterManager : MonoBehaviour
     public int Coin; //동일 피해 합 시작 시 인식할 코인 합 패배 시 1개씩 차감
     public float MenTality = 100f; //정신력
 
+    public int bonusdmg = 0;    //diff 차이에 따른 데미지 증가값
+
+    public int coinbonus = 0; //코인 보너스
+    public int successCount = 0;  //성공 횟수
+
     public bool Live;
 
     // 스킬 리스트 추가

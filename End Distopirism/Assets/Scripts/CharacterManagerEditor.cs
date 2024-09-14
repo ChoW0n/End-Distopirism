@@ -46,7 +46,6 @@ public class CharacterManagerEditor : Editor
         EditorGUILayout.LabelField($"스킬: {skillName}");
         EditorGUILayout.LabelField($"폴더: {skillFolderName}");
         EditorGUILayout.LabelField($"공격력: {skill.MinDmg}~{skill.MaxDmg}");
-        EditorGUILayout.LabelField($"최대 공격력: {skill.MaxDmg}");
         EditorGUILayout.LabelField($"코인당 상승: {skill.DmgUp}");
 
         EditorGUILayout.EndVertical();

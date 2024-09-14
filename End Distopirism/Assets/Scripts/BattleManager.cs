@@ -30,14 +30,9 @@ public class BattleManager : MonoBehaviour
     public bool Attaking = false;
     public bool Selecting = false;  //적을 선택해야하는 상태일 때
 
-    public int playerbonusdmg = 0;
-    public int enemybonusdmg = 0;
 
-    public int playercoinbonus = 0;
-    public int playersuccessCount = 0;
 
-    public int enemycoinbonus = 0;
-    public int enemysuccessCount = 0;
+
 
 
 
@@ -185,7 +180,7 @@ public class BattleManager : MonoBehaviour
 
 
     
-    void CoinRoll(CharacterManager Object, ref int succesCount, ref int coinBonus)// 정신력에 비례하여 코인 결과 조정
+    void CoinRoll(CharacterManager Object, ref int succesCount)// 정신력에 비례하여 코인 결과 조정
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
@@ -196,15 +191,15 @@ public class BattleManager : MonoBehaviour
             // 정신력에 따른 확률 계산
             float currentProbability = Mathf.Max(0f, maxProbability * (Object.MenTality / maxMenTality));
 
-            for (int j = 0; j < Object.Coin; j++)
+            for (int j = 0; j < Object.Coin - 1; j++)
             {
                 // 코인 던지기: 현재 확률에 따라 성공 여부 결정
                 if (Random.value < currentProbability)
                 {
-                    enemysuccessCount++;
+                    Object.successCount++;
                 }
             }
-            coinBonus = succesCount * Object.DmgUp;
+            Object.coinbonus = succesCount * Object.DmgUp;
             Debug.Log($"{Object.CharName}의 코인 던지기 성공 횟수: {succesCount} / {Object.Coin} ");
             Debug.Log($"{Object.CharName}의 남은 코인: {Object.Coin} / {Object.MaxCoin}");
         }
@@ -221,11 +216,11 @@ public class BattleManager : MonoBehaviour
 
             if (playerObject.DmgLevel > (targetObject.DefLevel + 4))
             {
-                playerbonusdmg = ((playerObject.DmgLevel - playerObject.DefLevel) / 4) * 1;
+                playerObject.bonusdmg = ((playerObject.DmgLevel - playerObject.DefLevel) / 4) * 1;
             }
             if (targetObject.DmgLevel > (playerObject.DefLevel + 4))
             {
-                enemybonusdmg = ((targetObject.DmgLevel - playerObject.DefLevel) / 4) * 1;
+                targetObject.bonusdmg = ((targetObject.DmgLevel - playerObject.DefLevel) / 4) * 1;
             }
         }
     }
@@ -248,10 +243,10 @@ public class BattleManager : MonoBehaviour
 
 
             //코인 리롤
-            playersuccessCount = enemysuccessCount = 0;
+            playerObject.successCount = targetObject.successCount = 0;
             Debug.Log($"플레이어: {playerObject.CharName}, 적: {targetObject.CharName}");
-            CoinRoll(playerObject, ref playersuccessCount, ref playercoinbonus);
-            CoinRoll(targetObject, ref enemysuccessCount, ref enemycoinbonus);
+            CoinRoll(playerObject, ref playerObject.successCount);
+            CoinRoll(targetObject, ref targetObject.successCount);
 
 
             //최종 데미지
@@ -291,10 +286,10 @@ public class BattleManager : MonoBehaviour
     //데미지 연산 함수
     void CalculateDamage(CharacterManager playerObject, CharacterManager targetObject)
     {
-        playerObject.Dmg = Random.Range(playerObject.MaxDmg, playerObject.MinDmg) + playercoinbonus + playerbonusdmg;
-        targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + enemycoinbonus + enemybonusdmg;
-        Debug.Log($"{playerObject.CharName}의 최종 데미지: {playerObject.Dmg} (기본 데미지: {playerObject.MinDmg} - {playerObject.MaxDmg}, 코인 보너스: {playercoinbonus}, 공격 보너스: {playerbonusdmg})");
-        Debug.Log($"{targetObject.CharName}의 최종 데미지: {targetObject.Dmg} (기본 데미지: {targetObject.MinDmg} - {targetObject.MaxDmg}, 코인 보너스: {enemycoinbonus}, 공격 보너스: {enemybonusdmg})");
+        playerObject.Dmg = Random.Range(playerObject.MaxDmg, playerObject.MinDmg) + playerObject.coinbonus + playerObject.bonusdmg;
+        targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + targetObject.coinbonus + targetObject.bonusdmg;
+        Debug.Log($"{playerObject.CharName}의 최종 데미지: {playerObject.Dmg} (기본 데미지: {playerObject.MinDmg} - {playerObject.MaxDmg}, 코인 보너스: {playerObject.coinbonus}, 공격 보너스: {playerObject.bonusdmg})");
+        Debug.Log($"{targetObject.CharName}의 최종 데미지: {targetObject.Dmg} (기본 데미지: {targetObject.MinDmg} - {targetObject.MaxDmg}, 코인 보너스: {targetObject.coinbonus}, 공격 보너스: {targetObject.bonusdmg})");
     }
 
     //코인들이 남아있지 않다면
@@ -315,6 +310,13 @@ public class BattleManager : MonoBehaviour
     {
         for (int j = 0; j < attacker.Coin; j++)
         {
+            int successCount = 0;
+            int coinBonus = 0;
+            if (j > 0)
+            {
+                CoinRoll(attacker, ref successCount);
+                attacker.Dmg = Random.Range(attacker.MaxDmg, attacker.MinDmg) + coinBonus + attacker.bonusdmg;
+            }
             victim.hp -= attacker.Dmg - victim.DefLevel;
             victim.MenTality -= 2;  //패배 시 정신력 -2
             if (attacker.MenTality < 100)
@@ -346,8 +348,21 @@ public class BattleManager : MonoBehaviour
     }
     
     //재대결
-    void HandleBattleResult(CharacterManager winner, CharacterManager loser, ref int i)
+    void HandleBattleResult(CharacterManager playerObject, CharacterManager targetObject, ref int i)
     {
+        CharacterManager winner;
+        CharacterManager loser;
+        if(playerObject.Dmg > targetObject.Dmg)
+        {
+            winner = playerObject;
+            loser = targetObject;
+        }
+        else
+        {
+            winner = targetObject;
+            loser = playerObject;
+        }
+
         if (loser.Coin > 0)
         {
             loser.Coin--;
