@@ -58,4 +58,26 @@ public class UIManager : MonoBehaviour
         //Debug.LogWarning("레이캐스트가 오브젝트를 맞추지 못했습니다.");
         return null;
     }
+
+    public GameObject damageTextPrefab;
+    public Canvas canvas;
+
+    public void ShowDamageText(int damageAmount, Vector2 worldPosition)
+    {
+        //데미지 텍스트 생성
+        GameObject damageText = Instantiate(damageTextPrefab, canvas.transform);
+
+        //텍스트 내용 변경
+        Text textcomponent = damageText.GetComponentInChildren<Text>();
+        textcomponent.text = damageAmount.ToString();
+        
+        Vector2 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
+
+        //텍스트 위치 조정
+        RectTransform rectTransform = damageText.GetComponent<RectTransform>();
+        rectTransform.position = screenPosition;
+
+        //데미지 텍스트가 2초 후 사라지게 설정
+        Destroy(damageText, 2f);
+    }
 }
