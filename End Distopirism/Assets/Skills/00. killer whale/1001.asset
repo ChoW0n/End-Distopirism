@@ -12,8 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db1306fda4998642a4f4050170ffa8c, type: 3}
   m_Name: 1001
   m_EditorClassIdentifier: 
-  skillName: "\uAC00\uC704"
+  skillName: "\uB9C8\uAD6C\uBCA0\uAE30"
   Sprite: {fileID: 21300000, guid: 48f82160233089645b648daee9f589bc, type: 3}
-  MaxDmg: 0
-  MinDmg: 0
-  DmgUp: 0
+  MaxDmg: 10
+  MinDmg: 7
+  DmgUp: 2
+  skillEffect: "\uC0C1\uB300\uB97C \uB9C8\uAD6C \uBCB1\uB2C8\uB2E4."

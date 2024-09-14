@@ -13,6 +13,7 @@ public class Skill : ScriptableObject
     public int DmgUp;           // 레벨 상승 시 증가 데미지
     [TextArea(3, 5)]
     public string skillEffect;  // 스킬 효과 설명
+    public AnimationClip animationClip;     //해당 스킬 애니메이션
 
     // 스킬의 정보를 출력하는 메서드
     public void PrintSkillInfo()
