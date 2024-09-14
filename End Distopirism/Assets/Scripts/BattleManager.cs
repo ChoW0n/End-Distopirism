@@ -295,6 +295,16 @@ public class BattleManager : MonoBehaviour
         targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + enemycoinbonus + enemybonusdmg;
         Debug.Log($"{playerObject.CharName}의 최종 데미지: {playerObject.Dmg} (기본 데미지: {playerObject.MinDmg} - {playerObject.MaxDmg}, 코인 보너스: {playercoinbonus}, 공격 보너스: {playerbonusdmg})");
         Debug.Log($"{targetObject.CharName}의 최종 데미지: {targetObject.Dmg} (기본 데미지: {targetObject.MinDmg} - {targetObject.MaxDmg}, 코인 보너스: {enemycoinbonus}, 공격 보너스: {enemybonusdmg})");
+
+        //작업 진행중
+
+        //플레이어와 적의 위치
+        Vector2 playerPosition = playerObject.transform.position;
+        Vector2 targetPosition = targetObject.transform.position;
+
+        //플레이어와 적의 머리 위에 데미지 표시
+        UIManager.Instance.ShowDamageText(playerObject.Dmg, targetPosition + Vector2.up * 1f);
+        UIManager.Instance.ShowDamageText(targetObject.Dmg, playerPosition + Vector2.up * 1f);
     }
 
     //코인들이 남아있지 않다면

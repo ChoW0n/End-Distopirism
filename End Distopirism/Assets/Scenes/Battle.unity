@@ -882,6 +882,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b0aff9c7b3078d48b458b61456cea40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  damageTextPrefab: {fileID: 2460147550066848299, guid: f2ef3cb4019e4d843a363bac573e9659, type: 3}
+  canvas: {fileID: 1943806772}
 --- !u!4 &1448075423
 Transform:
   m_ObjectHideFlags: 0
