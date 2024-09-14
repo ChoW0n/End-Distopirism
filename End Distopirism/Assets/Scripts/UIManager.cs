@@ -6,7 +6,7 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
-    // Singleton ÀÎ½ºÅÏ½º
+    // Singleton ì¸ìŠ¤í„´ìŠ¤
     public static UIManager Instance
     {
         get
@@ -15,14 +15,14 @@ public class UIManager : MonoBehaviour
             {
                 uim_instance = FindObjectOfType<UIManager>();
 
-                // ¸¸¾à UIManager ÀÎ½ºÅÏ½º°¡ Á¸ÀçÇÏÁö ¾ÊÀ¸¸é ¿À·ù Ãâ·Â
+                // ë§Œì•½ UIManager ì¸ìŠ¤í„´ìŠ¤ê°€ ì¡´ì¬í•˜ì§€ ì•Šìœ¼ë©´ ì˜¤ë¥˜ ì¶œë ¥
                 if (uim_instance == null)
                 {
-                    Debug.LogError("UIManager ÀÎ½ºÅÏ½º¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+                    Debug.LogError("UIManager ì¸ìŠ¤í„´ìŠ¤ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
                 }
                 else
                 {
-                    // ½Ì±ÛÅæ ÀÎ½ºÅÏ½º¸¦ ÆÄ±«µÇÁö ¾Êµµ·Ï ¼³Á¤
+                    // ì‹±ê¸€í†¤ ì¸ìŠ¤í„´ìŠ¤ë¥¼ íŒŒê´´ë˜ì§€ ì•Šë„ë¡ ì„¤ì •
                     DontDestroyOnLoad(uim_instance.gameObject);
                 }
             }
@@ -31,16 +31,16 @@ public class UIManager : MonoBehaviour
     }
     private static UIManager uim_instance;
 
-    // ¸¶¿ì½º Å¬¸¯ À§Ä¡¿¡¼­ ¿ÀºêÁ§Æ® ¹İÈ¯
+    // ë§ˆìš°ìŠ¤ í´ë¦­ ìœ„ì¹˜ì—ì„œ ì˜¤ë¸Œì íŠ¸ ë°˜í™˜
     public GameObject MouseGetObject()
     {
-        // ¸¶¿ì½º À§Ä¡¸¦ ¿ùµå ÁÂÇ¥·Î º¯È¯
+        // ë§ˆìš°ìŠ¤ ìœ„ì¹˜ë¥¼ ì›”ë“œ ì¢Œí‘œë¡œ ë³€í™˜
         Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
-        // µğ¹ö±×: ¸¶¿ì½º À§Ä¡ Ãâ·Â
-        //Debug.Log("¸¶¿ì½º ¿ùµå ÁÂÇ¥: " + pos);
+        // ë””ë²„ê·¸: ë§ˆìš°ìŠ¤ ìœ„ì¹˜ ì¶œë ¥
+        //Debug.Log("ë§ˆìš°ìŠ¤ ì›”ë“œ ì¢Œí‘œ: " + pos);
 
-        // ·¹ÀÌÄ³½ºÆ®·Î ¿ÀºêÁ§Æ®¸¦ Å½Áö
+        // ë ˆì´ìºìŠ¤íŠ¸ë¡œ ì˜¤ë¸Œì íŠ¸ë¥¼ íƒì§€
         RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
         GameObject clickObject = null;
 
@@ -48,39 +48,14 @@ public class UIManager : MonoBehaviour
         {
             clickObject = hit.transform.gameObject;
 
-            // µğ¹ö±×: ¼±ÅÃµÈ ¿ÀºêÁ§Æ® ÀÌ¸§ Ãâ·Â
-            Debug.Log("Å¬¸¯ÇÑ ¿ÀºêÁ§Æ®: " + clickObject.name);
+            // ë””ë²„ê·¸: ì„ íƒëœ ì˜¤ë¸Œì íŠ¸ ì´ë¦„ ì¶œë ¥
+            Debug.Log("í´ë¦­í•œ ì˜¤ë¸Œì íŠ¸: " + clickObject.name);
 
             return clickObject;
         }
 
-        // µğ¹ö±×: ¸ÂÃá ¿ÀºêÁ§Æ®°¡ ¾øÀ» ¶§
-        //Debug.LogWarning("·¹ÀÌÄ³½ºÆ®°¡ ¿ÀºêÁ§Æ®¸¦ ¸ÂÃßÁö ¸øÇß½À´Ï´Ù.");
+        // ë””ë²„ê·¸: ë§ì¶˜ ì˜¤ë¸Œì íŠ¸ê°€ ì—†ì„ ë•Œ
+        //Debug.LogWarning("ë ˆì´ìºìŠ¤íŠ¸ê°€ ì˜¤ë¸Œì íŠ¸ë¥¼ ë§ì¶”ì§€ ëª»í–ˆìŠµë‹ˆë‹¤.");
         return null;
-    }
-
-
-    //ÀÛ¾÷ ÁøÇàÁß
-    public GameObject damageTextPrefab;
-    public Canvas canvas;
-
-    public void ShowDamageText(int damageAmount, Vector2 worldPosition)
-    {
-        //µ¥¹ÌÁö ÅØ½ºÆ® »ı¼º
-        GameObject damageText = Instantiate(damageTextPrefab, canvas.transform);
-
-        //ÅØ½ºÆ® ³»¿ë º¯°æ
-        Text textComponent = damageText.GetComponentInChildren<Text>();
-        textComponent.text = damageAmount.ToString();
-
-        //¿ùµå ÁÂÇ¥¸¦ ½ºÅ©¸° ÁÂÇ¥·Î ¹Ù²ã Äµ¹ö½º¿¡ À§Ä¡ ¼³Á¤
-        Vector2 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
-
-        //ÅØ½ºÆ® À§Ä¡¸¦ Á¶Á¤
-        RectTransform recttransform = damageText.GetComponentInChildren<RectTransform>();
-        recttransform.position = screenPosition;
-
-        //µ¥¹ÌÁö ÅØ½ºÆ®¸¦ 1ÃÊ ÈÄ¿¡ »ç¶óÁö°Ô ¼³Á¤
-        Destroy(damageText, 2f);
     }
 }

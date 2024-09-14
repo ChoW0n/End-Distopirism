@@ -20,15 +20,15 @@ public class BattleManager : MonoBehaviour
     }
 
     public GameState state;
-    public bool isLive; //�� ���� ��
-    public bool EnemySelect; //�� ���� ����
-    public bool PlayerSelect; //�� ĳ���� ���� ����
-    public int draw = 0; //���� Ƚ��
+    public bool isLive; //적 생존 시
+    public bool EnemySelect; //적 선택 여부
+    public bool PlayerSelect; //내 캐릭터 선택 여부
+    public int draw = 0; //교착 횟수
     public int PlayerCheck = 0;
     public int EnemyCheck = 0;
-    public bool AllTargetSelected = false; //��� Ÿ���� �����ߴ°�
+    public bool AllTargetSelected = false; //모든 타겟을 설정했는가
     public bool Attaking = false;
-    public bool Selecting = false;  //���� �����ؾ��ϴ� ������ ��
+    public bool Selecting = false;  //적을 선택해야하는 상태일 때
 
 
 
@@ -36,13 +36,13 @@ public class BattleManager : MonoBehaviour
 
 
 
-    //�ټ��� ���� �÷��̾ ������ �� �ֵ��� List ���
+    //다수의 적과 플레이어를 선택할 수 있도록 List 사용
     public List<CharacterManager> targetObjects = new List<CharacterManager>();
     public List<CharacterManager> playerObjects = new List<CharacterManager>();
 
     void Awake()
     {
-        state = GameState.start; // ���� ���� �˸�
+        state = GameState.start; // 전투 시작 알림
         if (Instance == null)
         {
             Instance = this;
@@ -58,30 +58,30 @@ public class BattleManager : MonoBehaviour
         GameObject[] enemys = GameObject.FindGameObjectsWithTag("Enemy");
         PlayerCheck = players.Length;
         EnemyCheck = enemys.Length;
-        BattleStart();  //���� ���۽� ���� ����
+        BattleStart();  //게임 시작시 전투 시작
     }
     public void Update()
     {
         if (state == GameState.playerTurn && Input.GetMouseButtonDown(0))
         {
             SelectTarget();
-            Debug.Log("���� ���� ��");
+            Debug.Log("선택 실행 중");
         }
     }
 
     void BattleStart()
     {
-        //���� ���� �� ĳ���� ���� �ִϸ��̼� �� ȿ���� �ְ� ������ ���� �Ʒ���
+        //전투 시작 시 캐릭터 등장 애니메이션 등 효과를 넣고 싶으면 여기 아래에
 
-        //�÷��̾ ������ �� �ѱ��
+        //플레이어나 적에게 턴 넘기기
         state = GameState.playerTurn;
         isLive = true;
     }
 
-    //����&�� ���� ��ư
+    //공격&턴 종료 버튼
     public void PlayerAttackButton()
     {
-        //�÷��̾� ���� �ƴ� �� ����
+        //플레이어 턴이 아닐 때 방지
         if (state != GameState.playerTurn || !AllTargetSelected)
         {
             return;
@@ -93,12 +93,12 @@ public class BattleManager : MonoBehaviour
         StartCoroutine(PlayerAttack());
     }
 
-    void SelectTarget()  //�� ĳ����&Ÿ�� ����
+    void SelectTarget()  //내 캐릭터&타겟 선택
     {
-        //���� ���� �ƴϰ� ���콺 Ŭ���� �� ��
+        //적의 턴이 아니고 마우스 클릭을 할 때
         if (state != GameState.enemyTurn && Input.GetMouseButtonDown(0))
         {
-            //Ŭ���� ������Ʈ ��������
+            //클릭된 오브젝트 가져오기
             GameObject clickObject = UIManager.Instance.MouseGetObject();
 
             if (clickObject != null)
@@ -109,36 +109,36 @@ public class BattleManager : MonoBehaviour
 
                     if (Selecting)
                     {
-                        //���� �̹� ���õ� �� ����Ʈ�� �ִ��� Ȯ��
+                        //적이 이미 선택된 적 리스트에 있는지 확인
                         if (targetObjects.Contains(selectedEnemy))
                         {
-                            //������ �÷��̾� Ŭ�� �� ���� ���
+                            //동일한 플레이어 클릭 시 선택 취소
                             targetObjects.Remove(selectedEnemy);
-                            Debug.Log("�� ĳ���� ���� ��ҵ�");
+                            Debug.Log("적 캐릭터 선택 취소됨");
                         }
                         else
                         {
-                            //���ο� �� ����
+                            //새로운 적 선택
                             targetObjects.Add(selectedEnemy);
-                            Debug.Log("�� ĳ���� ���õ�");
+                            Debug.Log("적 캐릭터 선택됨");
                             Selecting = false;
                         }
                     }    
                 }
-                //�÷��̾� ĳ���� ���� �Ǵ� �缱��
+                //플레이어 캐릭터 선택 또는 재선택
                 else if (clickObject.tag == "Player")
                 {
                     if (Selecting)
                     {
-                        Debug.Log("���� �������ּ���.");
+                        Debug.Log("적을 선택해주세요.");
                         return;
                     }
                     CharacterManager selectedPlayer = clickObject.GetComponent<CharacterManager>();
 
-                    //�÷��̾ �̹� ���õ� �÷��̾� ����Ʈ�� �ִ��� Ȯ��
+                    //플레이어가 이미 선택된 플레이어 리스트에 있는지 확인
                     if (playerObjects.Contains(selectedPlayer))
                     {
-                        //��Ī�� �� ����
+                        //매칭된 적 삭제
                         int index = playerObjects.IndexOf(selectedPlayer);
                         if (index != -1)
                         {
@@ -148,21 +148,21 @@ public class BattleManager : MonoBehaviour
                             }
                             
                         }
-                        //������ �÷��̾� Ŭ�� �� ���� ���
+                        //동일한 플레이어 클릭 시 선택 취소
                         playerObjects.Remove(selectedPlayer);
-                        Debug.Log("�÷��̾� ĳ���� ���� ��ҵ�");
+                        Debug.Log("플레이어 캐릭터 선택 취소됨");
                         
                     }
                     else
                     {
-                        //���ο� �÷��̾� ����
+                        //새로운 플레이어 선택
                         playerObjects.Add(selectedPlayer);
-                        Debug.Log("�÷��̾� ĳ���� ���õ�");
+                        Debug.Log("플레이어 캐릭터 선택됨");
                         Selecting = true;
                     }
                 }
 
-                //�Ʊ��� ���� ��� ���õǾ����� Ȯ��
+                //아군과 적이 모두 선택되었는지 확인
                 PlayerSelect = playerObjects.Count > 0;
                 EnemySelect = targetObjects.Count > 0;
                 if (playerObjects.Count == PlayerCheck && targetObjects.Count == EnemyCheck)
@@ -180,32 +180,32 @@ public class BattleManager : MonoBehaviour
 
 
     
-    void CoinRoll(CharacterManager Object, ref int succesCount)// ���ŷ¿� ����Ͽ� ���� ��� ����
+    void CoinRoll(CharacterManager Object, ref int succesCount)// 정신력에 비례하여 코인 결과 조정
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
         {
-            float maxMenTality = 100f; // �ִ� ���ŷ�
-            float maxProbability = 0.6f; // �ִ� Ȯ�� (60%)
+            float maxMenTality = 100f; // 최대 정신력
+            float maxProbability = 0.6f; // 최대 확률 (60%)
 
-            // ���ŷ¿� ���� Ȯ�� ���
+            // 정신력에 따른 확률 계산
             float currentProbability = Mathf.Max(0f, maxProbability * (Object.MenTality / maxMenTality));
 
             for (int j = 0; j < Object.Coin - 1; j++)
             {
-                // ���� ������: ���� Ȯ���� ���� ���� ���� ����
+                // 코인 던지기: 현재 확률에 따라 성공 여부 결정
                 if (Random.value < currentProbability)
                 {
                     Object.successCount++;
                 }
             }
             Object.coinbonus = succesCount * Object.DmgUp;
-            Debug.Log($"{Object.CharName}�� ���� ������ ���� Ƚ��: {succesCount} / {Object.Coin} ");
-            Debug.Log($"{Object.CharName}�� ���� ����: {Object.Coin} / {Object.MaxCoin}");
+            Debug.Log($"{Object.CharName}의 코인 던지기 성공 횟수: {succesCount} / {Object.Coin} ");
+            Debug.Log($"{Object.CharName}의 남은 코인: {Object.Coin} / {Object.MaxCoin}");
         }
     }
 
-    void DiffCheck()// ���� ������ ��� ������ ���Ͽ� ���ʽ� �� �г�Ƽ ����
+    void DiffCheck()// 공격 레벨과 방어 레벨을 비교하여 보너스 및 패널티 적용
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
@@ -224,85 +224,75 @@ public class BattleManager : MonoBehaviour
             }
         }
     }
-    IEnumerator PlayerAttack()  //�÷��̾� ������
+    IEnumerator PlayerAttack()  //플레이어 공격턴
     {
         Attaking = true;
         yield return new WaitForSeconds(1f);
 
-        Debug.Log("�÷��̾� ����");
-        //���ݷ��� ���� ���� for �ۿ� �ִ� ������ 1ȸ�� üũ�ϱ� ����. �̹� �̸� for ����
+        Debug.Log("플레이어 공격");
+        //공격레벨 방어레벨 대조 for 밖에 있는 이유는 1회만 체크하기 위해. 이미 미리 for 돌림
         DiffCheck();
-        //����Ʈ�� �� �÷��̾�� ���� 1:1�� ��Ī�Ǿ� ����
+        //리스트의 각 플레이어와 적이 1:1로 매칭되어 공격
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
         {
             CharacterManager playerObject = playerObjects[i];
             CharacterManager targetObject = targetObjects[i];
 
-            //�÷��̾�� ���� ���ݷ� �� ���� ���
+            //플레이어와 적의 공격력 및 피해 계산
 
 
-            //���� ����
+            //코인 리롤
             playerObject.successCount = targetObject.successCount = 0;
-            Debug.Log($"�÷��̾�: {playerObject.CharName}, ��: {targetObject.CharName}");
+            Debug.Log($"플레이어: {playerObject.CharName}, 적: {targetObject.CharName}");
             CoinRoll(playerObject, ref playerObject.successCount);
             CoinRoll(targetObject, ref targetObject.successCount);
 
 
-            //���� ������
+            //최종 데미지
             CalculateDamage(playerObject, targetObject);
 
 
-            //�� ����
-            //�� �� �Ѹ��̶� ������ ���ٸ� �ٷ� ���ظ� ��
+            //합 진행
+            //둘 중 한명이라도 코인이 없다면 바로 피해를 줌
             if (!(playerObject.Coin > 0 || targetObject.Coin > 0))
             {
                 ApplyDamageNoCoins(playerObject, targetObject);
             }
             else
             {
-                //���� ���� ó�� ȣ��
+                //교착 상태 처리 호출
                 if (targetObject.Dmg == playerObject.Dmg)
                 {
                     HandleDraw(ref i, playerObject, targetObject);
                 }
                 else
                 {
-                    //���� ó��
+                    //승패 처리
                     HandleBattleResult(playerObject, targetObject, ref i);
                 }
             }
 
-            //ĳ���͵� ü�� Ȯ�� �� ��� ó��
+            //캐릭터들 체력 확인 후 사망 처리
             CheckHealth(playerObject, targetObject);
         }
 
         
 
-        //���� �ν� ����
+        //공격 인식 종료
         Attaking = false;
     }
 
-    //������ ���� �Լ�
+    //데미지 연산 함수
     void CalculateDamage(CharacterManager playerObject, CharacterManager targetObject)
     {
-        playerObject.Dmg = Random.Range(playerObject.MaxDmg, playerObject.MinDmg) + playercoinbonus + playerbonusdmg;
-        targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + enemycoinbonus + enemybonusdmg;
-        Debug.Log($"{playerObject.CharName}�� ���� ������: {playerObject.Dmg} (�⺻ ������: {playerObject.MinDmg} - {playerObject.MaxDmg}, ���� ���ʽ�: {playercoinbonus}, ���� ���ʽ�: {playerbonusdmg})");
-        Debug.Log($"{targetObject.CharName}�� ���� ������: {targetObject.Dmg} (�⺻ ������: {targetObject.MinDmg} - {targetObject.MaxDmg}, ���� ���ʽ�: {enemycoinbonus}, ���� ���ʽ�: {enemybonusdmg})");
-
-        //�۾� ������
-
-        //�÷��̾�� ���� ��ġ
-        Vector2 playerPosition = playerObject.transform.position;
-        Vector2 targetPosition = targetObject.transform.position;
-
-        //�÷��̾�� ���� �Ӹ� ���� ������ ǥ��
-        UIManager.Instance.ShowDamageText(playerObject.Dmg, targetPosition + Vector2.up * 1f);
-        UIManager.Instance.ShowDamageText(targetObject.Dmg, playerPosition + Vector2.up * 1f);
+        playerObject.Dmg = Random.Range(playerObject.MaxDmg, playerObject.MinDmg) + playerObject.coinbonus + playerObject.bonusdmg;
+        targetObject.Dmg = Random.Range(targetObject.MaxDmg, targetObject.MinDmg) + targetObject.coinbonus + targetObject.bonusdmg;
+        Debug.Log($"{playerObject.CharName}의 최종 데미지: {playerObject.Dmg} (기본 데미지: {playerObject.MinDmg} - {playerObject.MaxDmg}, 코인 보너스: {playerObject.coinbonus}, 공격 보너스: {playerObject.bonusdmg})");
+        Debug.Log($"{targetObject.CharName}의 최종 데미지: {targetObject.Dmg} (기본 데미지: {targetObject.MinDmg} - {targetObject.MaxDmg}, 코인 보너스: {targetObject.coinbonus}, 공격 보너스: {targetObject.bonusdmg})");
     }
 
-    //���ε��� �������� �ʴٸ�
+    //코인들이 남아있지 않다면
     void ApplyDamageNoCoins(CharacterManager playerObject, CharacterManager targetObject)
     {
         if (playerObject.Coin == 0)
@@ -315,7 +305,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    //�����ִ� ���� ��ŭ Ÿ��
+    //남아있는 코인 만큼 타격
     void ApplyRemainingDamage(CharacterManager attacker, CharacterManager victim)
     {
         for (int j = 0; j < attacker.Coin; j++)
@@ -328,21 +318,21 @@ public class BattleManager : MonoBehaviour
                 attacker.Dmg = Random.Range(attacker.MaxDmg, attacker.MinDmg) + coinBonus + attacker.bonusdmg;
             }
             victim.hp -= attacker.Dmg - victim.DefLevel;
-            victim.MenTality -= 2;  //�й� �� ���ŷ� -2
+            victim.MenTality -= 2;  //패배 시 정신력 -2
             if (attacker.MenTality < 100)
             {
-                attacker.MenTality += 1;    //�¸� �� ���ŷ� +1
+                attacker.MenTality += 1;    //승리 시 정신력 +1
             }
-            Debug.Log($"{attacker.CharName}��(��) ���� ����: {attacker.Dmg}");
+            Debug.Log($"{attacker.CharName}이(가) 가한 피해: {attacker.Dmg}");
         }
         
     }
 
-    //���� ���� �Լ�
+    //교착 상태 함수
     void HandleDraw(ref int i, CharacterManager playerObject, CharacterManager targetObject)
     {
         draw++;
-        Debug.Log($"���� ���� �߻� {draw} ȸ");
+        Debug.Log($"교착 상태 발생 {draw} 회");
         
         if (draw < 3)
         {
@@ -352,12 +342,12 @@ public class BattleManager : MonoBehaviour
         {
             playerObject.MenTality -= 10;
             targetObject.MenTality -= 10;
-            Debug.Log($"{playerObject.CharName}�� {targetObject.CharName} �� ���ŷ� ����");
+            Debug.Log($"{playerObject.CharName}과 {targetObject.CharName} 의 정신력 감소");
             draw = 0;
         }
     }
     
-    //����
+    //재대결
     void HandleBattleResult(CharacterManager playerObject, CharacterManager targetObject, ref int i)
     {
         CharacterManager winner;
@@ -376,7 +366,7 @@ public class BattleManager : MonoBehaviour
         if (loser.Coin > 0)
         {
             loser.Coin--;
-            i--;    //�ٽ� �ο��
+            i--;    //다시 싸우기
         }
         else
         {
@@ -384,7 +374,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    //��Ʋ ������ �� �ν��� �Ʊ�&������ �� ������ ü���� 0���ϰ� �ƴٸ� �����ϱ�.
+    //배틀 시작할 때 인식한 아군&적군의 총 갯수를 체력이 0이하가 됐다면 차감하기.
     void CheckHealth(CharacterManager playerObject, CharacterManager targetObject)
     {
         if (playerObject.hp <= 0)
@@ -402,28 +392,28 @@ public class BattleManager : MonoBehaviour
         if (EnemyCheck == 0)
         {
             state = GameState.win;
-            Debug.Log("�¸�");
+            Debug.Log("승리");
             EndBattle();
         }
         else if (PlayerCheck == 0)
         {
             state = GameState.lose;
-            Debug.Log("�й�");
+            Debug.Log("패배");
             EndBattle();
         }
     }
-    void EndBattle()    //���� ����
+    void EndBattle()    //전투 종료
     {
-        Debug.Log("���� ����");
+        Debug.Log("전투 종료");
     }
 
-    IEnumerator EnemyTurn() //�� ������
+    IEnumerator EnemyTurn() //적 공격턴
     {
         yield return new WaitForSeconds(1f);
-        //�� ���� �ڵ�
-        Debug.Log("�� ����");
+        //적 공격 코드
+        Debug.Log("적 공격");
 
-        //�� ���� �������� �÷��̾�� �� �ѱ��
+        //적 공격 끝났으면 플레이어에게 턴 넘기기
         state = GameState.playerTurn;
         AllTargetSelected = false;
     }

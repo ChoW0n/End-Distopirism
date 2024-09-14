@@ -6,18 +6,18 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "NewSkill", menuName = "Skill")]
 public class Skill : ScriptableObject
 {
-    public string skillName;    // ½ºÅ³ ÀÌ¸§
-    public Sprite Sprite;       // ½ºÅ³ ¾ÆÀÌÄÜ
-    public int MaxDmg;         // ½ºÅ³ÀÇ ÃÖ´ë µ¥¹ÌÁö
-    public int MinDmg;         // ½ºÅ³ÀÇ ÃÖ¼Ò µ¥¹ÌÁö
-    public int DmgUp;           //ÄÚÀÎ ¼º°ø ½Ã »ó½Â ÇÇÇØ·®
+    public string skillName;    // ìŠ¤í‚¬ ì´ë¦„
+    public Sprite Sprite;       // ìŠ¤í‚¬ ì•„ì´ì½˜
+    public int MaxDmg;          // ìŠ¤í‚¬ì˜ ìµœëŒ€ ë°ë¯¸ì§€
+    public int MinDmg;          // ìŠ¤í‚¬ì˜ ìµœì†Œ ë°ë¯¸ì§€
+    public int DmgUp;           // ë ˆë²¨ ìƒìŠ¹ ì‹œ ì¦ê°€ ë°ë¯¸ì§€
 
-    // ½ºÅ³ÀÇ Á¤º¸¸¦ Ãâ·ÂÇÏ´Â ¸Ş¼­µå
+    // ìŠ¤í‚¬ì˜ ì •ë³´ë¥¼ ì¶œë ¥í•˜ëŠ” ë©”ì„œë“œ
     public void PrintSkillInfo()
     {
-        Debug.Log("½ºÅ³ ÀÌ¸§: " + skillName);
-        Debug.Log("ÃÖ´ë µ¥¹ÌÁö: " + MaxDmg);
-        Debug.Log("ÃÖ¼Ò µ¥¹ÌÁö: " + MinDmg);
-        Debug.Log("ÄÚÀÎ ¼º°ø ½Ã µ¥¹ÌÁö »ó½Â: " + DmgUp);
+        Debug.Log("ìŠ¤í‚¬ ì´ë¦„: " + skillName);
+        Debug.Log("ìµœëŒ€ ë°ë¯¸ì§€: " + MaxDmg);
+        Debug.Log("ìµœì†Œ ë°ë¯¸ì§€: " + MinDmg);
+        Debug.Log("ë ˆë²¨ ìƒìŠ¹ ì‹œ ë°ë¯¸ì§€ ì¦ê°€: " + DmgUp);
     }
 }

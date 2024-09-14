@@ -4,29 +4,29 @@ using UnityEngine;
 public class CharacterManager : MonoBehaviour
 {
     public string CharName;
-    public int maxHp;   // ÃÖ´ë Ã¼·Â
-    public int hp;      // ÇöÀç Ã¼·Â
+    public int maxHp;   // ìµœëŒ€ ì²´ë ¥
+    public int hp;      // í˜„ì¬ ì²´ë ¥
 
-    public int DefLevel;     // ¹æ¾î ·¹º§
+    public int DefLevel;     // ë°©ì–´ ë ˆë²¨
 
-    public int DmgLevel;  // ÃÖ¼Ò µ¥¹ÌÁö
-    public int Dmg;     // ÃÖÁ¾ µ¥¹ÌÁö
+    public int DmgLevel;  // ìµœì†Œ ë°ë¯¸ì§€
+    public int Dmg;     // ìµœì¢… ë°ë¯¸ì§€
     public int MaxDmg;
-    public int MinDmg;  // ÃÖ´ë µ¥¹ÌÁö
-    public int DmgUp;   // ÄÚÀÎ ¼º°ø ½Ã 1°³´ç µ¥¹ÌÁö Áõ°¡°ª
-    public int MaxCoin; //ÃÖ´ë ÄÚÀÎ·®
-    public int Coin; //µ¿ÀÏ ÇÇÇØ ÇÕ ½ÃÀÛ ½Ã ÀÎ½ÄÇÒ ÄÚÀÎ ÇÕ ÆĞ¹è ½Ã 1°³¾¿ Â÷°¨
-    public float MenTality = 100f; //Á¤½Å·Â
+    public int MinDmg;  // ìµœëŒ€ ë°ë¯¸ì§€
+    public int DmgUp;   // ì½”ì¸ ì„±ê³µ ì‹œ 1ê°œë‹¹ ë°ë¯¸ì§€ ì¦ê°€ê°’
+    public int MaxCoin; //ìµœëŒ€ ì½”ì¸ëŸ‰
+    public int Coin; //ë™ì¼ í”¼í•´ í•© ì‹œì‘ ì‹œ ì¸ì‹í•  ì½”ì¸ í•© íŒ¨ë°° ì‹œ 1ê°œì”© ì°¨ê°
+    public float MenTality = 100f; //ì •ì‹ ë ¥
 
-    public int bonusdmg = 0;    //diff Â÷ÀÌ¿¡ µû¸¥ µ¥¹ÌÁö Áõ°¡°ª
+    public int bonusdmg = 0;    //diff ì°¨ì´ì— ë”°ë¥¸ ë°ë¯¸ì§€ ì¦ê°€ê°’
 
-    public int coinbonus = 0; //ÄÚÀÎ º¸³Ê½º
-    public int successCount = 0;  //¼º°ø È½¼ö
+    public int coinbonus = 0; //ì½”ì¸ ë³´ë„ˆìŠ¤
+    public int successCount = 0;  //ì„±ê³µ íšŸìˆ˜
 
     public bool Live;
 
-    // ½ºÅ³ ¸®½ºÆ® Ãß°¡
-    public List<Skill> skills;  // Unity ÀÎ½ºÆåÅÍ¿¡¼­ ½ºÅ³ ScriptableObject¸¦ µî·ÏÇÒ ¼ö ÀÖµµ·Ï ÇÔ
+    // ìŠ¤í‚¬ ë¦¬ìŠ¤íŠ¸ ì¶”ê°€
+    public List<Skill> skills;  // Unity ì¸ìŠ¤í™í„°ì—ì„œ ìŠ¤í‚¬ ScriptableObjectë¥¼ ë“±ë¡í•  ìˆ˜ ìˆë„ë¡ í•¨
 
     void Start()
     {
@@ -39,7 +39,7 @@ public class CharacterManager : MonoBehaviour
             }
         }
 
-        // ½ºÅ³À» Àû¿ëÇÏ¿© Ä³¸¯ÅÍÀÇ µ¥¹ÌÁö °ªÀ» ¼³Á¤ÇÕ´Ï´Ù.
+        // ìŠ¤í‚¬ì„ ì ìš©í•˜ì—¬ ìºë¦­í„°ì˜ ë°ë¯¸ì§€ ê°’ì„ ì„¤ì •í•©ë‹ˆë‹¤.
         ApplySkill();
     }
 
@@ -56,18 +56,18 @@ public class CharacterManager : MonoBehaviour
         }
     }
 
-    // ½ºÅ³À» Ä³¸¯ÅÍ¿¡ Àû¿ëÇÏ´Â ¸Ş¼­µå
+    // ìŠ¤í‚¬ì„ ìºë¦­í„°ì— ì ìš©í•˜ëŠ” ë©”ì„œë“œ
     void ApplySkill()
     {
         if (skills != null && skills.Count > 0)
         {
-            // ½ºÅ³À» Àû¿ëÇÏ¿© Ä³¸¯ÅÍÀÇ µ¥¹ÌÁö °ªÀ» ¼³Á¤ÇÏ´Â ¿¹½Ã
-            Skill skill = skills[0]; // ¿¹½Ã·Î Ã¹ ¹øÂ° ½ºÅ³¸¸ Àû¿ë
+            // ìŠ¤í‚¬ì„ ì ìš©í•˜ì—¬ ìºë¦­í„°ì˜ ë°ë¯¸ì§€ ê°’ì„ ì„¤ì •í•˜ëŠ” ì˜ˆì‹œ
+            Skill skill = skills[0]; // ì˜ˆì‹œë¡œ ì²« ë²ˆì§¸ ìŠ¤í‚¬ë§Œ ì ìš©
             MaxDmg = skill.MaxDmg;
             MinDmg = skill.MinDmg;
             DmgUp = skill.DmgUp;
-            // ÇÊ¿äÇÑ °æ¿ì Ãß°¡·Î Ã³¸®ÇÒ ÄÚµå
-            Debug.Log("½ºÅ³ÀÌ Ä³¸¯ÅÍ¿¡ Àû¿ëµÇ¾ú½À´Ï´Ù: " + skill.skillName);
+            // í•„ìš”í•œ ê²½ìš° ì¶”ê°€ë¡œ ì²˜ë¦¬í•  ì½”ë“œ
+            Debug.Log("ìŠ¤í‚¬ì´ ìºë¦­í„°ì— ì ìš©ë˜ì—ˆìŠµë‹ˆë‹¤: " + skill.skillName);
         }
     }
 }

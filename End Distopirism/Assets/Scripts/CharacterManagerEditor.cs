@@ -6,30 +6,30 @@ using UnityEngine;
 [CustomEditor(typeof(CharacterManager))]
 public class CharacterManagerEditor : Editor
 {
-    private const float MaxIconSize = 100f; // ÃÖ´ë ¾ÆÀÌÄÜ Å©±â
+    private const float MaxIconSize = 100f; // ìµœëŒ€ ì•„ì´ì½˜ í¬ê¸°
 
     public override void OnInspectorGUI()
     {
         CharacterManager characterManager = (CharacterManager)target;
 
-        // ±âº» ÀÎ½ºÆåÅÍ¸¦ ±×¸³´Ï´Ù.
+        // ê¸°ë³¸ ì¸ìŠ¤í™í„°ë¥¼ ê·¸ë¦½ë‹ˆë‹¤.
         DrawDefaultInspector();
 
         if (characterManager.skills != null && characterManager.skills.Count > 0)
         {
-            EditorGUILayout.LabelField("Ä³¸¯ÅÍ ½ºÅ³ ¸ñ·Ï", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("ìºë¦­í„° ìŠ¤í‚¬ ëª©ë¡", EditorStyles.boldLabel);
 
             foreach (var skill in characterManager.skills)
             {
                 if (skill == null) continue;
 
-                // ½ºÅ³ÀÇ Á¤º¸¿Í ¾ÆÀÌÄÜ Ç¥½Ã
+                // ìŠ¤í‚¬ì˜ ì •ë³´ì™€ ì•„ì´ì½˜ í‘œì‹œ
                 DisplaySkillInfo(skill);
             }
         }
         else
         {
-            EditorGUILayout.LabelField("½ºÅ³ ¾øÀ½");
+            EditorGUILayout.LabelField("ìŠ¤í‚¬ ì—†ìŒ");
         }
     }
 
@@ -43,10 +43,10 @@ public class CharacterManagerEditor : Editor
         EditorGUILayout.BeginVertical("box");
 
         DisplaySkillIcon(skill.Sprite, skill);
-        EditorGUILayout.LabelField($"½ºÅ³: {skillName}");
-        EditorGUILayout.LabelField($"Æú´õ: {skillFolderName}");
-        EditorGUILayout.LabelField($"°ø°İ·Â: {skill.MinDmg}~{skill.MaxDmg}");
-        EditorGUILayout.LabelField($"ÄÚÀÎ´ç »ó½Â: {skill.DmgUp}");
+        EditorGUILayout.LabelField($"ìŠ¤í‚¬: {skillName}");
+        EditorGUILayout.LabelField($"í´ë”: {skillFolderName}");
+        EditorGUILayout.LabelField($"ê³µê²©ë ¥: {skill.MinDmg}~{skill.MaxDmg}");
+        EditorGUILayout.LabelField($"ì½”ì¸ë‹¹ ìƒìŠ¹: {skill.DmgUp}");
 
         EditorGUILayout.EndVertical();
         EditorGUILayout.Space();
@@ -65,9 +65,9 @@ public class CharacterManagerEditor : Editor
 
             EditorGUILayout.LabelField(skillFileName);
 
-            // ¾ÆÀÌÄÜÀ» Ç¥½ÃÇÒ »ç°¢Çü ¿µ¿ªÀ» °è»êÇÕ´Ï´Ù.
+            // ì•„ì´ì½˜ì„ í‘œì‹œí•  ì‚¬ê°í˜• ì˜ì—­ì„ ê³„ì‚°í•©ë‹ˆë‹¤.
             Rect rect = GUILayoutUtility.GetRect(width, height, GUI.skin.box);
-            // GUI.DrawTexture¸¦ »ç¿ëÇÏ¿© Åõ¸í ¹è°æÀ» Áö¿øÇÕ´Ï´Ù.
+            // GUI.DrawTextureë¥¼ ì‚¬ìš©í•˜ì—¬ íˆ¬ëª… ë°°ê²½ì„ ì§€ì›í•©ë‹ˆë‹¤.
             GUI.DrawTexture(rect, texture, ScaleMode.ScaleToFit, true);
         }
         else
