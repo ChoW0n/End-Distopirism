@@ -15,11 +15,11 @@ public class CharacterManagerEditor : Editor
         // 기본 인스펙터를 그립니다.
         DrawDefaultInspector();
 
-        if (characterManager.skills != null && characterManager.skills.Count > 0)
+        if (characterManager.GetPlayer.skills != null && characterManager.GetPlayer.skills.Count > 0)
         {
             EditorGUILayout.LabelField("캐릭터 스킬 목록", EditorStyles.boldLabel);
 
-            foreach (var skill in characterManager.skills)
+            foreach (var skill in characterManager.GetPlayer.skills)
             {
                 if (skill == null) continue;
 
@@ -38,7 +38,7 @@ public class CharacterManagerEditor : Editor
         string skillName = skill.skillName;
         string skillAssetPath = AssetDatabase.GetAssetPath(skill);
         string skillFolderName = System.IO.Path.GetDirectoryName(skillAssetPath).Split('/').Last();
-        
+
 
         EditorGUILayout.BeginVertical("box");
 
