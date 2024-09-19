@@ -62,22 +62,21 @@ public class UIManager : MonoBehaviour
     public GameObject damageTextPrefab;
     public Canvas canvas;
 
-    public void ShowDamageText(int damageAmount, Vector2 worldPosition)
+    //데미지 표시 함수
+    public void ShowDamageText(int damageAmount, Vector3 worldPosition)
     {
-        //데미지 텍스트 생성
-        GameObject damageText = Instantiate(damageTextPrefab, canvas.transform);
+        GameObject damageText = Instantiate(damageTextPrefab, worldPosition, Quaternion.identity, canvas.transform);
 
-        //텍스트 내용 변경
-        Text textcomponent = damageText.GetComponentInChildren<Text>();
-        textcomponent.text = damageAmount.ToString();
-        
-        Vector2 screenPosition = Camera.main.WorldToScreenPoint(worldPosition);
+        Text textComponent = damageText.GetComponentInChildren<Text>();
+        textComponent.text = "-" + damageAmount.ToString();
 
-        //텍스트 위치 조정
+        // 월드 공간에서의 위치 설정
         RectTransform rectTransform = damageText.GetComponent<RectTransform>();
-        rectTransform.position = screenPosition;
+        rectTransform.position = worldPosition;
 
-        //데미지 텍스트가 2초 후 사라지게 설정
+        // 텍스트가 항상 카메라를 향하도록 설정
+        damageText.transform.forward = Camera.main.transform.forward;
+
         Destroy(damageText, 2f);
     }
 }
