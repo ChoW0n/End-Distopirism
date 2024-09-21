@@ -1,15 +1,17 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
+using UnityEditor.Timeline.Actions;
 using UnityEngine;
 
 public enum GameState
 {
-    Start, 
-    PlayerTurn, 
-    EnemyTurn, 
-    Win, 
-    Lose, 
-    Pause
+    start, 
+    playerTurn, 
+    enemyTurn, 
+    win, 
+    lose, 
+    pause
 }
 
 public class BattleManager : MonoBehaviour
@@ -23,7 +25,7 @@ public class BattleManager : MonoBehaviour
     public int playerCheck = 0;
     public int enemyCheck = 0;
     public bool allTargetSelected = false; //모든 타겟을 설정했는가
-    public bool attacking = false;
+    public bool attaking = false;
     public bool selecting = false;  //적을 선택해야하는 상태일 때
 
     //다수의 적과 플레이어를 선택할 수 있도록 List 사용
@@ -32,7 +34,7 @@ public class BattleManager : MonoBehaviour
 
     void Awake()
     {
-        state = GameState.Start; // 전투 시작 알림
+        state = GameState.start; // 전투 시작 알림
         if (Instance == null)
         {
             Instance = this;
@@ -46,9 +48,9 @@ public class BattleManager : MonoBehaviour
     public void Start()
     {
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
-        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
+        GameObject[] enemys = GameObject.FindGameObjectsWithTag("Enemy");
         playerCheck = players.Length;
-        enemyCheck = enemies.Length;
+        enemyCheck = enemys.Length;
 
         // 게임 시작시 전투 시작
         BattleStart();
@@ -56,7 +58,7 @@ public class BattleManager : MonoBehaviour
 
     public void Update()
     {
-        if (state == GameState.PlayerTurn && Input.GetMouseButtonDown(0))
+        if (state == GameState.playerTurn && Input.GetMouseButtonDown(0))
         {
             SelectTarget();
             Debug.Log("선택 실행 중");
@@ -69,18 +71,18 @@ public class BattleManager : MonoBehaviour
 
         // 플레이어나 적에게 턴 넘기기
         // 추후 랜덤 가능성 있음.
-        state = GameState.PlayerTurn;
+        state = GameState.playerTurn;
     }
 
     //공격&턴 종료 버튼
     public void PlayerAttackButton()
     {
         //플레이어 턴이 아닐 때 방지
-        if (state != GameState.PlayerTurn || !allTargetSelected)
+        if (state != GameState.playerTurn || !allTargetSelected)
         {
             return;
         }
-        if (attacking)
+        if (attaking)
         {
             return;
         }
@@ -163,7 +165,7 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    void CoinRoll(CharacterProfile Object, ref int succesCount)// 정신력에 비례하여 코인 결과 조정
+    void CoinRoll(CharacterProfile Object, ref int successCount)// 정신력에 비례하여 코인 결과 조정
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
@@ -182,8 +184,8 @@ public class BattleManager : MonoBehaviour
                     Object.successCount++;
                 }
             }
-            Object.coinBonus = succesCount * Object.GetPlayer.dmgUp;
-            Debug.Log($"{Object.GetPlayer.charName}의 코인 던지기 성공 횟수: {succesCount} / {Object.GetPlayer.coin} ");
+            Object.coinBonus = Object.successCount * Object.GetPlayer.dmgUp;
+            Debug.Log($"{Object.GetPlayer.charName}의 코인 던지기 성공 횟수: {Object.successCount} / {Object.GetPlayer.coin} ");
             Debug.Log($"{Object.GetPlayer.charName}의 남은 코인: {Object.GetPlayer.coin} / {Object.GetPlayer.maxCoin}");
         }
     }
@@ -197,125 +199,214 @@ public class BattleManager : MonoBehaviour
             CharacterProfile targetObject = targetObjects[i];
 
 
-            if (playerObject.GetPlayer.dmgLevel > (targetObject.GetPlayer.DefLevel + 4))
+            if (playerObject.GetPlayer.dmgLevel > (targetObject.GetPlayer.defLevel + 4))
             {
-                playerObject.bonusDmg = ((playerObject.GetPlayer.dmgLevel - playerObject.GetPlayer.DefLevel) / 4) * 1;
+                playerObject.bonusDmg = ((playerObject.GetPlayer.dmgLevel - playerObject.GetPlayer.defLevel) / 4) * 1;
             }
-            if (targetObject.GetPlayer.dmgLevel > (playerObject.GetPlayer.DefLevel + 4))
+            if (targetObject.GetPlayer.dmgLevel > (playerObject.GetPlayer.defLevel + 4))
             {
-                targetObject.bonusDmg = ((targetObject.GetPlayer.dmgLevel - playerObject.GetPlayer.DefLevel) / 4) * 1;
+                targetObject.bonusDmg = ((targetObject.GetPlayer.dmgLevel - playerObject.GetPlayer.defLevel) / 4) * 1;
             }
         }
     }
 
     IEnumerator PlayerAttack()  //플레이어 공격턴
     {
-        attacking = true;
+        attaking = true;
         yield return new WaitForSeconds(1f);
 
         Debug.Log("플레이어 공격");
+        //공격레벨 방어레벨 대조 for 밖에 있는 이유는 1회만 체크하기 위해. 이미 미리 for 돌림
         DiffCheck();
+        //리스트의 각 플레이어와 적이 1:1로 매칭되어 공격
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
         {
             CharacterProfile playerObject = playerObjects[i];
             CharacterProfile targetObject = targetObjects[i];
 
-            playerObject.totalDamageDealt = 0; // 턴 시작 시 총 데미지 초기화
+            //플레이어와 적의 공격력 및 피해 계산
 
-            while (playerObject.GetPlayer.coin > 0)
+
+            //코인 리롤
+            playerObject.successCount = targetObject.successCount = 0;
+            Debug.Log($"플레이어: {playerObject.GetPlayer.charName}, 적: {targetObject.GetPlayer.charName}");
+            CoinRoll(playerObject, ref playerObject.successCount);
+            CoinRoll(targetObject, ref targetObject.successCount);
+
+
+            //최종 데미지
+            CalculateDamage(playerObject, targetObject);
+
+
+            //합 진행
+            //둘 중 한명이라도 코인이 없다면 바로 피해를 줌
+            if (!(playerObject.GetPlayer.coin > 0 || targetObject.GetPlayer.coin > 0))
             {
-                CalculateDamage(playerObject, targetObject);
-                ApplyDamage(playerObject, targetObject);
-                playerObject.GetPlayer.coin--;
+                ApplyDamageNoCoins(playerObject, targetObject);
+            }
+            else
+            {
+                //교착 상태 처리 호출
+                if (targetObject.GetPlayer.dmg == playerObject.GetPlayer.dmg)
+                {
+                    HandleDraw(ref i, playerObject, targetObject);
+                }
+                else
+                {
+                    //승패 처리
+                    HandleBattleResult(playerObject, targetObject, ref i);
+                }
             }
 
-            // 플레이어의 총 데미지 표시 (적의 머리 위에)
-            DisplayTotalDamage(playerObject, targetObject);
+            //캐릭터들 체력 확인 후 사망 처리
+            CheckHealth(playerObject, targetObject);
         }
 
-        attacking = false;
-        yield return StartCoroutine(EnemyTurn());
+        
+
+        //공격 인식 종료
+        attaking = false;
     }
 
-    IEnumerator EnemyTurn()     //적 공격턴
+    //데미지 연산 함수
+    void CalculateDamage(CharacterProfile playerObject, CharacterProfile targetObject)
     {
-        yield return new WaitForSeconds(1f);
-        Debug.Log("적 공격");
+        playerObject.GetPlayer.dmg = Random.Range(playerObject.GetPlayer.maxDmg, playerObject.GetPlayer.minDmg) + playerObject.coinBonus + playerObject.bonusDmg;
+        targetObject.GetPlayer.dmg = Random.Range(targetObject.GetPlayer.maxDmg, targetObject.GetPlayer.minDmg) + targetObject.coinBonus + targetObject.bonusDmg;
+        Debug.Log($"{playerObject.GetPlayer.charName}의 최종 데미지: {playerObject.GetPlayer.dmg} (기본 데미지: {playerObject.GetPlayer.minDmg} - {playerObject.GetPlayer.maxDmg}, 코인 보너스: {playerObject.coinBonus}, 공격 보너스: {playerObject.bonusDmg})");
+        Debug.Log($"{targetObject.GetPlayer.charName}의 최종 데미지: {targetObject.GetPlayer.dmg} (기본 데미지: {targetObject.GetPlayer.minDmg} - {targetObject.GetPlayer.maxDmg}, 코인 보너스: {targetObject.coinBonus}, 공격 보너스: {targetObject.bonusDmg})");
+    
+        //플레이어와 적의 위치 설정
+        Vector2 playerObjectPosition = playerObject.transform.position;
+        Vector2 targetObjectPosition = targetObject.transform.position;
 
-        int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
-        for (int i = 0; i < matchCount; i++)
+        //더 높은 데미지만 표시
+        if (playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
         {
-            CharacterProfile enemyObject = targetObjects[i];
-            CharacterProfile playerObject = playerObjects[i];
+            UIManager.Instance.ShowDamageText(playerObject.GetPlayer.dmg, targetObjectPosition + Vector2.up * 2f);
+        }
+        else
+        {
+            UIManager.Instance.ShowDamageText(targetObject.GetPlayer.dmg, playerObjectPosition + Vector2.up * 2f);
+        }
 
-            enemyObject.totalDamageDealt = 0; // 턴 시작 시 총 데미지 초기화
+    }
 
-            while (enemyObject.GetPlayer.coin > 0)
+    //코인들이 남아있지 않다면
+    void ApplyDamageNoCoins(CharacterProfile playerObject, CharacterProfile targetObject)
+    {
+        if (playerObject.GetPlayer.coin == 0)
+        {
+            ApplyRemainingDamage(targetObject, playerObject);
+        }
+        else
+        {
+            ApplyRemainingDamage(playerObject, targetObject);
+        }
+    }
+
+    //남아있는 코인 만큼 타격
+    void ApplyRemainingDamage(CharacterProfile attacker, CharacterProfile victim)
+    {
+        for (int j = 0; j < attacker.GetPlayer.coin; j++)
+        {
+            attacker.successCount = 0;
+            attacker.coinBonus = 0;
+            if (j > 0)
             {
-                CalculateDamage(enemyObject, playerObject);
-                ApplyDamage(enemyObject, playerObject);
-                enemyObject.GetPlayer.coin--;
+                CoinRoll(attacker, ref attacker.successCount);
+                attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
+            }
+            victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
+            
+            if (0 >= victim.GetPlayer.hp)
+            {
+                victim.gameObject.SetActive(false);
             }
 
-            // 적의 총 데미지 표시 (플레이어의 머리 위에)
-            DisplayTotalDamage(enemyObject, playerObject);
+            victim.GetPlayer.menTality -= 2;  //패배 시 정신력 -2
+            if (attacker.GetPlayer.menTality < 100)
+            {
+                attacker.GetPlayer.menTality += 1;    //승리 시 정신력 +1
+            }
+            Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
         }
-
-        yield return new WaitForSeconds(2f); // 데미지 표시를 위한 대기 시간
-
-        state = GameState.PlayerTurn;
-        allTargetSelected = false;
+        
     }
 
-    // 데미지 계산 함수 수정
-    void CalculateDamage(CharacterProfile attacker, CharacterProfile defender)
+    //교착 상태 함수
+    void HandleDraw(ref int i, CharacterProfile playerObject, CharacterProfile targetObject)
     {
-        int damage = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
-        attacker.GetPlayer.dmg = damage;
-        attacker.totalDamageDealt += damage; // 총 데미지에 추가
-        Debug.Log($"{attacker.GetPlayer.charName}의 공격 데미지: {damage} (총 데미지: {attacker.totalDamageDealt})");
-    }
-
-    // 데미지 적용 함수
-    void ApplyDamage(CharacterProfile attacker, CharacterProfile victim)
-    {
-        int actualDamage = Mathf.Max(0, attacker.GetPlayer.dmg - victim.GetPlayer.DefLevel);
-        victim.GetPlayer.hp -= actualDamage;
-
-        if (victim.GetPlayer.hp <= 0)
+        draw++;
+        Debug.Log($"교착 상태 발생 {draw} 회");
+        
+        if (draw < 3)
         {
-            victim.OnDeath();
+            i--;
+        }
+        if (draw >= 3)
+        {
+            playerObject.GetPlayer.menTality -= 10;
+            targetObject.GetPlayer.menTality -= 10;
+            Debug.Log($"{playerObject.GetPlayer.charName}과 {targetObject.GetPlayer.charName} 의 정신력 감소");
+            draw = 0;
+        }
+    }
+    
+    //재대결
+    void HandleBattleResult(CharacterProfile playerObject, CharacterProfile targetObject, ref int i)
+    {
+        CharacterProfile winner;
+        CharacterProfile loser;
+        if(playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
+        {
+            winner = playerObject;
+            loser = targetObject;
+        }
+        else
+        {
+            winner = targetObject;
+            loser = playerObject;
         }
 
-        victim.GetPlayer.menTality -= 2;            //정신력 감소
-        if (attacker.GetPlayer.menTality < 100)
+        if (loser.GetPlayer.coin > 0)
         {
-            attacker.GetPlayer.menTality += 1;      //정신력 증가
+            loser.GetPlayer.coin--;
+            i--;    //다시 싸우기
+        }
+        else
+        {
+            ApplyRemainingDamage(winner, loser);
         }
     }
 
-    // 총 데미지 표시 함수 수정 (Vector3 사용)
-    void DisplayTotalDamage(CharacterProfile attacker, CharacterProfile defender)
+    //배틀 시작할 때 인식한 아군&적군의 총 갯수를 체력이 0이하가 됐다면 차감하기.
+    void CheckHealth(CharacterProfile playerObject, CharacterProfile targetObject)
     {
-        // 피해를 받는 대상의 위치를 Vector3로 사용하고 약간 위로 올림
-        Vector3 damagePosition = defender.transform.position + Vector3.up * 250f;
-
-        UIManager.Instance.ShowDamageText(attacker.totalDamageDealt, damagePosition);
-        Debug.Log($"{attacker.GetPlayer.charName}가 {defender.GetPlayer.charName}에게 입힌 총 데미지: {attacker.totalDamageDealt}");
+        if (playerObject.GetPlayer.hp <= 0)
+        {
+            playerCheck--;
+            playerObject.OnDeath();
+        }
+        if (targetObject.GetPlayer.hp <= 0)
+        {
+            enemyCheck--;
+            targetObject.OnDeath();
+        }
     }
 
     void CheckBattleEnd()
     {
         if (enemyCheck == 0)
         {
-            state = GameState.Win;
+            state = GameState.win;
             Debug.Log("승리");
             EndBattle();
         }
         else if (playerCheck == 0)
         {
-            state = GameState.Lose;
+            state = GameState.lose;
             Debug.Log("패배");
             EndBattle();
         }
@@ -325,5 +416,15 @@ public class BattleManager : MonoBehaviour
     {
         Debug.Log("전투 종료");
     }
-}
 
+    IEnumerator EnemyTurn() //적 공격턴
+    {
+        yield return new WaitForSeconds(1f);
+        //적 공격 코드
+        Debug.Log("적 공격");
+
+        //적 공격 끝났으면 플레이어에게 턴 넘기기
+        state = GameState.playerTurn;
+        allTargetSelected = false;
+    }
+}

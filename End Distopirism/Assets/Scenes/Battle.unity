@@ -366,13 +366,13 @@ MonoBehaviour:
     maxHp: 100
     hp: 100
     defLevel: 10
-    dmgLevel: 20
+    dmgLevel: 50
     dmg: 0
     maxDmg: 0
     minDmg: 0
     dmgUp: 0
-    maxCoin: 3
-    coin: 0
+    maxCoin: 5
+    coin: 5
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
@@ -790,7 +790,7 @@ MonoBehaviour:
   playerCheck: 0
   enemyCheck: 0
   allTargetSelected: 0
-  attacking: 0
+  attaking: 0
   selecting: 0
   targetObjects: []
   playerObjects: []
@@ -1133,7 +1133,7 @@ MonoBehaviour:
     minDmg: 0
     dmgUp: 0
     maxCoin: 3
-    coin: 0
+    coin: 3
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
