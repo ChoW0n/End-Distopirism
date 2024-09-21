@@ -362,22 +362,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player:
-    CharName: Player
+    charName: "\uAE40\uD604\uD0DC"
     maxHp: 100
     hp: 100
-    DmgLevel: 0
-    Dmg: 0
-    MaxDmg: 0
-    MinDmg: 0
-    DmgUp: 0
-    MaxCoin: 3
-    Coin: 0
-    MenTality: 100
+    defLevel: 10
+    dmgLevel: 20
+    dmg: 0
+    maxDmg: 0
+    minDmg: 0
+    dmgUp: 0
+    maxCoin: 3
+    coin: 0
+    menTality: 100
     skills:
-    - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
-  Live: 0
-  bonusdmg: 0
-  coinbonus: 0
+    - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
+  live: 0
+  bonusDmg: 0
+  coinBonus: 0
   successCount: 0
   totalDamageDealt: 0
 --- !u!212 &922897787
@@ -783,14 +784,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   state: 0
-  EnemySelect: 0
-  PlayerSelect: 0
+  enemySelect: 0
+  playerSelect: 0
   draw: 0
-  PlayerCheck: 0
-  EnemyCheck: 0
-  AllTargetSelected: 0
-  Attaking: 0
-  Selecting: 0
+  playerCheck: 0
+  enemyCheck: 0
+  allTargetSelected: 0
+  attacking: 0
+  selecting: 0
   targetObjects: []
   playerObjects: []
 --- !u!4 &1424169345
@@ -1122,22 +1123,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player:
-    CharName: Enemy
+    charName: "\uAE40\uBBFC\uC11C"
     maxHp: 100
     hp: 100
-    DmgLevel: 0
-    Dmg: 0
-    MaxDmg: 0
-    MinDmg: 0
-    DmgUp: 0
-    MaxCoin: 3
-    Coin: 0
-    MenTality: 100
+    defLevel: 5
+    dmgLevel: 10
+    dmg: 0
+    maxDmg: 0
+    minDmg: 0
+    dmgUp: 0
+    maxCoin: 3
+    coin: 0
+    menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
-  Live: 0
-  bonusdmg: 0
-  coinbonus: 0
+  live: 0
+  bonusDmg: 0
+  coinBonus: 0
   successCount: 0
   totalDamageDealt: 0
 --- !u!1660057539 &9223372036854775807

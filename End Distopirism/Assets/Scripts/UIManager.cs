@@ -8,29 +8,29 @@ public class UIManager : MonoBehaviour
 {
     public GameObject damageTextPrefab;
     public Canvas canvas;
-    private static UIManager uim_instance;
+    private static UIManager uimInstance;
 
     // Singleton 인스턴스
     public static UIManager Instance
     {
         get
         {
-            if (uim_instance == null)
+            if (uimInstance == null)
             {
-                uim_instance = FindObjectOfType<UIManager>();
+                uimInstance = FindObjectOfType<UIManager>();
 
                 // 만약 UIManager 인스턴스가 존재하지 않으면 오류 출력
-                if (uim_instance == null)
+                if (uimInstance == null)
                 {
                     Debug.LogError("UIManager 인스턴스를 찾을 수 없습니다.");
                 }
                 else
                 {
                     // 싱글톤 인스턴스를 파괴되지 않도록 설정
-                    DontDestroyOnLoad(uim_instance.gameObject);
+                    DontDestroyOnLoad(uimInstance.gameObject);
                 }
             }
-            return uim_instance;
+            return uimInstance;
         }
     }
 
@@ -61,8 +61,6 @@ public class UIManager : MonoBehaviour
         //Debug.LogWarning("레이캐스트가 오브젝트를 맞추지 못했습니다.");
         return null;
     }
-
-
 
     //데미지 표시 함수
     public void ShowDamageText(int damageAmount, Vector3 worldPosition)

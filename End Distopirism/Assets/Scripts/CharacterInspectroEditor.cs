@@ -3,23 +3,23 @@ using UnityEditor;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-[CustomEditor(typeof(CharacterManager))]
-public class CharacterManagerEditor : Editor
+[CustomEditor(typeof(CharacterProfile))]
+public class CharacterInspectroEditor : Editor
 {
     private const float MaxIconSize = 100f; // 최대 아이콘 크기
 
     public override void OnInspectorGUI()
     {
-        CharacterManager characterManager = (CharacterManager)target;
+        CharacterProfile characterProfile = (CharacterProfile)target;
 
         // 기본 인스펙터를 그립니다.
         DrawDefaultInspector();
 
-        if (characterManager.GetPlayer.skills != null && characterManager.GetPlayer.skills.Count > 0)
+        if (characterProfile.GetPlayer.skills != null && characterProfile.GetPlayer.skills.Count > 0)
         {
             EditorGUILayout.LabelField("캐릭터 스킬 목록", EditorStyles.boldLabel);
 
-            foreach (var skill in characterManager.GetPlayer.skills)
+            foreach (var skill in characterProfile.GetPlayer.skills)
             {
                 if (skill == null) continue;
 
@@ -42,11 +42,11 @@ public class CharacterManagerEditor : Editor
 
         EditorGUILayout.BeginVertical("box");
 
-        DisplaySkillIcon(skill.Sprite, skill);
+        DisplaySkillIcon(skill.sprite, skill);
         EditorGUILayout.LabelField($"스킬: {skillName}");
         EditorGUILayout.LabelField($"폴더: {skillFolderName}");
-        EditorGUILayout.LabelField($"공격력: {skill.MinDmg}~{skill.MaxDmg}");
-        EditorGUILayout.LabelField($"코인당 상승: {skill.DmgUp}");
+        EditorGUILayout.LabelField($"공격력: {skill.minDmg}~{skill.maxDmg}");
+        EditorGUILayout.LabelField($"코인당 상승: {skill.dmgUp}");
 
         EditorGUILayout.EndVertical();
         EditorGUILayout.Space();
