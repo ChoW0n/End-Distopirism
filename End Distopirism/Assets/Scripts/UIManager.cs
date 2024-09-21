@@ -6,6 +6,10 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public GameObject damageTextPrefab;
+    public Canvas canvas;
+    private static UIManager uim_instance;
+
     // Singleton 인스턴스
     public static UIManager Instance
     {
@@ -29,7 +33,6 @@ public class UIManager : MonoBehaviour
             return uim_instance;
         }
     }
-    private static UIManager uim_instance;
 
     // 마우스 클릭 위치에서 오브젝트 반환
     public GameObject MouseGetObject()
@@ -59,8 +62,7 @@ public class UIManager : MonoBehaviour
         return null;
     }
 
-    public GameObject damageTextPrefab;
-    public Canvas canvas;
+
 
     //데미지 표시 함수
     public void ShowDamageText(int damageAmount, Vector3 worldPosition)
