@@ -32,6 +32,7 @@ public class BattleManager : MonoBehaviour
     public List<CharacterProfile> targetObjects = new List<CharacterProfile>();
     public List<CharacterProfile> playerObjects = new List<CharacterProfile>();
 
+
     void Awake()
     {
         state = GameState.start; // 전투 시작 알림
@@ -220,6 +221,8 @@ public class BattleManager : MonoBehaviour
         DiffCheck();
         //리스트의 각 플레이어와 적이 1:1로 매칭되어 공격
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
+
+
         for (int i = 0; i < matchCount; i++)
         {
             CharacterProfile playerObject = playerObjects[i];
@@ -238,6 +241,8 @@ public class BattleManager : MonoBehaviour
             //최종 데미지
             CalculateDamage(playerObject, targetObject);
 
+            //데미지 계산 후 1초 대기
+            yield return new WaitForSeconds(1f);
 
             //합 진행
             //둘 중 한명이라도 코인이 없다면 바로 피해를 줌
@@ -259,11 +264,12 @@ public class BattleManager : MonoBehaviour
                 }
             }
 
+            // 데미지 적용 후 1초 대기
+            yield return new WaitForSeconds(1f);
+
             //캐릭터들 체력 확인 후 사망 처리
             CheckHealth(playerObject, targetObject);
         }
-
-        
 
         //공격 인식 종료
         attaking = false;
@@ -274,9 +280,10 @@ public class BattleManager : MonoBehaviour
     {
         playerObject.GetPlayer.dmg = Random.Range(playerObject.GetPlayer.maxDmg, playerObject.GetPlayer.minDmg) + playerObject.coinBonus + playerObject.bonusDmg;
         targetObject.GetPlayer.dmg = Random.Range(targetObject.GetPlayer.maxDmg, targetObject.GetPlayer.minDmg) + targetObject.coinBonus + targetObject.bonusDmg;
+
         Debug.Log($"{playerObject.GetPlayer.charName}의 최종 데미지: {playerObject.GetPlayer.dmg} (기본 데미지: {playerObject.GetPlayer.minDmg} - {playerObject.GetPlayer.maxDmg}, 코인 보너스: {playerObject.coinBonus}, 공격 보너스: {playerObject.bonusDmg})");
         Debug.Log($"{targetObject.GetPlayer.charName}의 최종 데미지: {targetObject.GetPlayer.dmg} (기본 데미지: {targetObject.GetPlayer.minDmg} - {targetObject.GetPlayer.maxDmg}, 코인 보너스: {targetObject.coinBonus}, 공격 보너스: {targetObject.bonusDmg})");
-    
+
         //플레이어와 적의 위치 설정
         Vector2 playerObjectPosition = playerObject.transform.position;
         Vector2 targetObjectPosition = targetObject.transform.position;
@@ -284,13 +291,13 @@ public class BattleManager : MonoBehaviour
         //더 높은 데미지만 표시
         if (playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
         {
-            UIManager.Instance.ShowDamageText(playerObject.GetPlayer.dmg, targetObjectPosition + Vector2.up * 2f);
+            UIManager.Instance.ShowDamageText(playerObject.GetPlayer.dmg, targetObjectPosition + Vector2.up * 250f);
         }
         else
         {
-            UIManager.Instance.ShowDamageText(targetObject.GetPlayer.dmg, playerObjectPosition + Vector2.up * 2f);
+            UIManager.Instance.ShowDamageText(targetObject.GetPlayer.dmg, playerObjectPosition + Vector2.up * 250f);
         }
-
+        
     }
 
     //코인들이 남아있지 않다면

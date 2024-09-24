@@ -380,7 +380,6 @@ MonoBehaviour:
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
-  totalDamageDealt: 0
 --- !u!212 &922897787
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1141,7 +1140,6 @@ MonoBehaviour:
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
-  totalDamageDealt: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

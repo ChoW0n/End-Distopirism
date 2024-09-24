@@ -14,7 +14,6 @@ public class CharacterProfile : MonoBehaviour
     public int coinBonus = 0; //코인 보너스
     public int successCount = 0;  //성공 횟수
 
-    public int totalDamageDealt = 0; // 이번 턴에 입힌 총 데미지
 
     void Start()
     {
