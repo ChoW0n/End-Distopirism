@@ -839,6 +839,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageTextPrefab: {fileID: 1086182536178314378, guid: f2ef3cb4019e4d843a363bac573e9659, type: 3}
   canvas: {fileID: 1943806772}
+  playerProfilePrefab: {fileID: 7940692328786759546, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+  enemyProfilePrefab: {fileID: 7940692328786759546, guid: 5ca387edeb9e2c8498ee5178fe7d7375, type: 3}
 --- !u!4 &1448075423
 Transform:
   m_ObjectHideFlags: 0

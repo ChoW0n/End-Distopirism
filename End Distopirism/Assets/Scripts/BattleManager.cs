@@ -164,6 +164,10 @@ public class BattleManager : MonoBehaviour
         {
             allTargetSelected = false;
         }
+
+        UIManager.Instance.ShowCharacterInfo(playerObjects[0]);
+        UIManager.Instance.ShowCharacterInfo(targetObjects[0]);
+
     }
 
     void CoinRoll(CharacterProfile Object, ref int successCount)// 정신력에 비례하여 코인 결과 조정

@@ -50,4 +50,9 @@ public class CharacterProfile : MonoBehaviour
         gameObject.SetActive(false);
         // todo: 이팩트 재생
     }
+
+    public void ShowCharacterInfo()
+    {
+        UIManager.Instance.ShowCharacterInfo(this);
+    }
 }
