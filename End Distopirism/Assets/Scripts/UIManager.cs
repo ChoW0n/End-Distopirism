@@ -10,6 +10,11 @@ public class UIManager : MonoBehaviour
     public Canvas canvas;
     private static UIManager uimInstance;
 
+    public GameObject playerProfilePrefab;
+    public GameObject enemyProfilePrefab;
+    private GameObject currentPlayerInfoPanel;
+    private GameObject currentEnemyInfoPanel;
+
     // Singleton 인스턴스
     public static UIManager Instance
     {
@@ -79,4 +84,76 @@ public class UIManager : MonoBehaviour
 
         Destroy(damageText, 2f);
     }
+
+    // 캐릭터 정보 표시 함수
+    public void ShowCharacterInfo(CharacterProfile character)
+    {
+        if (character.CompareTag("Player"))
+        {
+            if (currentPlayerInfoPanel == null)
+            {
+                currentPlayerInfoPanel = Instantiate(playerProfilePrefab, canvas.transform);
+            }
+
+            UpdatePlayerInfoPanel(character);
+        }
+        else if (character.CompareTag("Enemy"))
+        {
+            if (currentEnemyInfoPanel == null)
+            {
+                currentEnemyInfoPanel = Instantiate(enemyProfilePrefab, canvas.transform);
+            }
+            UpdateEnemyInfoPanel(character);
+        }
+    }
+
+    //캐릭터 정보 패널 업데이트 함수
+    private void UpdatePlayerInfoPanel(CharacterProfile player)
+    {
+        //기본 캐릭터 정보
+        Text playerNameText = currentPlayerInfoPanel.transform.Find("PlayerNameText").GetComponent<Text>();
+        Text playerDmgLevelText = currentPlayerInfoPanel.transform.Find("PlayerDmgLevelText").GetComponent<Text>();
+        Text playerDefLevelText = currentPlayerInfoPanel.transform.Find("PlayerDefLevelText").GetComponent<Text>();
+        
+        //스킬 정보
+        Text playerMaxDmgText = currentPlayerInfoPanel.transform.Find("PlayerMaxDmgText").GetComponent<Text>();
+        Text playerMinDmgText = currentPlayerInfoPanel.transform.Find("PlayerMinDmgText").GetComponent<Text>();
+        Text playerDmgUpText = currentPlayerInfoPanel.transform.Find("PlayerDmgUpText").GetComponent<Text>();
+
+        Image playerSkillIcon = currentPlayerInfoPanel.transform.Find("PlayerSkillIcon").GetComponent<Image>();
+
+        playerNameText.text = player.GetPlayer.charName; 
+        playerDmgLevelText.text = "" + player.GetPlayer.dmgLevel;  
+        playerDefLevelText.text = "" + player.GetPlayer.defLevel;  
+
+        playerMaxDmgText.text = "" + player.GetPlayer.maxDmg;
+        playerMinDmgText.text = "" + player.GetPlayer.minDmg;
+        playerDmgUpText.text = "+" + player.GetPlayer.dmgUp;
+
+        playerSkillIcon.sprite = player.GetPlayer.skills[0].sprite;
+    }
+
+    private void UpdateEnemyInfoPanel(CharacterProfile enemy)
+    {
+        Text enemyNameText = currentEnemyInfoPanel.transform.Find("EnemyNameText").GetComponent<Text>();
+        Text enemyDmgLevelText = currentEnemyInfoPanel.transform.Find("EnemyDmgLevelText").GetComponent<Text>();
+        Text enemyDefLevelText = currentEnemyInfoPanel.transform.Find("EnemyDefLevelText").GetComponent<Text>();
+
+        Text enemyMaxDmgText = currentEnemyInfoPanel.transform.Find("EnemyMaxDmgText").GetComponent<Text>();
+        Text enemyMinDmgText = currentEnemyInfoPanel.transform.Find("EnemyMinDmgText").GetComponent<Text>();
+        Text enemyDmgUpText = currentEnemyInfoPanel.transform.Find("EnemyDmgUpText").GetComponent<Text>();
+
+        Image enemySkillIcon = currentEnemyInfoPanel.transform.Find("EnemySkillIcon").GetComponent<Image>();
+
+        enemyNameText.text = enemy.GetPlayer.charName; 
+        enemyDmgLevelText.text = "" + enemy.GetPlayer.dmgLevel;  
+        enemyDefLevelText.text = "" + enemy.GetPlayer.defLevel; 
+
+        enemyMaxDmgText.text = "" + enemy.GetPlayer.maxDmg;
+        enemyMinDmgText.text = "" + enemy.GetPlayer.minDmg;
+        enemyDmgUpText.text = "+" + enemy.GetPlayer.dmgUp;
+
+        enemySkillIcon.sprite = enemy.GetPlayer.skills[0].sprite;
+    }
+
 }

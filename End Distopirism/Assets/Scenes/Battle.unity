@@ -366,13 +366,13 @@ MonoBehaviour:
     maxHp: 100
     hp: 100
     defLevel: 10
-    dmgLevel: 20
+    dmgLevel: 50
     dmg: 0
     maxDmg: 0
     minDmg: 0
     dmgUp: 0
-    maxCoin: 3
-    coin: 0
+    maxCoin: 5
+    coin: 5
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
@@ -380,7 +380,6 @@ MonoBehaviour:
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
-  totalDamageDealt: 0
 --- !u!212 &922897787
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -790,7 +789,7 @@ MonoBehaviour:
   playerCheck: 0
   enemyCheck: 0
   allTargetSelected: 0
-  attacking: 0
+  attaking: 0
   selecting: 0
   targetObjects: []
   playerObjects: []
@@ -840,6 +839,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageTextPrefab: {fileID: 1086182536178314378, guid: f2ef3cb4019e4d843a363bac573e9659, type: 3}
   canvas: {fileID: 1943806772}
+  playerProfilePrefab: {fileID: 7940692328786759546, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+  enemyProfilePrefab: {fileID: 7940692328786759546, guid: aef563db916f0ea4d8f3f38eaae31a4b, type: 3}
 --- !u!4 &1448075423
 Transform:
   m_ObjectHideFlags: 0
@@ -1133,7 +1134,7 @@ MonoBehaviour:
     minDmg: 0
     dmgUp: 0
     maxCoin: 3
-    coin: 0
+    coin: 3
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
@@ -1141,7 +1142,6 @@ MonoBehaviour:
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
-  totalDamageDealt: 0
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
