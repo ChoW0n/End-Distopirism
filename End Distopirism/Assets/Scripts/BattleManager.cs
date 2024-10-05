@@ -116,6 +116,8 @@ public class BattleManager : MonoBehaviour
                 targetObjects.Add(selectedEnemy);
                 Debug.Log("적 캐릭터 선택됨");
                 selecting = false;
+
+                UIManager.Instance.ShowCharacterInfo(targetObjects[0]);
             }
         }
 
@@ -150,6 +152,8 @@ public class BattleManager : MonoBehaviour
                 playerObjects.Add(selectedPlayer);
                 Debug.Log("플레이어 캐릭터 선택됨");
                 selecting = true;
+
+                UIManager.Instance.ShowCharacterInfo(playerObjects[0]);
             }
         }
 
@@ -165,8 +169,6 @@ public class BattleManager : MonoBehaviour
             allTargetSelected = false;
         }
 
-        UIManager.Instance.ShowCharacterInfo(playerObjects[0]);
-        UIManager.Instance.ShowCharacterInfo(targetObjects[0]);
 
     }
 
