@@ -840,7 +840,7 @@ MonoBehaviour:
   damageTextPrefab: {fileID: 1086182536178314378, guid: f2ef3cb4019e4d843a363bac573e9659, type: 3}
   canvas: {fileID: 1943806772}
   playerProfilePrefab: {fileID: 7940692328786759546, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
-  enemyProfilePrefab: {fileID: 7940692328786759546, guid: aef563db916f0ea4d8f3f38eaae31a4b, type: 3}
+  enemyProfilePrefab: {fileID: 7940692328786759546, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
 --- !u!4 &1448075423
 Transform:
   m_ObjectHideFlags: 0

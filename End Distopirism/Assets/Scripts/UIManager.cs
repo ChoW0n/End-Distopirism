@@ -111,16 +111,16 @@ public class UIManager : MonoBehaviour
     private void UpdatePlayerInfoPanel(CharacterProfile player)
     {
         //기본 캐릭터 정보
-        Text playerNameText = currentPlayerInfoPanel.transform.Find("PlayerNameText").GetComponent<Text>();
-        Text playerDmgLevelText = currentPlayerInfoPanel.transform.Find("PlayerDmgLevelText").GetComponent<Text>();
-        Text playerDefLevelText = currentPlayerInfoPanel.transform.Find("PlayerDefLevelText").GetComponent<Text>();
+        Text playerNameText = currentPlayerInfoPanel.transform.Find("NameText").GetComponent<Text>();
+        Text playerDmgLevelText = currentPlayerInfoPanel.transform.Find("DmgLevelText").GetComponent<Text>();
+        Text playerDefLevelText = currentPlayerInfoPanel.transform.Find("DefLevelText").GetComponent<Text>();
         
         //스킬 정보
-        Text playerMaxDmgText = currentPlayerInfoPanel.transform.Find("PlayerMaxDmgText").GetComponent<Text>();
-        Text playerMinDmgText = currentPlayerInfoPanel.transform.Find("PlayerMinDmgText").GetComponent<Text>();
-        Text playerDmgUpText = currentPlayerInfoPanel.transform.Find("PlayerDmgUpText").GetComponent<Text>();
+        Text playerMaxDmgText = currentPlayerInfoPanel.transform.Find("MaxDmgText").GetComponent<Text>();
+        Text playerMinDmgText = currentPlayerInfoPanel.transform.Find("MinDmgText").GetComponent<Text>();
+        Text playerDmgUpText = currentPlayerInfoPanel.transform.Find("DmgUpText").GetComponent<Text>();
 
-        Image playerSkillIcon = currentPlayerInfoPanel.transform.Find("PlayerSkillIcon").GetComponent<Image>();
+        Image playerSkillIcon = currentPlayerInfoPanel.transform.Find("SkillIcon").GetComponent<Image>();
 
         playerNameText.text = player.GetPlayer.charName; 
         playerDmgLevelText.text = "" + player.GetPlayer.dmgLevel;  
@@ -135,15 +135,15 @@ public class UIManager : MonoBehaviour
 
     private void UpdateEnemyInfoPanel(CharacterProfile enemy)
     {
-        Text enemyNameText = currentEnemyInfoPanel.transform.Find("EnemyNameText").GetComponent<Text>();
-        Text enemyDmgLevelText = currentEnemyInfoPanel.transform.Find("EnemyDmgLevelText").GetComponent<Text>();
-        Text enemyDefLevelText = currentEnemyInfoPanel.transform.Find("EnemyDefLevelText").GetComponent<Text>();
+        Text enemyNameText = currentEnemyInfoPanel.transform.Find("NameText").GetComponent<Text>();
+        Text enemyDmgLevelText = currentEnemyInfoPanel.transform.Find("DmgLevelText").GetComponent<Text>();
+        Text enemyDefLevelText = currentEnemyInfoPanel.transform.Find("DefLevelText").GetComponent<Text>();
 
-        Text enemyMaxDmgText = currentEnemyInfoPanel.transform.Find("EnemyMaxDmgText").GetComponent<Text>();
-        Text enemyMinDmgText = currentEnemyInfoPanel.transform.Find("EnemyMinDmgText").GetComponent<Text>();
-        Text enemyDmgUpText = currentEnemyInfoPanel.transform.Find("EnemyDmgUpText").GetComponent<Text>();
+        Text enemyMaxDmgText = currentEnemyInfoPanel.transform.Find("MaxDmgText").GetComponent<Text>();
+        Text enemyMinDmgText = currentEnemyInfoPanel.transform.Find("MinDmgText").GetComponent<Text>();
+        Text enemyDmgUpText = currentEnemyInfoPanel.transform.Find("DmgUpText").GetComponent<Text>();
 
-        Image enemySkillIcon = currentEnemyInfoPanel.transform.Find("EnemySkillIcon").GetComponent<Image>();
+        Image enemySkillIcon = currentEnemyInfoPanel.transform.Find("SkillIcon").GetComponent<Image>();
 
         enemyNameText.text = enemy.GetPlayer.charName; 
         enemyDmgLevelText.text = "" + enemy.GetPlayer.dmgLevel;  
