@@ -121,6 +121,8 @@ public class UIManager : MonoBehaviour
         Text playerDmgUpText = currentPlayerInfoPanel.transform.Find("DmgUpText").GetComponent<Text>();
 
         Image playerSkillIcon = currentPlayerInfoPanel.transform.Find("SkillIcon").GetComponent<Image>();
+        Text playerSkillName = currentPlayerInfoPanel.transform.Find("SkillName").GetComponent<Text>();
+
 
         playerNameText.text = player.GetPlayer.charName; 
         playerDmgLevelText.text = "" + player.GetPlayer.dmgLevel;  
@@ -131,6 +133,7 @@ public class UIManager : MonoBehaviour
         playerDmgUpText.text = "+" + player.GetPlayer.dmgUp;
 
         playerSkillIcon.sprite = player.GetPlayer.skills[0].sprite;
+        playerSkillName.text = player.GetPlayer.skills[0].skillName;
     }
 
     private void UpdateEnemyInfoPanel(CharacterProfile enemy)
@@ -144,7 +147,7 @@ public class UIManager : MonoBehaviour
         Text enemyDmgUpText = currentEnemyInfoPanel.transform.Find("DmgUpText").GetComponent<Text>();
 
         Image enemySkillIcon = currentEnemyInfoPanel.transform.Find("SkillIcon").GetComponent<Image>();
-
+        Text enemySkillName = currentEnemyInfoPanel.transform.Find("SkillName").GetComponent<Text>();
         enemyNameText.text = enemy.GetPlayer.charName; 
         enemyDmgLevelText.text = "" + enemy.GetPlayer.dmgLevel;  
         enemyDefLevelText.text = "" + enemy.GetPlayer.defLevel; 
@@ -154,6 +157,7 @@ public class UIManager : MonoBehaviour
         enemyDmgUpText.text = "+" + enemy.GetPlayer.dmgUp;
 
         enemySkillIcon.sprite = enemy.GetPlayer.skills[0].sprite;
+        enemySkillName.text = enemy.GetPlayer.skills[0].skillName;
     }
 
 }
