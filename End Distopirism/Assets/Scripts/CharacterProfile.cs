@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 public class CharacterProfile : MonoBehaviour
 {
@@ -13,7 +14,6 @@ public class CharacterProfile : MonoBehaviour
 
     public int coinBonus = 0; //코인 보너스
     public int successCount = 0;  //성공 횟수
-
 
     void Start()
     {
@@ -54,5 +54,6 @@ public class CharacterProfile : MonoBehaviour
     public void ShowCharacterInfo()
     {
         UIManager.Instance.ShowCharacterInfo(this);
+
     }
 }

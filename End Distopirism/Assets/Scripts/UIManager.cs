@@ -105,13 +105,14 @@ public class UIManager : MonoBehaviour
             }
             UpdateEnemyInfoPanel(character);
         }
+
     }
 
     //캐릭터 정보 패널 업데이트 함수
     private void UpdatePlayerInfoPanel(CharacterProfile player)
     {
         //기본 캐릭터 정보
-        Text playerNameText = currentPlayerInfoPanel.transform.Find("NameText").GetComponent<Text>();
+        //Text playerNameText = currentPlayerInfoPanel.transform.Find("NameText").GetComponent<Text>();
         Text playerDmgLevelText = currentPlayerInfoPanel.transform.Find("DmgLevelText").GetComponent<Text>();
         Text playerDefLevelText = currentPlayerInfoPanel.transform.Find("DefLevelText").GetComponent<Text>();
         
@@ -123,8 +124,10 @@ public class UIManager : MonoBehaviour
         Image playerSkillIcon = currentPlayerInfoPanel.transform.Find("SkillIcon").GetComponent<Image>();
         Text playerSkillName = currentPlayerInfoPanel.transform.Find("SkillName").GetComponent<Text>();
 
+        Text playerCoinText = currentPlayerInfoPanel.transform.Find("CoinText").GetComponent<Text>();
 
-        playerNameText.text = player.GetPlayer.charName; 
+
+        //playerNameText.text = player.GetPlayer.charName; 
         playerDmgLevelText.text = "" + player.GetPlayer.dmgLevel;  
         playerDefLevelText.text = "" + player.GetPlayer.defLevel;  
 
@@ -134,11 +137,13 @@ public class UIManager : MonoBehaviour
 
         playerSkillIcon.sprite = player.GetPlayer.skills[0].sprite;
         playerSkillName.text = player.GetPlayer.skills[0].skillName;
+
+        playerCoinText.text = "" + player.GetPlayer.coin; // 코인 정보 표시
     }
 
     private void UpdateEnemyInfoPanel(CharacterProfile enemy)
     {
-        Text enemyNameText = currentEnemyInfoPanel.transform.Find("NameText").GetComponent<Text>();
+        //Text enemyNameText = currentEnemyInfoPanel.transform.Find("NameText").GetComponent<Text>();
         Text enemyDmgLevelText = currentEnemyInfoPanel.transform.Find("DmgLevelText").GetComponent<Text>();
         Text enemyDefLevelText = currentEnemyInfoPanel.transform.Find("DefLevelText").GetComponent<Text>();
 
@@ -148,7 +153,10 @@ public class UIManager : MonoBehaviour
 
         Image enemySkillIcon = currentEnemyInfoPanel.transform.Find("SkillIcon").GetComponent<Image>();
         Text enemySkillName = currentEnemyInfoPanel.transform.Find("SkillName").GetComponent<Text>();
-        enemyNameText.text = enemy.GetPlayer.charName; 
+
+        Text enemyCoinText = currentEnemyInfoPanel.transform.Find("CoinText").GetComponent<Text>();
+
+        //enemyNameText.text = enemy.GetPlayer.charName; 
         enemyDmgLevelText.text = "" + enemy.GetPlayer.dmgLevel;  
         enemyDefLevelText.text = "" + enemy.GetPlayer.defLevel; 
 
@@ -158,6 +166,8 @@ public class UIManager : MonoBehaviour
 
         enemySkillIcon.sprite = enemy.GetPlayer.skills[0].sprite;
         enemySkillName.text = enemy.GetPlayer.skills[0].skillName;
+
+        enemyCoinText.text = "" + enemy.GetPlayer.coin;
     }
 
 }
