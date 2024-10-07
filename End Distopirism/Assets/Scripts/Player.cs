@@ -11,6 +11,9 @@ public class Player
     // 채력
     public int maxHp;
 
+    //행동력
+    public int charSkillCost;
+
     [HideInInspector]
     public int hp;
 

@@ -30,6 +30,11 @@ public class CharacterProfile : MonoBehaviour
         ApplySkill();
     }
 
+    public void ShowCharacterInfo()
+    {
+        UIManager.Instance.ShowCharacterInfo(this);
+    }
+
     // 스킬을 캐릭터에 적용하는 메서드
     void ApplySkill()
     {
@@ -51,9 +56,4 @@ public class CharacterProfile : MonoBehaviour
         // todo: 이팩트 재생
     }
 
-    public void ShowCharacterInfo()
-    {
-        UIManager.Instance.ShowCharacterInfo(this);
-
-    }
 }

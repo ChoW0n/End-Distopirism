@@ -88,6 +88,10 @@ public class BattleManager : MonoBehaviour
             return;
         }
         StartCoroutine(PlayerAttack());
+
+        //전투 시작 시 캐릭터 정보 패널 비활성화
+        UIManager.Instance.playerProfilePanel.SetActive(false);
+        UIManager.Instance.enemyProfilePanel.SetActive(false);
     }
 
     void SelectTarget()  //내 캐릭터&타겟 선택
@@ -387,6 +391,9 @@ public class BattleManager : MonoBehaviour
         {
             loser.GetPlayer.coin--;
             i--;    //다시 싸우기
+
+            loser.ShowCharacterInfo();
+
         }
         else
         {
