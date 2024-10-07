@@ -2,41 +2,41 @@ using UnityEngine;
 
 public class CharacterMovement : MonoBehaviour
 {
-    public float moveSpeed = 2f;  // ¿òÁ÷ÀÓ ¼Óµµ
-    public float moveAmount = 0.1f; // À§¾Æ·¡·Î ¿òÁ÷ÀÌ´Â ¾ç
+    public float moveSpeed = 2f;  // ì›€ì§ì„ ì†ë„
+    public float moveAmount = 0.1f; // ìœ„ì•„ë˜ë¡œ ì›€ì§ì´ëŠ” ì–‘
 
-    private BattleManager battleManager; // BattleManager ÀÎ½ºÅÏ½º
+    private BattleManager battleManager; // BattleManager ì¸ìŠ¤í„´ìŠ¤
 
     void Start()
     {
-        // BattleManager¸¦ Ã£½À´Ï´Ù.
+        // BattleManagerë¥¼ ì°¾ìŠµë‹ˆë‹¤.
         battleManager = FindObjectOfType<BattleManager>();
     }
 
     void Update()
     {
-        // ¸ğµç ÇÃ·¹ÀÌ¾î¿Í Àû °´Ã¼¸¦ °¡Á®¿É´Ï´Ù.
+        // ëª¨ë“  í”Œë ˆì´ì–´ì™€ ì  ê°ì²´ë¥¼ ê°€ì ¸ì˜µë‹ˆë‹¤.
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
 
-        // ÇÃ·¹ÀÌ¾î Ã³¸®
+        // í”Œë ˆì´ì–´ ì²˜ë¦¬
         foreach (GameObject player in players)
         {
-            if (battleManager != null && !battleManager.isAttacking) // °ø°İ ÁßÀÌ ¾Æ´Ò ¶§¸¸ ¿òÁ÷ÀÓ
+            if (battleManager != null && !battleManager.isAttacking) // ê³µê²© ì¤‘ì´ ì•„ë‹ ë•Œë§Œ ì›€ì§ì„
             {
                 Vector3 position = player.transform.position;
-                position.y += Mathf.Sin(Time.time * moveSpeed) * moveAmount; // À§¾Æ·¡·Î ¿òÁ÷ÀÓ
+                position.y += Mathf.Sin(Time.time * moveSpeed) * moveAmount; // ìœ„ì•„ë˜ë¡œ ì›€ì§ì„
                 player.transform.position = position;
             }
         }
 
-        // Àû Ã³¸®
+        // ì  ì²˜ë¦¬
         foreach (GameObject enemy in enemies)
         {
-            if (battleManager != null && !battleManager.isAttacking) // °ø°İ ÁßÀÌ ¾Æ´Ò ¶§¸¸ ¿òÁ÷ÀÓ
+            if (battleManager != null && !battleManager.isAttacking) // ê³µê²© ì¤‘ì´ ì•„ë‹ ë•Œë§Œ ì›€ì§ì„
             {
                 Vector3 position = enemy.transform.position;
-                position.y += Mathf.Sin(Time.time * moveSpeed) * moveAmount; // À§¾Æ·¡·Î ¿òÁ÷ÀÓ
+                position.y += Mathf.Sin(Time.time * moveSpeed) * moveAmount; // ìœ„ì•„ë˜ë¡œ ì›€ì§ì„
                 enemy.transform.position = position;
             }
         }
