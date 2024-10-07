@@ -244,13 +244,11 @@ public class BattleManager : MonoBehaviour
         {
             UIManager.Instance.ShowDamageText(playerObject.GetPlayer.dmg, targetObjectPosition + Vector2.up * 250f);
             StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
-            Debug.Log($"{targetObject.GetPlayer.charName}의 남은 코인: {targetObject.GetPlayer.coin}");
         }
         else
         {
             UIManager.Instance.ShowDamageText(targetObject.GetPlayer.dmg, playerObjectPosition + Vector2.up * 250f);
             StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
-            Debug.Log($"{playerObject.GetPlayer.charName}의 남은 코인: {playerObject.GetPlayer.coin}");
         }
         
     }
