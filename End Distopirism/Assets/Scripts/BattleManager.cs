@@ -25,7 +25,7 @@ public class BattleManager : MonoBehaviour
     public int playerCheck = 0;
     public int enemyCheck = 0;
     public bool allTargetSelected = false; //모든 타겟을 설정했는가
-    public bool attaking = false;
+    public bool isAttacking = false;
     public bool selecting = false;  //적을 선택해야하는 상태일 때
 
     //다수의 적과 플레이어를 선택할 수 있도록 List 사용
@@ -83,7 +83,7 @@ public class BattleManager : MonoBehaviour
         {
             return;
         }
-        if (attaking)
+        if (isAttacking)
         {
             return;
         }
@@ -219,7 +219,7 @@ public class BattleManager : MonoBehaviour
 
     IEnumerator PlayerAttack()  //플레이어 공격턴
     {
-        attaking = true;
+        isAttacking = true;
         yield return new WaitForSeconds(1f);
 
         Debug.Log("플레이어 공격");
@@ -278,7 +278,7 @@ public class BattleManager : MonoBehaviour
         }
 
         //공격 인식 종료
-        attaking = false;
+        isAttacking = false;
     }
 
     //데미지 연산 함수
