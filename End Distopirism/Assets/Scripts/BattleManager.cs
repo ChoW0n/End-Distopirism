@@ -32,6 +32,17 @@ public class BattleManager : MonoBehaviour
     public List<CharacterProfile> targetObjects = new List<CharacterProfile>();
     public List<CharacterProfile> playerObjects = new List<CharacterProfile>();
 
+    public Vector3 centerPosition; // 중앙 위치를 저장할 변수
+
+    // 승자와 패자의 이동 거리를 정의합니다.
+    public float winnerMoveDistance = 1f;
+    public float loserMoveDistance = -1f;
+
+    public float moveSpeed = 5f; // 이동 속도 (단위: 초당 유닛)
+    public float battleSpacing = 2f; // 전투 시 적과 플레이어 사이의 간격
+
+    public float shakeIntensity = 0.1f;
+    public float shakeDuration = 0.5f;
 
     void Awake()
     {
@@ -55,6 +66,29 @@ public class BattleManager : MonoBehaviour
 
         // 게임 시작시 전투 시작
         BattleStart();
+
+        // 중앙 위치 계산
+        CalculateCenterPosition();
+    }
+
+    void CalculateCenterPosition()
+    {
+        Vector3 totalPosition = Vector3.zero;
+        int totalCount = 0;
+
+        foreach (var player in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            totalPosition += player.transform.position;
+            totalCount++;
+        }
+
+        foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            totalPosition += enemy.transform.position;
+            totalCount++;
+        }
+
+        centerPosition = totalPosition / totalCount;
     }
 
     public void Update()
@@ -227,62 +261,154 @@ public class BattleManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
         Debug.Log("플레이어 공격");
-        //공격레벨 방어레벨 대조 for 밖에 있는 이유는 1회만 체크하기 위해. 이미 미리 for 돌림
         DiffCheck();
-        //리스트의 각 플레이어와 적이 1:1로 매칭되어 공격
-        int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
 
+        int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
 
         for (int i = 0; i < matchCount; i++)
         {
+            if (i >= playerObjects.Count || i >= targetObjects.Count)
+            {
+                Debug.LogError($"인덱스 오류: i={i}, playerObjects.Count={playerObjects.Count}, targetObjects.Count={targetObjects.Count}");
+                continue;
+            }
+
             CharacterProfile playerObject = playerObjects[i];
             CharacterProfile targetObject = targetObjects[i];
 
-            //플레이어와 적의 공격력 및 피해 계산
+            if (playerObject == null || targetObject == null)
+            {
+                Debug.LogError($"Null 객체 오류: playerObject={playerObject}, targetObject={targetObject}");
+                continue;
+            }
 
+            Vector3 playerOriginalPosition = playerObject.transform.position;
+            Vector3 targetOriginalPosition = targetObject.transform.position;
 
-            //코인 리롤
+            // 중앙으로 이동
+            yield return StartCoroutine(MoveToBattlePosition(playerObject, targetObject));
+
+            // 기존의 전투 로직
             playerObject.successCount = targetObject.successCount = 0;
             Debug.Log($"플레이어: {playerObject.GetPlayer.charName}, 적: {targetObject.GetPlayer.charName}");
             CoinRoll(playerObject, ref playerObject.successCount);
             CoinRoll(targetObject, ref targetObject.successCount);
 
-
-            //최종 데미지
             CalculateDamage(playerObject, targetObject);
 
-            //데미지 계산 후 1초 대기
             yield return new WaitForSeconds(1f);
 
-            //합 진행
-            //둘 중 한명이라도 코인이 없다면 바로 피해를 줌
-            if (!(playerObject.GetPlayer.coin > 0 || targetObject.GetPlayer.coin > 0))
+            // 전투 결과에 따라 위치 변경
+            yield return StartCoroutine(MoveBattleResult(playerObject, targetObject));
+
+            bool battleEnded = false;
+            int drawCount = 0;
+
+            while (!battleEnded)
             {
-                ApplyDamageNoCoins(playerObject, targetObject);
-            }
-            else
-            {
-                //교착 상태 처리 호출
-                if (targetObject.GetPlayer.dmg == playerObject.GetPlayer.dmg)
+                if (playerObject.GetPlayer.coin <= 0 && targetObject.GetPlayer.coin <= 0)
                 {
-                    HandleDraw(ref i, playerObject, targetObject);
+                    ApplyDamageNoCoins(playerObject, targetObject);
+                    battleEnded = true;
+                }
+                else if (targetObject.GetPlayer.dmg == playerObject.GetPlayer.dmg)
+                {
+                    drawCount++;
+                    if (drawCount >= 3)
+                    {
+                        HandleDraw(playerObject, targetObject);
+                        battleEnded = true;
+                    }
                 }
                 else
                 {
-                    //승패 처리
-                    HandleBattleResult(playerObject, targetObject, ref i);
+                    battleEnded = HandleBattleResult(playerObject, targetObject);
                 }
+
+                if (!battleEnded)
+                {
+                    // 재대결을 위해 데미지 재계산
+                    CalculateDamage(playerObject, targetObject);
+                    yield return StartCoroutine(MoveBattleResult(playerObject, targetObject));
+                }
+
+                yield return new WaitForSeconds(1f);
             }
 
-            // 데미지 적용 후 1초 대기
-            yield return new WaitForSeconds(1f);
-
-            //캐릭터들 체력 확인 후 사망 처리
             CheckHealth(playerObject, targetObject);
+
+            // 원래 위치로 돌아가기
+            yield return StartCoroutine(MoveBack(playerObject, playerOriginalPosition));
+            yield return StartCoroutine(MoveBack(targetObject, targetOriginalPosition));
         }
 
-        //공격 인식 종료
         isAttacking = false;
+        CheckBattleEnd();
+    }
+
+    IEnumerator MoveToBattlePosition(CharacterProfile playerObject, CharacterProfile targetObject)
+    {
+        Vector3 midpoint = (playerObject.transform.position + targetObject.transform.position) / 2;
+        Vector3 playerDirection = (midpoint - playerObject.transform.position).normalized;
+        Vector3 targetDirection = (midpoint - targetObject.transform.position).normalized;
+
+        Vector3 playerDestination = midpoint - playerDirection * (battleSpacing / 2);
+        Vector3 targetDestination = midpoint - targetDirection * (battleSpacing / 2);
+
+        yield return StartCoroutine(MoveCharacter(playerObject, playerDestination));
+        yield return StartCoroutine(MoveCharacter(targetObject, targetDestination));
+    }
+
+    IEnumerator MoveCharacter(CharacterProfile character, Vector3 destination)
+    {
+        while (character.transform.position != destination)
+        {
+            character.transform.position = Vector3.MoveTowards(character.transform.position, destination, moveSpeed * Time.deltaTime);
+            yield return null;
+        }
+    }
+
+    IEnumerator MoveBattleResult(CharacterProfile playerObject, CharacterProfile targetObject)
+    {
+        Vector3 midpoint = (playerObject.transform.position + targetObject.transform.position) / 2;
+        Vector3 playerDirection = (midpoint - playerObject.transform.position).normalized;
+        Vector3 targetDirection = (midpoint - targetObject.transform.position).normalized;
+
+        Vector3 playerDestination, targetDestination;
+        CharacterProfile loser, winner;
+
+        if (playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
+        {
+            // 플레이어가 이긴 경우
+            winner = playerObject;
+            loser = targetObject;
+            playerDestination = playerObject.transform.position + playerDirection * winnerMoveDistance;
+            targetDestination = targetObject.transform.position - targetDirection * loserMoveDistance;
+        }
+        else if (playerObject.GetPlayer.dmg < targetObject.GetPlayer.dmg)
+        {
+            // 적이 이긴 경우
+            winner = targetObject;
+            loser = playerObject;
+            playerDestination = playerObject.transform.position - playerDirection * loserMoveDistance;
+            targetDestination = targetObject.transform.position + targetDirection * winnerMoveDistance;
+        }
+        else
+        {
+            // 무승부인 경우 이동하지 않음
+            yield break;
+        }
+
+        // 패자를 먼저 이동
+        yield return StartCoroutine(MoveCharacter(loser, loser == playerObject ? playerDestination : targetDestination));
+
+        // 승자를 나중에 이동
+        yield return StartCoroutine(MoveCharacter(winner, winner == playerObject ? playerDestination : targetDestination));
+    }
+
+    IEnumerator MoveBack(CharacterProfile character, Vector3 originalPosition)
+    {
+        yield return StartCoroutine(MoveCharacter(character, originalPosition));
     }
 
     //데미지 연산 함수
@@ -302,10 +428,12 @@ public class BattleManager : MonoBehaviour
         if (playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
         {
             UIManager.Instance.ShowDamageText(playerObject.GetPlayer.dmg, targetObjectPosition + Vector2.up * 250f);
+            StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
         }
         else
         {
             UIManager.Instance.ShowDamageText(targetObject.GetPlayer.dmg, playerObjectPosition + Vector2.up * 250f);
+            StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
         }
         
     }
@@ -348,56 +476,36 @@ public class BattleManager : MonoBehaviour
                 attacker.GetPlayer.menTality += 1;    //승리 시 정신력 +1
             }
             Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
+            StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
         }
         
     }
 
     //교착 상태 함수
-    void HandleDraw(ref int i, CharacterProfile playerObject, CharacterProfile targetObject)
+    void HandleDraw(CharacterProfile playerObject, CharacterProfile targetObject)
     {
-        draw++;
-        Debug.Log($"교착 상태 발생 {draw} 회");
-        
-        if (draw < 3)
-        {
-            i--;
-        }
-        if (draw >= 3)
-        {
-            playerObject.GetPlayer.menTality -= 10;
-            targetObject.GetPlayer.menTality -= 10;
-            Debug.Log($"{playerObject.GetPlayer.charName}과 {targetObject.GetPlayer.charName} 의 정신력 감소");
-            draw = 0;
-        }
+        Debug.Log("3회 연속 무승부 발생");
+        playerObject.GetPlayer.menTality -= 10;
+        targetObject.GetPlayer.menTality -= 10;
+        Debug.Log($"{playerObject.GetPlayer.charName}과 {targetObject.GetPlayer.charName}의 정신력 감소");
     }
     
     //재대결
-    void HandleBattleResult(CharacterProfile playerObject, CharacterProfile targetObject, ref int i)
+    bool HandleBattleResult(CharacterProfile playerObject, CharacterProfile targetObject)
     {
-        CharacterProfile winner;
-        CharacterProfile loser;
-        if(playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
-        {
-            winner = playerObject;
-            loser = targetObject;
-        }
-        else
-        {
-            winner = targetObject;
-            loser = playerObject;
-        }
+        CharacterProfile winner = playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg ? playerObject : targetObject;
+        CharacterProfile loser = winner == playerObject ? targetObject : playerObject;
 
         if (loser.GetPlayer.coin > 0)
         {
             loser.GetPlayer.coin--;
-            i--;    //다시 싸우기
-
             loser.ShowCharacterInfo();
-
+            return false; // 전투가 끝나지 않음
         }
         else
         {
             ApplyRemainingDamage(winner, loser);
+            return true; // 전투가 끝남
         }
     }
 

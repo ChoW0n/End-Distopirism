@@ -528,6 +528,7 @@ GameObject:
   - component: {fileID: 868082950}
   - component: {fileID: 868082949}
   - component: {fileID: 868082948}
+  - component: {fileID: 868082951}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -609,6 +610,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &868082951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 868082947}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3ed3723fe7ad5ec44adec4eb4d135e51, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &922897784
 GameObject:
   m_ObjectHideFlags: 0
@@ -696,6 +709,7 @@ MonoBehaviour:
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
+  originalPosition: {x: 0, y: 0, z: 0}
 --- !u!212 &922897787
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -757,7 +771,7 @@ Transform:
   m_GameObject: {fileID: 922897784}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -325, y: 174, z: 0}
+  m_LocalPosition: {x: -571, y: 67, z: 0}
   m_LocalScale: {x: -100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1109,6 +1123,13 @@ MonoBehaviour:
   selecting: 0
   targetObjects: []
   playerObjects: []
+  centerPosition: {x: 0, y: 0, z: 0}
+  winnerMoveDistance: 200
+  loserMoveDistance: 200
+  moveSpeed: 500
+  battleSpacing: 100
+  shakeIntensity: 10
+  shakeDuration: 0.3
 --- !u!4 &1424169345
 Transform:
   m_ObjectHideFlags: 0
@@ -1282,50 +1303,6 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: -10}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1840188033
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1840188035}
-  - component: {fileID: 1840188034}
-  m_Layer: 0
-  m_Name: CoinController
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1840188034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1840188033}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0b9cb8781fdff65498308d49b5baf435, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1840188035
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1840188033}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -584.36475, y: 245.32082, z: -0.69230485}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1721,7 +1698,7 @@ Transform:
   m_GameObject: {fileID: 2115570233}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 550, y: 44, z: 0}
+  m_LocalPosition: {x: 517, y: 44, z: 0}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1776,9 +1753,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player:
     charName: "\uAE40\uBBFC\uC11C"
-    maxHp: 100
+    maxHp: 599
     charSkillCost: 0
-    hp: 100
+    hp: 599
     defLevel: 5
     dmgLevel: 10
     dmg: 0
@@ -1794,6 +1771,7 @@ MonoBehaviour:
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
+  originalPosition: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -1801,7 +1779,6 @@ SceneRoots:
   - {fileID: 868082950}
   - {fileID: 1424169345}
   - {fileID: 363214264}
-  - {fileID: 1840188035}
   - {fileID: 1943806773}
   - {fileID: 1092230124}
   - {fileID: 922897788}

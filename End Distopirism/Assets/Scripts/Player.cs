@@ -14,7 +14,6 @@ public class Player
     //행동력
     public int charSkillCost;
 
-    [HideInInspector]
     public int hp;
 
     // 방어 레벨

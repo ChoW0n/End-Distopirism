@@ -15,6 +15,8 @@ public class CharacterProfile : MonoBehaviour
     public int coinBonus = 0; //코인 보너스
     public int successCount = 0;  //성공 횟수
 
+    public Vector3 originalPosition; // 원래 위치를 저장할 변수 추가
+
     void Start()
     {
         player.coin = player.maxCoin;
@@ -25,6 +27,9 @@ public class CharacterProfile : MonoBehaviour
                 live = true;
             }
         }
+
+        // 현재 위치를 원래 위치로 저장
+        originalPosition = transform.position;
 
         // 스킬을 적용하여 캐릭터의 데미지 값을 설정합니다.
         ApplySkill();
