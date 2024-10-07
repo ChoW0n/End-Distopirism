@@ -1113,19 +1113,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   state: 0
-  enemySelect: 0
-  playerSelect: 0
   draw: 0
   playerCheck: 0
   enemyCheck: 0
-  allTargetSelected: 0
   isAttacking: 0
-  selecting: 0
-  targetObjects: []
-  playerObjects: []
   centerPosition: {x: 0, y: 0, z: 0}
-  winnerMoveDistance: 200
-  loserMoveDistance: 200
+  winnerMoveDistance: 100
+  loserMoveDistance: 100
   moveSpeed: 500
   battleSpacing: 100
   shakeIntensity: 10
