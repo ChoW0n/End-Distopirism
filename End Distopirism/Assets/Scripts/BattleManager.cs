@@ -19,18 +19,10 @@ public class BattleManager : MonoBehaviour
     public static BattleManager Instance { get; private set; }
 
     public GameState state;
-    public bool enemySelect; //적 선택 여부
-    public bool playerSelect; //내 캐릭터 선택 여부
     public int draw = 0; //교착 횟수
     public int playerCheck = 0;
     public int enemyCheck = 0;
-    public bool allTargetSelected = false; //모든 타겟을 설정했는가
     public bool isAttacking = false;
-    public bool selecting = false;  //적을 선택해야하는 상태일 때
-
-    //다수의 적과 플레이어를 선택할 수 있도록 List 사용
-    public List<CharacterProfile> targetObjects = new List<CharacterProfile>();
-    public List<CharacterProfile> playerObjects = new List<CharacterProfile>();
 
     public Vector3 centerPosition; // 중앙 위치를 저장할 변수
 
@@ -44,6 +36,12 @@ public class BattleManager : MonoBehaviour
     public float shakeIntensity = 0.1f;
     public float shakeDuration = 0.5f;
 
+    private BattleMoveManager battleMoveManager;
+    private CoinManager coinManager;
+    private TargetSelector targetSelector;
+    private DiffCheckManager diffCheckManager;
+    
+
     void Awake()
     {
         state = GameState.start; // 전투 시작 알림
@@ -55,6 +53,11 @@ public class BattleManager : MonoBehaviour
         {
             Destroy(gameObject);
         }
+
+        battleMoveManager = new BattleMoveManager(moveSpeed, battleSpacing, winnerMoveDistance, loserMoveDistance);
+        coinManager = new CoinManager();
+        targetSelector = new TargetSelector();
+        diffCheckManager = new DiffCheckManager();
     }
 
     public void Start()
@@ -63,6 +66,8 @@ public class BattleManager : MonoBehaviour
         GameObject[] enemys = GameObject.FindGameObjectsWithTag("Enemy");
         playerCheck = players.Length;
         enemyCheck = enemys.Length;
+
+        targetSelector.InitializeSelector(playerCheck, enemyCheck);
 
         // 게임 시작시 전투 시작
         BattleStart();
@@ -95,7 +100,7 @@ public class BattleManager : MonoBehaviour
     {
         if (state == GameState.playerTurn && Input.GetMouseButtonDown(0))
         {
-            SelectTarget();
+            targetSelector.SelectTarget();
             Debug.Log("선택 실행 중");
         }
     }
@@ -113,7 +118,7 @@ public class BattleManager : MonoBehaviour
     public void PlayerAttackButton()
     {
         //플레이어 턴이 아닐 때 방지
-        if (state != GameState.playerTurn || !allTargetSelected)
+        if (state != GameState.playerTurn || !targetSelector.allTargetSelected)
         {
             return;
         }
@@ -128,153 +133,26 @@ public class BattleManager : MonoBehaviour
         UIManager.Instance.enemyProfilePanel.SetActive(false);
     }
 
-    void SelectTarget()  //내 캐릭터&타겟 선택
-    {
-        //클릭된 오브젝트 가져오기
-        GameObject clickObject = UIManager.Instance.MouseGetObject();
-
-        if (clickObject == null)
-            return;
-
-        if (clickObject.CompareTag("Enemy"))
-        {
-            CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
-
-            //동일한 플레이어 클릭 시 선택 취소
-            if (targetObjects.Contains(selectedEnemy))
-            {
-                targetObjects.Remove(selectedEnemy);
-                Debug.Log("적 캐릭터 선택 취소됨");
-                selecting = true;
-            }
-
-            if (selecting)
-            {
-                //새로운 적 선택
-                targetObjects.Add(selectedEnemy);
-                Debug.Log("적 캐릭터 선택됨");
-                selecting = false;
-
-                UIManager.Instance.ShowCharacterInfo(targetObjects[0]);
-            }
-        }
-
-        // 플레이어 캐릭터 선택 또는 재선택
-        if (clickObject.CompareTag("Player"))
-        {
-            if (selecting)
-            {
-                Debug.Log("적을 선택해주세요.");
-                return;
-            }
-
-            CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
-
-            //플레이어가 이미 선택된 플레이어 리스트에 있는지 확인
-            if (playerObjects.Contains(selectedPlayer))
-            {
-                //매칭된 적 삭제
-                int index = playerObjects.IndexOf(selectedPlayer);
-                if (index != -1 && index < targetObjects.Count)
-                {
-                    targetObjects.RemoveAt(index);
-                }
-
-                //동일한 플레이어 클릭 시 선택 취소
-                playerObjects.Remove(selectedPlayer);
-                Debug.Log("플레이어 캐릭터 선택 취소됨");
-            }
-            else
-            {
-                //새로운 플레이어 선택
-                playerObjects.Add(selectedPlayer);
-                Debug.Log("플레이어 캐릭터 선택됨");
-                selecting = true;
-
-                UIManager.Instance.ShowCharacterInfo(playerObjects[0]);
-            }
-        }
-
-        //아군과 적이 모두 선택되었는지 확인
-        playerSelect = playerObjects.Count > 0;
-        enemySelect = targetObjects.Count > 0;
-        if (playerObjects.Count == playerCheck && targetObjects.Count == enemyCheck)
-        {
-            allTargetSelected = true;
-        }
-        else
-        {
-            allTargetSelected = false;
-        }
-
-
-    }
-
-    void CoinRoll(CharacterProfile Object, ref int successCount)// 정신력에 비례하여 코인 결과 조정
-    {
-        int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
-        for (int i = 0; i < matchCount; i++)
-        {
-            float maxMenTality = 100f; // 최대 정신력
-            float maxProbability = 0.6f; // 최대 확률 (60%)
-
-            // 정신력에 따른 확률 계산
-            float currentProbability = Mathf.Max(0f, maxProbability * (Object.GetPlayer.menTality / maxMenTality));
-
-            for (int j = 0; j < Object.GetPlayer.coin - 1; j++)
-            {
-                // 코인 던지기: 현재 확률에 따라 성공 여부 결정
-                if (Random.value < currentProbability)
-                {
-                    Object.successCount++;
-                }
-            }
-            Object.coinBonus = Object.successCount * Object.GetPlayer.dmgUp;
-            Debug.Log($"{Object.GetPlayer.charName}의 코인 던지기 성공 횟수: {Object.successCount} / {Object.GetPlayer.coin} ");
-            Debug.Log($"{Object.GetPlayer.charName}의 남은 코인: {Object.GetPlayer.coin} / {Object.GetPlayer.maxCoin}");
-        }
-    }
-
-    void DiffCheck()// 공격 레벨과 방어 레벨을 비교하여 보너스 및 패널티 적용
-    {
-        int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
-        for (int i = 0; i < matchCount; i++)
-        {
-            CharacterProfile playerObject = playerObjects[i];
-            CharacterProfile targetObject = targetObjects[i];
-
-
-            if (playerObject.GetPlayer.dmgLevel > (targetObject.GetPlayer.defLevel + 4))
-            {
-                playerObject.bonusDmg = ((playerObject.GetPlayer.dmgLevel - playerObject.GetPlayer.defLevel) / 4) * 1;
-            }
-            if (targetObject.GetPlayer.dmgLevel > (playerObject.GetPlayer.defLevel + 4))
-            {
-                targetObject.bonusDmg = ((targetObject.GetPlayer.dmgLevel - playerObject.GetPlayer.defLevel) / 4) * 1;
-            }
-        }
-    }
-
     IEnumerator PlayerAttack()  //플레이어 공격턴
     {
         isAttacking = true;
         yield return new WaitForSeconds(1f);
 
         Debug.Log("플레이어 공격");
-        DiffCheck();
+        diffCheckManager.DiffCheck(targetSelector.playerObjects, targetSelector.targetObjects);
 
-        int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
+        int matchCount = Mathf.Min(targetSelector.playerObjects.Count, targetSelector.targetObjects.Count);
 
         for (int i = 0; i < matchCount; i++)
         {
-            if (i >= playerObjects.Count || i >= targetObjects.Count)
+            if (i >= targetSelector.playerObjects.Count || i >= targetSelector.targetObjects.Count)
             {
-                Debug.LogError($"인덱스 오류: i={i}, playerObjects.Count={playerObjects.Count}, targetObjects.Count={targetObjects.Count}");
+                Debug.LogError($"인덱스 오류: i={i}, playerObjects.Count={targetSelector.playerObjects.Count}, targetObjects.Count={targetSelector.targetObjects.Count}");
                 continue;
             }
 
-            CharacterProfile playerObject = playerObjects[i];
-            CharacterProfile targetObject = targetObjects[i];
+            CharacterProfile playerObject = targetSelector.playerObjects[i];
+            CharacterProfile targetObject = targetSelector.targetObjects[i];
 
             if (playerObject == null || targetObject == null)
             {
@@ -286,20 +164,20 @@ public class BattleManager : MonoBehaviour
             Vector3 targetOriginalPosition = targetObject.transform.position;
 
             // 중앙으로 이동
-            yield return StartCoroutine(MoveToBattlePosition(playerObject, targetObject));
+            yield return StartCoroutine(battleMoveManager.MoveToBattlePosition(playerObject, targetObject));
 
             // 기존의 전투 로직
             playerObject.successCount = targetObject.successCount = 0;
             Debug.Log($"플레이어: {playerObject.GetPlayer.charName}, 적: {targetObject.GetPlayer.charName}");
-            CoinRoll(playerObject, ref playerObject.successCount);
-            CoinRoll(targetObject, ref targetObject.successCount);
+            coinManager.CoinRoll(playerObject);
+            coinManager.CoinRoll(targetObject);
 
             CalculateDamage(playerObject, targetObject);
 
             yield return new WaitForSeconds(1f);
 
             // 전투 결과에 따라 위치 변경
-            yield return StartCoroutine(MoveBattleResult(playerObject, targetObject));
+            yield return StartCoroutine(battleMoveManager.MoveBattleResult(playerObject, targetObject));
 
             bool battleEnded = false;
             int drawCount = 0;
@@ -329,7 +207,7 @@ public class BattleManager : MonoBehaviour
                 {
                     // 재대결을 위해 데미지 재계산
                     CalculateDamage(playerObject, targetObject);
-                    yield return StartCoroutine(MoveBattleResult(playerObject, targetObject));
+                    yield return StartCoroutine(battleMoveManager.MoveBattleResult(playerObject, targetObject));
                 }
 
                 yield return new WaitForSeconds(1f);
@@ -338,77 +216,14 @@ public class BattleManager : MonoBehaviour
             CheckHealth(playerObject, targetObject);
 
             // 원래 위치로 돌아가기
-            yield return StartCoroutine(MoveBack(playerObject, playerOriginalPosition));
-            yield return StartCoroutine(MoveBack(targetObject, targetOriginalPosition));
+            yield return StartCoroutine(battleMoveManager.MoveBack(playerObject, playerOriginalPosition));
+            yield return StartCoroutine(battleMoveManager.MoveBack(targetObject, targetOriginalPosition));
         }
 
         isAttacking = false;
         CheckBattleEnd();
-    }
 
-    IEnumerator MoveToBattlePosition(CharacterProfile playerObject, CharacterProfile targetObject)
-    {
-        Vector3 midpoint = (playerObject.transform.position + targetObject.transform.position) / 2;
-        Vector3 playerDirection = (midpoint - playerObject.transform.position).normalized;
-        Vector3 targetDirection = (midpoint - targetObject.transform.position).normalized;
-
-        Vector3 playerDestination = midpoint - playerDirection * (battleSpacing / 2);
-        Vector3 targetDestination = midpoint - targetDirection * (battleSpacing / 2);
-
-        yield return StartCoroutine(MoveCharacter(playerObject, playerDestination));
-        yield return StartCoroutine(MoveCharacter(targetObject, targetDestination));
-    }
-
-    IEnumerator MoveCharacter(CharacterProfile character, Vector3 destination)
-    {
-        while (character.transform.position != destination)
-        {
-            character.transform.position = Vector3.MoveTowards(character.transform.position, destination, moveSpeed * Time.deltaTime);
-            yield return null;
-        }
-    }
-
-    IEnumerator MoveBattleResult(CharacterProfile playerObject, CharacterProfile targetObject)
-    {
-        Vector3 midpoint = (playerObject.transform.position + targetObject.transform.position) / 2;
-        Vector3 playerDirection = (midpoint - playerObject.transform.position).normalized;
-        Vector3 targetDirection = (midpoint - targetObject.transform.position).normalized;
-
-        Vector3 playerDestination, targetDestination;
-        CharacterProfile loser, winner;
-
-        if (playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
-        {
-            // 플레이어가 이긴 경우
-            winner = playerObject;
-            loser = targetObject;
-            playerDestination = playerObject.transform.position + playerDirection * winnerMoveDistance;
-            targetDestination = targetObject.transform.position - targetDirection * loserMoveDistance;
-        }
-        else if (playerObject.GetPlayer.dmg < targetObject.GetPlayer.dmg)
-        {
-            // 적이 이긴 경우
-            winner = targetObject;
-            loser = playerObject;
-            playerDestination = playerObject.transform.position - playerDirection * loserMoveDistance;
-            targetDestination = targetObject.transform.position + targetDirection * winnerMoveDistance;
-        }
-        else
-        {
-            // 무승부인 경우 이동하지 않음
-            yield break;
-        }
-
-        // 패자를 먼저 이동
-        yield return StartCoroutine(MoveCharacter(loser, loser == playerObject ? playerDestination : targetDestination));
-
-        // 승자를 나중에 이동
-        yield return StartCoroutine(MoveCharacter(winner, winner == playerObject ? playerDestination : targetDestination));
-    }
-
-    IEnumerator MoveBack(CharacterProfile character, Vector3 originalPosition)
-    {
-        yield return StartCoroutine(MoveCharacter(character, originalPosition));
+        targetSelector.ResetSelection();
     }
 
     //데미지 연산 함수
@@ -429,11 +244,13 @@ public class BattleManager : MonoBehaviour
         {
             UIManager.Instance.ShowDamageText(playerObject.GetPlayer.dmg, targetObjectPosition + Vector2.up * 250f);
             StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
+            Debug.Log($"{targetObject.GetPlayer.charName}의 남은 코인: {targetObject.GetPlayer.coin}");
         }
         else
         {
             UIManager.Instance.ShowDamageText(targetObject.GetPlayer.dmg, playerObjectPosition + Vector2.up * 250f);
             StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
+            Debug.Log($"{playerObject.GetPlayer.charName}의 남은 코인: {playerObject.GetPlayer.coin}");
         }
         
     }
@@ -460,7 +277,7 @@ public class BattleManager : MonoBehaviour
             attacker.coinBonus = 0;
             if (j > 0)
             {
-                CoinRoll(attacker, ref attacker.successCount);
+                coinManager.CoinRoll(attacker);
                 attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
             }
             victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
@@ -553,6 +370,6 @@ public class BattleManager : MonoBehaviour
 
         //적 공격 끝났으면 플레이어에게 턴 넘기기
         state = GameState.playerTurn;
-        allTargetSelected = false;
+        targetSelector.allTargetSelected = false;
     }
 }
