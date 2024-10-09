@@ -288,6 +288,12 @@ public class BattleManager : MonoBehaviour
             CharacterProfile playerObject = playerObjects[i];
             CharacterProfile targetObject = targetObjects[i];
 
+            CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
+            if (cameraFollow != null)
+            {
+                cameraFollow.ZoomInOnTarget(playerObject.transform);
+            }
+
             playerObject.successCount = targetObject.successCount = 0;
             Debug.Log($"플레이어: {playerObject.GetPlayer.charName}, 적: {targetObject.GetPlayer.charName}");
             CoinRoll(playerObject, ref playerObject.successCount);
@@ -313,7 +319,7 @@ public class BattleManager : MonoBehaviour
                 }
             }
 
-            yield return new WaitForSeconds(1f);
+            yield return new WaitForSeconds(0.3f);
         }
 
         isAttacking = false;
@@ -414,6 +420,14 @@ public class BattleManager : MonoBehaviour
         }
         StartCoroutine(ReturnCharacterToInitialPosition(attacker));
         StartCoroutine(ReturnCharacterToInitialPosition(victim));
+
+        CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
+        // 모든 전투가 끝난 후에 카메라를 초기 위치로 돌려보냄
+        if (cameraFollow != null)
+        {
+            cameraFollow.ResetCamera();
+            cameraFollow.target = null;
+        }
     }
 
     IEnumerator WaitForMovement(params BattleMove[] moves)
