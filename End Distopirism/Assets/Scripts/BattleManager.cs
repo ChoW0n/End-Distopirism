@@ -288,6 +288,7 @@ public class BattleManager : MonoBehaviour
             CharacterProfile playerObject = playerObjects[i];
             CharacterProfile targetObject = targetObjects[i];
 
+            //*카메라 줌 인 테스트*
             CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
             if (cameraFollow != null)
             {
@@ -421,6 +422,7 @@ public class BattleManager : MonoBehaviour
         StartCoroutine(ReturnCharacterToInitialPosition(attacker));
         StartCoroutine(ReturnCharacterToInitialPosition(victim));
 
+        //*카메라 줌 인 테스트*
         CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
         // 모든 전투가 끝난 후에 카메라를 초기 위치로 돌려보냄
         if (cameraFollow != null)
