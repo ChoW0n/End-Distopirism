@@ -33,6 +33,7 @@ public class BattleManager : MonoBehaviour
     public List<CharacterProfile> targetObjects = new List<CharacterProfile>();
     public List<CharacterProfile> playerObjects = new List<CharacterProfile>();
 
+    public TargetArrowCreator arrowCreator; // 추가된 변수
 
     void Awake()
     {
@@ -56,6 +57,9 @@ public class BattleManager : MonoBehaviour
 
         // 게임 시작시 전투 시작
         BattleStart();
+
+        // TargetArrowCreator 초기화
+        arrowCreator = gameObject.AddComponent<TargetArrowCreator>();
     }
 
     public void Update()
@@ -88,6 +92,9 @@ public class BattleManager : MonoBehaviour
         {
             return;
         }
+        
+        // 공격 시작 시 화살표 제거
+        arrowCreator.ClearConnections();
         
         // 캐릭터들을 중앙으로 이동시킴
         MoveCombatants();
@@ -139,26 +146,28 @@ public class BattleManager : MonoBehaviour
         {
             CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
 
-            //동일한 플레이어 클릭 시 선택 취소
             if (targetObjects.Contains(selectedEnemy))
             {
                 targetObjects.Remove(selectedEnemy);
                 Debug.Log("적 캐릭터 선택 취소됨");
                 selecting = true;
+                arrowCreator.ClearConnections();
+                RedrawAllConnections();
             }
 
-            if (selecting)
+            if (selecting && playerObjects.Count > 0)
             {
-                //새로운 적 선택
                 targetObjects.Add(selectedEnemy);
                 Debug.Log("적 캐릭터 선택됨");
                 selecting = false;
 
                 UIManager.Instance.ShowCharacterInfo(targetObjects[0]);
+
+                // 새로운 연결 추가 (색상 매개변수 제거)
+                arrowCreator.AddConnection(playerObjects[playerObjects.Count - 1].transform, selectedEnemy.transform);
             }
         }
 
-        // 플레이어 캐릭터 선택 또는 재선택
         if (clickObject.CompareTag("Player"))
         {
             if (selecting)
@@ -192,6 +201,8 @@ public class BattleManager : MonoBehaviour
 
                 UIManager.Instance.ShowCharacterInfo(playerObjects[0]);
             }
+
+            RedrawAllConnections();
         }
 
         //아군과 적이 모두 선택되었는지 확인
@@ -207,6 +218,15 @@ public class BattleManager : MonoBehaviour
         }
 
 
+    }
+
+    private void RedrawAllConnections()
+    {
+        arrowCreator.ClearConnections();
+        for (int i = 0; i < Mathf.Min(playerObjects.Count, targetObjects.Count); i++)
+        {
+            arrowCreator.AddConnection(playerObjects[i].transform, targetObjects[i].transform);
+        }
     }
 
     void CoinRoll(CharacterProfile Object, ref int successCount)// 정신력에 비례하여 코인 결과 조정
@@ -569,7 +589,7 @@ public class BattleManager : MonoBehaviour
     {
         yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
         
-        // 모든 데미지 적용과 움직임이 끝난 후에 체력 확인 및 전투 종료 처리
+        // ��든 데미지 적용과 움직임이 끝난 후에 체력 확인 및 전투 종료 처리
         CheckHealth(attacker, victim);
         CheckBattleEnd();
     }
