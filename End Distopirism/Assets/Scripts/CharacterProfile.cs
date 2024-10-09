@@ -15,7 +15,7 @@ public class CharacterProfile : MonoBehaviour
     public int coinBonus = 0; //코인 보너스
     public int successCount = 0;  //성공 횟수
 
-    public Vector3 originalPosition; // 원래 위치를 저장할 변수 추가
+    public bool isSelected = false; // 선택된 상태를 나타내는 변수
 
     void Start()
     {
@@ -28,16 +28,22 @@ public class CharacterProfile : MonoBehaviour
             }
         }
 
-        // 현재 위치를 원래 위치로 저장
-        originalPosition = transform.position;
-
-        // 스킬을 적용하여 캐릭터의 데미지 값을 설정합니다.
+        // 스킬 적용하여 캐릭터의 데미지 값을 설정합니다.
         ApplySkill();
     }
 
     public void ShowCharacterInfo()
     {
         UIManager.Instance.ShowCharacterInfo(this);
+        // 선택된 상태에 따라 테두리 효과 적용
+        if (isSelected)
+        {
+            // 테두리 효과를 적용하는 코드
+        }
+        else
+        {
+            // 기본 상태로 되돌리는 코드
+        }
     }
 
     // 스킬을 캐릭터에 적용하는 메서드

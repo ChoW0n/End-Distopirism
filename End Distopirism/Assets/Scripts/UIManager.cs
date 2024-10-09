@@ -65,24 +65,6 @@ public class UIManager : MonoBehaviour
         return null;
     }
 
-    //데미지 표시 함수
-    public void ShowDamageText(int damageAmount, Vector3 worldPosition)
-    {
-        GameObject damageText = Instantiate(damageTextPrefab, worldPosition, Quaternion.identity, canvas.transform);
-
-        Text textComponent = damageText.GetComponentInChildren<Text>();
-        textComponent.text = "-" + damageAmount.ToString();
-
-        // 월드 공간에서의 위치 설정
-        RectTransform rectTransform = damageText.GetComponent<RectTransform>();
-        rectTransform.position = worldPosition;
-
-        // 텍스트가 항상 카메라를 향하도록 설정
-        damageText.transform.forward = Camera.main.transform.forward;
-
-        Destroy(damageText, 2f);
-    }
-
     // 캐릭터 정보 표시 함수
     public void ShowCharacterInfo(CharacterProfile character)
     {
@@ -159,4 +141,37 @@ public class UIManager : MonoBehaviour
         enemyCoinText.text = "" + enemy.GetPlayer.coin;
     }
 
+    public void ShowDamageTextNearCharacter(int damage, Transform characterTransform)
+    {
+        Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * 50f; // 랜덤한 오프셋 생성
+        Vector3 spawnPosition = characterTransform.position + new Vector3(randomOffset.x, 100f + randomOffset.y, 0);
+
+        GameObject damageText = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity, canvas.transform);
+        Text textComponent = damageText.GetComponent<Text>();
+        textComponent.text = "-" + damage.ToString();
+        textComponent.color = Color.red; // 데미지 텍스트 색상을 빨간색으로 설정
+        
+        // 텍스트 애니메이션
+        StartCoroutine(AnimateDamageText(damageText));
+    }
+
+    private IEnumerator AnimateDamageText(GameObject damageText)
+    {
+        float duration = 1f;
+        float elapsedTime = 0f;
+        Vector3 startPosition = damageText.transform.position;
+        Vector3 endPosition = startPosition + Vector3.up * 50f;
+        Text textComponent = damageText.GetComponent<Text>();
+
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+            damageText.transform.position = Vector3.Lerp(startPosition, endPosition, t);
+            textComponent.color = new Color(textComponent.color.r, textComponent.color.g, textComponent.color.b, 1 - t);
+            yield return null;
+        }
+
+        Destroy(damageText);
+    }
 }
