@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
-using UnityEditor.Timeline.Actions;
+//using UnityEditor.Timeline.Actions;
 using UnityEngine;
 using System.Linq;
 
@@ -34,6 +34,7 @@ public class BattleManager : MonoBehaviour
     public List<CharacterProfile> playerObjects = new List<CharacterProfile>();
 
     public TargetArrowCreator arrowCreator; // 추가된 변수
+
 
     void Awake()
     {
@@ -232,7 +233,7 @@ public class BattleManager : MonoBehaviour
     void CoinRoll(CharacterProfile Object, ref int successCount)// 정신력에 비례하여 코인 결과 조정
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
-        for (int i = 0; i < matchCount; i++)
+        for (int i = 1; i < matchCount; i++)
         {
             float maxMenTality = 100f; // 최대 정신력
             float maxProbability = 0.6f; // 최대 확률 (60%)
@@ -240,7 +241,7 @@ public class BattleManager : MonoBehaviour
             // 정신력에 따른 확률 계산
             float currentProbability = Mathf.Max(0f, maxProbability * (Object.GetPlayer.menTality / maxMenTality));
 
-            for (int j = 0; j < Object.GetPlayer.coin - 1; j++)
+            for (int j = 1; j < Object.GetPlayer.coin - 1; j++)
             {
                 // 코인 던지기: 현재 확률에 따라 성공 여부 결정
                 if (Random.value < currentProbability)
@@ -279,6 +280,7 @@ public class BattleManager : MonoBehaviour
         isAttacking = true;
         yield return new WaitForSeconds(1f);
 
+
         Debug.Log("플레이어 공격");
         DiffCheck();
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
@@ -300,7 +302,7 @@ public class BattleManager : MonoBehaviour
             CoinRoll(playerObject, ref playerObject.successCount);
             CoinRoll(targetObject, ref targetObject.successCount);
 
-            CalculateDamage(playerObject, targetObject);
+            CalculateDamage(playerObject, targetObject, out int playerDamage, out int targetDamage);
 
             yield return new WaitForSeconds(1f);
 
@@ -340,30 +342,31 @@ public class BattleManager : MonoBehaviour
     }
 
     //데미지 연산 함수
-    void CalculateDamage(CharacterProfile playerObject, CharacterProfile targetObject)
+    void CalculateDamage(CharacterProfile playerObject, CharacterProfile targetObject, out int playerDamage, out int targetDamage)
     {
-        playerObject.GetPlayer.dmg = Random.Range(playerObject.GetPlayer.maxDmg, playerObject.GetPlayer.minDmg) + playerObject.coinBonus + playerObject.bonusDmg;
-        targetObject.GetPlayer.dmg = Random.Range(targetObject.GetPlayer.maxDmg, targetObject.GetPlayer.minDmg) + targetObject.coinBonus + targetObject.bonusDmg;
+        playerDamage = (int)(Random.Range(playerObject.GetPlayer.maxDmg, playerObject.GetPlayer.minDmg) + playerObject.coinBonus + playerObject.bonusDmg);
+        targetDamage = (int)(Random.Range(targetObject.GetPlayer.maxDmg, targetObject.GetPlayer.minDmg) + targetObject.coinBonus + targetObject.bonusDmg);
 
-        Debug.Log($"{playerObject.GetPlayer.charName}의 최종 데미지: {playerObject.GetPlayer.dmg} (기본 데미지: {playerObject.GetPlayer.minDmg} - {playerObject.GetPlayer.maxDmg}, 코인 보너스: {playerObject.coinBonus}, 공격 보너스: {playerObject.bonusDmg})");
-        Debug.Log($"{targetObject.GetPlayer.charName}의 최종 데미지: {targetObject.GetPlayer.dmg} (기본 데미지: {targetObject.GetPlayer.minDmg} - {targetObject.GetPlayer.maxDmg}, 코인 보너스: {targetObject.coinBonus}, 공격 보너스: {targetObject.bonusDmg})");
+        playerObject.GetPlayer.dmg = playerDamage; // 플레이어의 데미지 저장
+        targetObject.GetPlayer.dmg = targetDamage; // 적의 데미지 저장
 
-        //플레이어와 적의 위치 설정
+        Debug.Log($"{playerObject.GetPlayer.charName}의 최종 데미지: {playerDamage}");
+        Debug.Log($"{targetObject.GetPlayer.charName}의 최종 데미지: {targetDamage}");
+
+        // 승리/패배 문구 표시
         Vector2 playerObjectPosition = playerObject.transform.position;
         Vector2 targetObjectPosition = targetObject.transform.position;
 
-        //더 높은 데미지만 표시
-        if (playerObject.GetPlayer.dmg > targetObject.GetPlayer.dmg)
+        if (playerDamage > targetDamage)
         {
-            //TODO:합 승리를 나타내는 텍스트가 패배한 쪽에 뜨게끔 변경
-            //UIManager.Instance.ShowDamageText("playerObject.GetPlayer.dmg", targetObjectPosition + Vector2.up * 250f);
+            UIManager.Instance.ShowBattleResultText("승리", playerObjectPosition + Vector2.up * 250f);
+            UIManager.Instance.ShowBattleResultText("패배", targetObjectPosition + Vector2.up * 250f);
         }
         else
         {
-            //TODO:합 패배를 나타내는 텍스트가 패배한 쪽에 뜨게끔 변경
-            //UIManager.Instance.ShowDamageText(targetObject.GetPlayer.dmg, playerObjectPosition + Vector2.up * 250f);
+            UIManager.Instance.ShowBattleResultText("패배", playerObjectPosition + Vector2.up * 250f);
+            UIManager.Instance.ShowBattleResultText("승리", targetObjectPosition + Vector2.up * 250f);
         }
-        
     }
 
     //코인들이 남아있지 않다면
@@ -389,18 +392,10 @@ public class BattleManager : MonoBehaviour
                 CoinRoll(attacker, ref attacker.successCount);
                 attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
             }
-            victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
-            
-            if (0 >= victim.GetPlayer.hp)
-            {
-                victim.gameObject.SetActive(false);
-            }
 
-            victim.GetPlayer.menTality -= 2;  //패배 시 정신력 -2
-            if (attacker.GetPlayer.menTality < 100)
-            {
-                attacker.GetPlayer.menTality += 1;    //승리 시 정신력 +1
-            }
+            // 피해를 적용하고 데미지 텍스트 표시
+            victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
+            UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
             Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
 
             // 공격자 전진, 피해자 후퇴
@@ -413,23 +408,42 @@ public class BattleManager : MonoBehaviour
                 victimMove.Retreat();
             }
 
-            // 캐릭터들의 움직임이 끝날 때까지 대기
+            // 전진과 후퇴가 끝날 때까지 대기
             yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
-            // 잠시 대기하여 움직임을 볼 수 있게 함
-            yield return new WaitForSeconds(0.8f);
-        }
-        StartCoroutine(ReturnCharacterToInitialPosition(attacker));
-        StartCoroutine(ReturnCharacterToInitialPosition(victim));
+            // 피해자가 사망했는지 확인
+            if (0 >= victim.GetPlayer.hp)
+            {
+                victim.gameObject.SetActive(false);
+                break; // 피해자가 사망하면 루프 종료
+            }
 
-        //*카메라 줌 인 테스트*
+            // 잠시 대기하여 움직임을 볼 수 있게 함
+            yield return new WaitForSeconds(1f); // 0.5초의 딜레이 추가
+        }
+
+        // 정신력 감소
+        victim.GetPlayer.menTality -= 2;  // 패배 시 정신력 -2
+        if (attacker.GetPlayer.menTality < 100)
+        {
+            attacker.GetPlayer.menTality += 1;    // 승리 시 정신력 +1
+        }
+
+        // 캐릭터들의 움직임이 끝난 후 대기
+        yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
+
+        // 1초 대기
+        yield return new WaitForSeconds(1f);
+
+        // 카메라 리셋
         CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
-        // 모든 전투가 끝난 후에 카메라를 초기 위치로 돌려보냄
         if (cameraFollow != null)
         {
             cameraFollow.ResetCamera();
-            cameraFollow.target = null;
         }
+
+        StartCoroutine(ReturnCharacterToInitialPosition(attacker));
+        StartCoroutine(ReturnCharacterToInitialPosition(victim));
     }
 
     IEnumerator WaitForMovement(params BattleMove[] moves)
@@ -605,7 +619,7 @@ public class BattleManager : MonoBehaviour
     {
         yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
         
-        // ��든 데미지 적용과 움직임이 끝난 후에 체력 확인 및 전투 종료 처리
+        // 든 데미지 적용과 움직임이 끝난 후에 체력 확인 및 전투 종료 처리
         CheckHealth(attacker, victim);
         CheckBattleEnd();
     }

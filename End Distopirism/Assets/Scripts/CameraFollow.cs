@@ -79,7 +79,7 @@ public class CameraFollow : MonoBehaviour
 
     private IEnumerator ReturnToInitialPosition()
     {
-        float duration = 1f; // 초기 위치로 돌아가는 시간
+        float duration = 0.5f; // 초기 위치로 돌아가는 시간
         Vector3 originalPosition = transform.position;
         float elapsedTime = 0f;
 

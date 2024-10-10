@@ -13,6 +13,7 @@ public class UIManager : MonoBehaviour
     public GameObject playerProfilePanel;
     public GameObject enemyProfilePanel;
 
+
     // Singleton 인스턴스
     public static UIManager Instance
     {
@@ -36,6 +37,7 @@ public class UIManager : MonoBehaviour
             return uimInstance;
         }
     }
+
 
     // 마우스 클릭 위치에서 오브젝트 반환
     public GameObject MouseGetObject()
@@ -141,6 +143,26 @@ public class UIManager : MonoBehaviour
         enemyCoinText.text = "" + enemy.GetPlayer.coin;
     }
 
+    public void ShowBattleResultText(string message, Vector3 position)
+    {
+        GameObject damageText = Instantiate(damageTextPrefab, position, Quaternion.identity, canvas.transform);
+        Text textComponent = damageText.GetComponent<Text>();
+        textComponent.text = message;
+
+        // 승리 문구는 초록색, 패배 문구는 빨간색으로 설정
+        if (message == "승리")
+        {
+            textComponent.color = Color.green; // 승리 문구는 초록색
+        }
+        else if (message == "패배")
+        {
+            textComponent.color = Color.red; // 패배 문구는 빨간색
+        }
+
+        // 텍스트 애니메이션
+        StartCoroutine(AnimateDamageText(damageText));
+    }
+
     public void ShowDamageTextNearCharacter(int damage, Transform characterTransform)
     {
         Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * 50f; // 랜덤한 오프셋 생성
@@ -174,4 +196,5 @@ public class UIManager : MonoBehaviour
 
         Destroy(damageText);
     }
+
 }

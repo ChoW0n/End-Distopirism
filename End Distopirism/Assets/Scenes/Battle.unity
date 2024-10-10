@@ -240,7 +240,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &430291421
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -512,7 +512,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &798666398
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -671,7 +671,6 @@ GameObject:
   - component: {fileID: 868082949}
   - component: {fileID: 868082948}
   - component: {fileID: 868082951}
-  - component: {fileID: 868082952}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -765,22 +764,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3ed3723fe7ad5ec44adec4eb4d135e51, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &868082952
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 868082947}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 61818b6102f81de4a9933a5a4104bdd2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  target: {fileID: 0}
-  smoothSpeed: 0.5
-  offset: {x: 0, y: 0}
-  zoomAmount: 100
 --- !u!1 &922897784
 GameObject:
   m_ObjectHideFlags: 0
@@ -852,9 +835,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player:
     charName: 1
-    maxHp: 100
+    maxHp: 500
     charSkillCost: 0
-    hp: 100
+    hp: 500
     defLevel: 10
     dmgLevel: 50
     dmg: 0
@@ -932,7 +915,7 @@ Transform:
   m_GameObject: {fileID: 922897784}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -656, y: 275.7, z: 50.5}
+  m_LocalPosition: {x: -656, y: -49, z: 50.5}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1142,8 +1125,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1424169344}
-        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+      - m_Target: {fileID: 1424169346}
+        m_TargetAssemblyTypeName: BattleManager, Assembly-CSharp
         m_MethodName: PlayerAttackButton
         m_Mode: 1
         m_Arguments:
@@ -1495,7 +1478,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1424169345}
-  - component: {fileID: 1424169344}
+  - component: {fileID: 1424169346}
   m_Layer: 0
   m_Name: BattleManager
   m_TagString: Untagged
@@ -1503,7 +1486,22 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1424169344
+--- !u!4 &1424169345
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1424169343}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1424169346
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1527,21 +1525,6 @@ MonoBehaviour:
   targetObjects: []
   playerObjects: []
   arrowCreator: {fileID: 0}
---- !u!4 &1424169345
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1424169343}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1448075421
 GameObject:
   m_ObjectHideFlags: 0
@@ -1863,7 +1846,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!212 &2084785436
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -2013,7 +1996,7 @@ Transform:
   m_GameObject: {fileID: 2115570233}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 1, w: 0}
-  m_LocalPosition: {x: 614, y: 162, z: 0}
+  m_LocalPosition: {x: 614, y: -61, z: 0}
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children: []
