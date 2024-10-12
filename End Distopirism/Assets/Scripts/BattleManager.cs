@@ -290,7 +290,7 @@ public class BattleManager : MonoBehaviour
             CharacterProfile playerObject = playerObjects[i];
             CharacterProfile targetObject = targetObjects[i];
 
-            //*카메라 줌 인 테스트*
+            //카메라를 공격자에게 줌 인
             CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
             if (cameraFollow != null)
             {
@@ -435,15 +435,15 @@ public class BattleManager : MonoBehaviour
         // 1초 대기
         yield return new WaitForSeconds(1f);
 
-        // 카메라 리셋
+        StartCoroutine(ReturnCharacterToInitialPosition(attacker));
+        StartCoroutine(ReturnCharacterToInitialPosition(victim));
+
+        //카메라를 초기 위치와 사이즈로 되돌리기
         CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
         if (cameraFollow != null)
         {
             cameraFollow.ResetCamera();
         }
-
-        StartCoroutine(ReturnCharacterToInitialPosition(attacker));
-        StartCoroutine(ReturnCharacterToInitialPosition(victim));
     }
 
     IEnumerator WaitForMovement(params BattleMove[] moves)

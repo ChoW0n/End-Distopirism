@@ -4,94 +4,125 @@ using UnityEngine;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target; // 따라갈 타겟
-    public float smoothSpeed = 0.125f; // 부드러운 이동 속도
-    public Vector3 offset; // 카메라 오프셋
-    private Vector3 initialPosition = new Vector3(0, 0, -10); // 초기 카메라 위치 고정
+    public Transform target; // 카메라가 따라갈 타겟
+    public float smoothSpeed = 0.125f; // 카메라 이동 속도
+    public Vector3 offset; // 카메라와 타겟 간의 오프셋
+    public Camera mainCamera; // 메인 카메라
+    public float zoomedSize = 340f; // 공격 시 카메라 사이즈
+    private float initialSize; // 초기 카메라 사이즈
+    private Vector3 initialPosition; // 초기 카메라 위치
+    private Quaternion initialRotation; // 초기 카메라 회전
 
-    // 줌 인 강도 설정을 위한 변수
-    public float zoomAmount = 5f; // 기본 줌 인 강도
-
-    // Start is called before the first frame update
-    void Start()
+    private void Start()
     {
-        transform.position = initialPosition; // 카메라를 초기 위치로 설정
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    void LateUpdate()
-    {
-        if (target != null) // 타겟이 설정되어 있는지 확인
+        if (mainCamera == null)
         {
-            // 타겟의 위치에 오프셋을 더하여 원하는 카메라 위치 계산
-            Vector3 desiredPosition = (Vector3)target.position + offset;
-            // 현재 위치와 원하는 위치 사이를 부드럽게 보간하여 이동
-            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
-            transform.position = new Vector3(smoothedPosition.x, smoothedPosition.y, initialPosition.z); // 카메라 위치 업데이트
+            mainCamera = Camera.main; // 메인 카메라 설정
+        }
+        initialSize = mainCamera.orthographicSize; // 초기 카메라 사이즈 저장
+        initialPosition = transform.position; // 초기 카메라 위치 저장
+        initialRotation = transform.rotation; // 초기 카메라 회전 저장
+    }
+
+    private void LateUpdate()
+    {
+        if (target != null)
+        {
+            // 타겟의 위치에 오프셋 추가
+            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + offset.y, target.position.z + offset.z);
+            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed); // 부드러운 이동
+            transform.position = smoothedPosition; // 카메라 위치 업데이트
         }
     }
 
-    public void ZoomInOnTarget(Transform newTarget)
+    // 공격 시 카메라를 타겟으로 이동하고 사이즈를 줄이는 메서드
+    public void ZoomInOnTarget(Transform attacker)
     {
-        if (newTarget != null) // 새로운 타겟이 null이 아닌지 확인
-        {
-            target = newTarget; // 새로운 타겟 설정
-            StartCoroutine(ZoomIn(zoomAmount)); // 줌 인 코루틴 시작
-        }
-        else
-        {
-            Debug.LogWarning("타겟이 null입니다."); // 경고 메시지 출력
-        }
+        target = attacker; // 카메라가 따라갈 타겟 설정
+        StartCoroutine(SmoothZoom(zoomedSize)); // 부드럽게 줌 인
+        ChangeCameraAngle(); // 카메라 각도 변경
     }
 
-    private IEnumerator ZoomIn(float zoomAmount)
+    // 카메라 각도를 공격 시 변경하는 메서드
+    private void ChangeCameraAngle()
     {
-        Vector3 originalPosition = transform.position; // 원래 카메라 위치 저장
-        Vector3 targetPosition = (Vector3)target.position + new Vector3(0, 0, -zoomAmount); // 타겟 위치로 이동 (Z축으로 -zoomAmount)
-
-        float duration = 1f; // 줌 인 시간
-        float elapsedTime = 0f; // 경과 시간 초기화
-
-        // 지정된 시간 동안 카메라를 부드럽게 이동
-        while (elapsedTime < duration)
-        {
-            transform.position = new Vector3(
-                Mathf.Lerp(originalPosition.x, targetPosition.x, elapsedTime / duration),
-                Mathf.Lerp(originalPosition.y, targetPosition.y, elapsedTime / duration),
-                initialPosition.z // Z축은 고정
-            );
-            elapsedTime += Time.deltaTime; // 경과 시간 증가
-            yield return null; // 다음 프레임까지 대기
-        }
-
-        transform.position = new Vector3(targetPosition.x, targetPosition.y, initialPosition.z); // 최종 위치 설정
+        StartCoroutine(SmoothRotate(new Vector3(35f, 0f, 0f), 1f)); // X 40으로 부드럽게 회전
+        //StartCoroutine(SmoothPosition(new Vector3(0f, 0f, 0f), 1f)); // Z -10으로 부드럽게 이동
     }
 
-    public void ResetCamera()
+    private IEnumerator SmoothPosition(Vector3 targetPosition, float duration)
     {
-        StartCoroutine(ReturnToInitialPosition());
-    }
+        Vector3 startPosition = transform.position; // 현재 카메라 위치
+        Vector3 endPosition = targetPosition; // 목표 위치
 
-    private IEnumerator ReturnToInitialPosition()
-    {
-        float duration = 0.5f; // 초기 위치로 돌아가는 시간
-        Vector3 originalPosition = transform.position;
         float elapsedTime = 0f;
 
         while (elapsedTime < duration)
         {
-            transform.position = new Vector3(
-                Mathf.Lerp(originalPosition.x, initialPosition.x, elapsedTime / duration),
-                Mathf.Lerp(originalPosition.y, initialPosition.y, elapsedTime / duration),
-                initialPosition.z // Z축은 고정
-            );
-            elapsedTime += Time.deltaTime;
-            yield return null;
+            transform.position = Vector3.Lerp(startPosition, endPosition, elapsedTime / duration); // 위치 보간
+            elapsedTime += Time.deltaTime; // 경과 시간 증가
+            yield return null; // 다음 프레임까지 대기
+        }
+
+        transform.position = endPosition; // 최종 위치 설정
+    }
+
+    // 카메라를 부드럽게 회전시키는 코루틴
+    private IEnumerator SmoothRotate(Vector3 targetAngle, float duration)
+    {
+        Quaternion startRotation = transform.rotation; // 현재 카메라 회전
+        Quaternion endRotation = Quaternion.Euler(targetAngle); // 목표 회전
+
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / duration); // 회전 보간
+            elapsedTime += Time.deltaTime; // 경과 시간 증가
+            yield return null; // 다음 프레임까지 대기
+        }
+
+        transform.rotation = endRotation; // 최종 회전 설정
+    }
+
+    // 카메라 사이즈를 부드럽게 줄이는 코루틴
+    private IEnumerator SmoothZoom(float targetSize)
+    {
+        float startSize = mainCamera.orthographicSize; // 현재 카메라 사이즈
+        float duration = 1f; // 줌 인에 걸리는 시간
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            mainCamera.orthographicSize = Mathf.Lerp(startSize, targetSize, elapsedTime / duration); // 사이즈 보간
+            elapsedTime += Time.deltaTime; // 경과 시간 증가
+            yield return null; // 다음 프레임까지 대기
+        }
+
+        mainCamera.orthographicSize = targetSize; // 최종 사이즈 설정
+    }
+
+    // 카메라를 초기 위치와 사이즈로 되돌리는 메서드
+    public void ResetCamera()
+    {
+        target = null; // 타겟 초기화
+        StartCoroutine(SmoothZoom(initialSize)); // 부드럽게 초기 사이즈로 되돌리기
+        StartCoroutine(MoveToInitialPosition()); // 초기 위치로 부드럽게 이동
+        StartCoroutine(SmoothRotate(initialRotation.eulerAngles, 1f)); // 초기 회전으로 부드럽게 돌아가기
+    }
+
+    // 카메라를 초기 위치로 부드럽게 이동하는 코루틴
+    private IEnumerator MoveToInitialPosition()
+    {
+        Vector3 startPosition = transform.position; // 현재 카메라 위치
+        float duration = 1f; // 이동에 걸리는 시간
+        float elapsedTime = 0f;
+
+        while (elapsedTime < duration)
+        {
+            transform.position = Vector3.Lerp(startPosition, initialPosition, elapsedTime / duration); // 위치 보간
+            elapsedTime += Time.deltaTime; // 경과 시간 증가
+            yield return null; // 다음 프레임까지 대기
         }
 
         transform.position = initialPosition; // 최종 위치 설정
