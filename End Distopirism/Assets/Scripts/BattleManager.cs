@@ -354,18 +354,18 @@ public class BattleManager : MonoBehaviour
         Debug.Log($"{targetObject.GetPlayer.charName}의 최종 데미지: {targetDamage}");
 
         // 승리/패배 문구 표시
-        Vector2 playerObjectPosition = playerObject.transform.position;
-        Vector2 targetObjectPosition = targetObject.transform.position;
+        Vector3 playerObjectPosition = playerObject.transform.position;
+        Vector3 targetObjectPosition = targetObject.transform.position;
 
         if (playerDamage > targetDamage)
         {
-            UIManager.Instance.ShowBattleResultText("승리", playerObjectPosition + Vector2.up * 250f);
-            UIManager.Instance.ShowBattleResultText("패배", targetObjectPosition + Vector2.up * 250f);
+            UIManager.Instance.ShowBattleResultText("승리", playerObjectPosition + Vector3.up * 250f);
+            UIManager.Instance.ShowBattleResultText("패배", targetObjectPosition + Vector3.up * 250f);
         }
         else
         {
-            UIManager.Instance.ShowBattleResultText("패배", playerObjectPosition + Vector2.up * 250f);
-            UIManager.Instance.ShowBattleResultText("승리", targetObjectPosition + Vector2.up * 250f);
+            UIManager.Instance.ShowBattleResultText("패배", playerObjectPosition + Vector3.up * 250f);
+            UIManager.Instance.ShowBattleResultText("승리", targetObjectPosition + Vector3.up * 250f);
         }
     }
 

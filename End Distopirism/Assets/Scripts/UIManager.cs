@@ -43,13 +43,13 @@ public class UIManager : MonoBehaviour
     public GameObject MouseGetObject()
     {
         // 마우스 위치를 월드 좌표로 변환
-        Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         // 디버그: 마우스 위치 출력
         //Debug.Log("마우스 월드 좌표: " + pos);
 
         // 레이캐스트로 오브젝트를 탐지
-        RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
+        RaycastHit2D hit = Physics2D.Raycast(pos, Vector3.zero);
         GameObject clickObject = null;
 
         if (hit.collider != null)
@@ -165,7 +165,7 @@ public class UIManager : MonoBehaviour
 
     public void ShowDamageTextNearCharacter(int damage, Transform characterTransform)
     {
-        Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * 50f; // 랜덤한 오프셋 생성
+        Vector3 randomOffset = UnityEngine.Random.insideUnitCircle * 50f; // 랜덤한 오프셋 생성
         Vector3 spawnPosition = characterTransform.position + new Vector3(randomOffset.x, 100f + randomOffset.y, 0);
 
         GameObject damageText = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity, canvas.transform);

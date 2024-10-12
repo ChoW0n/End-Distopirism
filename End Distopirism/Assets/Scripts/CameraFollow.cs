@@ -6,7 +6,7 @@ public class CameraFollow : MonoBehaviour
 {
     public Transform target; // 따라갈 타겟
     public float smoothSpeed = 0.125f; // 부드러운 이동 속도
-    public Vector2 offset; // 카메라 오프셋
+    public Vector3 offset; // 카메라 오프셋
     private Vector3 initialPosition = new Vector3(0, 0, -10); // 초기 카메라 위치 고정
 
     // 줌 인 강도 설정을 위한 변수
@@ -29,9 +29,9 @@ public class CameraFollow : MonoBehaviour
         if (target != null) // 타겟이 설정되어 있는지 확인
         {
             // 타겟의 위치에 오프셋을 더하여 원하는 카메라 위치 계산
-            Vector2 desiredPosition = (Vector2)target.position + offset;
+            Vector3 desiredPosition = (Vector3)target.position + offset;
             // 현재 위치와 원하는 위치 사이를 부드럽게 보간하여 이동
-            Vector2 smoothedPosition = Vector2.Lerp(transform.position, desiredPosition, smoothSpeed);
+            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
             transform.position = new Vector3(smoothedPosition.x, smoothedPosition.y, initialPosition.z); // 카메라 위치 업데이트
         }
     }
@@ -52,7 +52,7 @@ public class CameraFollow : MonoBehaviour
     private IEnumerator ZoomIn(float zoomAmount)
     {
         Vector3 originalPosition = transform.position; // 원래 카메라 위치 저장
-        Vector3 targetPosition = (Vector2)target.position + new Vector2(0, -zoomAmount); // 타겟 위치로 이동 (Z축으로 -zoomAmount)
+        Vector3 targetPosition = (Vector3)target.position + new Vector3(0, 0, -zoomAmount); // 타겟 위치로 이동 (Z축으로 -zoomAmount)
 
         float duration = 1f; // 줌 인 시간
         float elapsedTime = 0f; // 경과 시간 초기화
