@@ -76,6 +76,10 @@ public class BattleManager : MonoBehaviour
     {
         // 전투 시작 시 캐릭터 등장 애니메이션 등 효과를 넣고 싶으면 여기 아래에
 
+        // 플레이어 턴 시작 시 기존 선택 리스트 초기화
+        playerObjects.Clear();
+        targetObjects.Clear();
+
         // 플레이어나 적에게 턴 넘기기
         // 추후 랜덤 가능성 있음.
         state = GameState.playerTurn;
