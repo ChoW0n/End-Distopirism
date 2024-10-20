@@ -46,6 +46,7 @@ public class Player
     // Unity 인스펙터에서 스킬 ScriptableObject를 등록할 수 있도록 함
     public List<Skill> skills;
 
+    public bool isFlipped { get; set; }
 
     public void Init()
     {

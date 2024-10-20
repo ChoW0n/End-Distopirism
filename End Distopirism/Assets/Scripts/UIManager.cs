@@ -13,6 +13,7 @@ public class UIManager : MonoBehaviour
     public GameObject playerProfilePanel;
     public GameObject enemyProfilePanel;
 
+
     // Singleton 인스턴스
     public static UIManager Instance
     {
@@ -37,17 +38,18 @@ public class UIManager : MonoBehaviour
         }
     }
 
+
     // 마우스 클릭 위치에서 오브젝트 반환
     public GameObject MouseGetObject()
     {
         // 마우스 위치를 월드 좌표로 변환
-        Vector2 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
 
         // 디버그: 마우스 위치 출력
         //Debug.Log("마우스 월드 좌표: " + pos);
 
         // 레이캐스트로 오브젝트를 탐지
-        RaycastHit2D hit = Physics2D.Raycast(pos, Vector2.zero);
+        RaycastHit2D hit = Physics2D.Raycast(pos, Vector3.zero);
         GameObject clickObject = null;
 
         if (hit.collider != null)
@@ -141,9 +143,29 @@ public class UIManager : MonoBehaviour
         enemyCoinText.text = "" + enemy.GetPlayer.coin;
     }
 
+    public void ShowBattleResultText(string message, Vector3 position)
+    {
+        GameObject damageText = Instantiate(damageTextPrefab, position, Quaternion.identity, canvas.transform);
+        Text textComponent = damageText.GetComponent<Text>();
+        textComponent.text = message;
+
+        // 승리 문구는 초록색, 패배 문구는 빨간색으로 설정
+        if (message == "승리")
+        {
+            textComponent.color = Color.green; // 승리 문구는 초록색
+        }
+        else if (message == "패배")
+        {
+            textComponent.color = Color.red; // 패배 문구는 빨간색
+        }
+
+        // 텍스트 애니메이션
+        StartCoroutine(AnimateDamageText(damageText));
+    }
+
     public void ShowDamageTextNearCharacter(int damage, Transform characterTransform)
     {
-        Vector2 randomOffset = UnityEngine.Random.insideUnitCircle * 50f; // 랜덤한 오프셋 생성
+        Vector3 randomOffset = UnityEngine.Random.insideUnitCircle * 50f; // 랜덤한 오프셋 생성
         Vector3 spawnPosition = characterTransform.position + new Vector3(randomOffset.x, 100f + randomOffset.y, 0);
 
         GameObject damageText = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity, canvas.transform);
@@ -174,4 +196,5 @@ public class UIManager : MonoBehaviour
 
         Destroy(damageText);
     }
+
 }
