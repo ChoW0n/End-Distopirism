@@ -382,73 +382,78 @@ public class BattleManager : MonoBehaviour
         StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
     }
 
-    IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProfile victim)
+IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProfile victim)
+{
+    BattleMove attackerMove = attacker.GetComponent<BattleMove>();
+    BattleMove victimMove = victim.GetComponent<BattleMove>();
+
+    if (attackerMove != null)
     {
-        BattleMove attackerMove = attacker.GetComponent<BattleMove>();
-        BattleMove victimMove = victim.GetComponent<BattleMove>();
+        attackerMove.Attack(); // Hit 애니메이션 재생
+    }
 
-        for (int j = 0; j < attacker.GetPlayer.coin; j++)
+    for (int j = 0; j < attacker.GetPlayer.coin; j++)
+    {
+        attacker.successCount = 0;
+        attacker.coinBonus = 0;
+        if (j > 0)
         {
-            attacker.successCount = 0;
-            attacker.coinBonus = 0;
-            if (j > 0)
-            {
-                CoinRoll(attacker, ref attacker.successCount);
-                attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
-            }
-
-            // 피해를 적용하고 데미지 텍스트 표시
-            victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
-            UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
-            Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
-
-            // 공격자 전진, 피해자 후퇴
-            if (attackerMove != null)
-            {
-                attackerMove.Advance();
-            }
-            if (victimMove != null)
-            {
-                victimMove.Retreat();
-            }
-
-            // 전진과 후퇴가 끝날 때까지 대기
-            yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
-
-            // 피해자가 사망했는지 확인
-            if (0 >= victim.GetPlayer.hp)
-            {
-                victim.gameObject.SetActive(false);
-                break; // 피해자가 사망하면 루프 종료
-            }
-
-            // 잠시 대기하여 움직임을 볼 수 있게 함
-            yield return new WaitForSeconds(1f); // 0.5초의 딜레이 추가
+            CoinRoll(attacker, ref attacker.successCount);
+            attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
         }
 
-        // 정신력 감소
-        victim.GetPlayer.menTality -= 2;  // 패배 시 정신력 -2
-        if (attacker.GetPlayer.menTality < 100)
+        // 피해를 적용하고 데미지 텍스트 표시
+        victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
+        UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
+        Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
+
+        // 공격자 전진, 피해자 후퇴
+        if (attackerMove != null)
         {
-            attacker.GetPlayer.menTality += 1;    // 승리 시 정신력 +1
+            attackerMove.Advance(); // Attack 애니메이션 재생
+        }
+        if (victimMove != null)
+        {
+            victimMove.Retreat();
         }
 
-        // 캐릭터들의 움직임이 끝난 후 대기
+        // 전진과 후퇴가 끝날 때까지 대기
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
-        // 1초 대기
-        yield return new WaitForSeconds(1f);
-
-        StartCoroutine(ReturnCharacterToInitialPosition(attacker));
-        StartCoroutine(ReturnCharacterToInitialPosition(victim));
-
-        //카메라를 초기 위치와 사이즈로 되돌리기
-        CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
-        if (cameraFollow != null)
+        // 피해자가 사망했는지 확인
+        if (0 >= victim.GetPlayer.hp)
         {
-            cameraFollow.ResetCamera();
+            victim.gameObject.SetActive(false);
+            break; // 피해자가 사망하면 루프 종료
         }
+
+        // 잠시 대기하여 움직임을 볼 수 있게 함
+        yield return new WaitForSeconds(1f); // 0.5초의 딜레이 추가
     }
+
+    // 정신력 감소
+    victim.GetPlayer.menTality -= 2;  // 패배 시 정신력 -2
+    if (attacker.GetPlayer.menTality < 100)
+    {
+        attacker.GetPlayer.menTality += 1;    // 승리 시 정신력 +1
+    }
+
+    // 캐릭터들의 움직임이 끝난 후 대기
+    yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
+
+    // 1초 대기
+    yield return new WaitForSeconds(1f);
+
+    StartCoroutine(ReturnCharacterToInitialPosition(attacker));
+    StartCoroutine(ReturnCharacterToInitialPosition(victim));
+
+    //카메라를 초기 위치와 사이즈로 되돌리기
+    CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
+    if (cameraFollow != null)
+    {
+        cameraFollow.ResetCamera();
+    }
+}
 
     IEnumerator WaitForMovement(params BattleMove[] moves)
     {
