@@ -91,29 +91,13 @@ public class CharacterProfile : MonoBehaviour
 
     void Update()
     {
-        // 캐릭터가 카메라를 계속 바라보게 합니다.
+        // 캐릭터가 카메라의 X 회전 값만 따라가도록 설정
         Camera mainCamera = Camera.main;
         if (mainCamera != null)
         {
-            Vector3 direction = mainCamera.transform.position - transform.position;
-            direction.x = 0; // x축 회전을 방지하여 y축만 회전
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-            Vector3 euler = targetRotation.eulerAngles;
-            euler.y = initialYRotation; // 초기 Y 회전 값 유지
-            transform.rotation = Quaternion.Euler(euler);
-        }
-
-        // 태그에 따라 Y 회전값 수정
-        if (CompareTag("Player"))
-        {
             Vector3 euler = transform.rotation.eulerAngles;
-            euler.y = initialYRotation; // Player일 경우 초기 Y 회전 유지
-            transform.rotation = Quaternion.Euler(euler);
-        }
-        else if (CompareTag("Enemy"))
-        {
-            Vector3 euler = transform.rotation.eulerAngles;
-            euler.y = -initialYRotation; // Enemy일 경우 Y 회전을 음수로 설정
+            euler.x = mainCamera.transform.eulerAngles.x; // X축 회전만 카메라를 따라감
+            // Y축과 Z축은 현재 값을 유지
             transform.rotation = Quaternion.Euler(euler);
         }
     }
