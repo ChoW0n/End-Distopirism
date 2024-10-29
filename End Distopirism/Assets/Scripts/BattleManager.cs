@@ -4,6 +4,7 @@ using Unity.VisualScripting;
 //using UnityEditor.Timeline.Actions;
 using UnityEngine;
 using System.Linq;
+using DG.Tweening;
 
 public enum GameState
 {
@@ -74,32 +75,99 @@ public class BattleManager : MonoBehaviour
 
     void BattleStart()
     {
-        // 전투 시작 시 캐릭터 등장 애니메이션 등 효과를 넣고 싶으면 여기 아래에
+        // 전투 시작 시 캐릭터 등장 애니메이션
+        StartCoroutine(CharacterEntryAnimation());
+    }
 
-        
+    private IEnumerator CharacterEntryAnimation()
+    {
+        // 플레이어와 적 캐릭터들 찾기
+        GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
+        GameObject[] enemies = GameObject.FindGameObjectsWithTag("Enemy");
 
-        // 플레이어나 적에게 턴 넘기기
-        // 추후 랜덤 가능성 있음.
+        Vector3 targetScale = new Vector3(100f, 100f, 100f); // 목표 스케일을 100으로 설정
+
+        // 모든 캐릭터를 처음부터 활성화하고 크기만 0으로 설정
+        foreach (var player in players)
+        {
+            player.gameObject.SetActive(true);
+            // 스프라이트 렌더러의 알파값을 1로 설정하여 완전히 보이게 함
+            SpriteRenderer spriteRenderer = player.GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                Color color = spriteRenderer.color;
+                color.a = 1f;
+                spriteRenderer.color = color;
+            }
+            player.transform.localScale = Vector3.zero;
+        }
+
+        foreach (var enemy in enemies)
+        {
+            enemy.gameObject.SetActive(true);
+            // 스프라이트 렌더러의 알파값을 1로 설정하여 완전히 보이게 함
+            SpriteRenderer spriteRenderer = enemy.GetComponent<SpriteRenderer>();
+            if (spriteRenderer != null)
+            {
+                Color color = spriteRenderer.color;
+                color.a = 1f;
+                spriteRenderer.color = color;
+            }
+            enemy.transform.localScale = Vector3.zero;
+        }
+
+        // 플레이어 캐릭터들 등장
+        float delay = 0.2f;
+        for (int i = 0; i < players.Length; i++)
+        {
+            var player = players[i];
+            player.transform
+                .DOScale(targetScale, 0.5f) // Vector3.one 대신 targetScale 사용
+                .SetDelay(delay * i)
+                .SetEase(Ease.OutBack)
+                .OnStart(() => Debug.Log($"플레이어 캐릭터 {i} 등장 시작"))
+                .OnComplete(() => Debug.Log($"플레이어 캐릭터 {i} 등장 완료"));
+        }
+
+        // 플레이어 캐릭터 등장이 끝나고 잠시 대기
+        yield return new WaitForSeconds(players.Length * delay + 0.3f);
+
+        // 적 캐릭터들 등장
+        for (int i = 0; i < enemies.Length; i++)
+        {
+            var enemy = enemies[i];
+            enemy.transform
+                .DOScale(targetScale, 0.5f) // Vector3.one 대신 targetScale 사용
+                .SetDelay(delay * i)
+                .SetEase(Ease.OutBack)
+                .OnStart(() => Debug.Log($"적 캐릭터 {i} 등장 시작"))
+                .OnComplete(() => Debug.Log($"적 캐릭터 {i} 등장 완료"));
+        }
+
+        // 모든 애니메이션이 끝나고 잠시 대기
+        yield return new WaitForSeconds(enemies.Length * delay + 0.5f);
+
+        // 전투 시작
         state = GameState.playerTurn;
     }
 
     //공격&턴 종료 버튼
     public void PlayerAttackButton()
     {
-        //플레이어 턴이 아닐 때 방지
-        if (state != GameState.playerTurn || !allTargetSelected)
+        if (state != GameState.playerTurn || !allTargetSelected || isAttacking)
         {
             return;
         }
-        if (isAttacking)
-        {
-            return;
-        }
-        
+
         // 공격 시작 시 화살표 제거
         arrowCreator.ClearConnections();
-        
-        
+
+        // 모든 캐릭터의 스킬 카드를 숨김
+        foreach (var player in playerObjects)
+        {
+            player.HideSkillCards();
+        }
+
         // 캐릭터들을 중앙으로 이동시킴
         MoveCombatants();
         StartCoroutine(WaitForMovementAndAttack());
@@ -153,21 +221,34 @@ public class BattleManager : MonoBehaviour
             if (targetObjects.Contains(selectedEnemy))
             {
                 targetObjects.Remove(selectedEnemy);
+                selectedEnemy.isSelected = false;
                 Debug.Log("적 캐릭터 선택 취소됨");
                 selecting = true;
                 arrowCreator.ClearConnections();
                 RedrawAllConnections();
+
+                // 적 선택이 취소되면 플레이어의 스킬 카드를 다시 보여줌
+                if (playerObjects.Count > 0)
+                {
+                    playerObjects[playerObjects.Count - 1].ShowCharacterInfo();
+                }
             }
 
             if (selecting && playerObjects.Count > 0)
             {
                 targetObjects.Add(selectedEnemy);
+                selectedEnemy.isSelected = true;
                 Debug.Log("적 캐릭터 선택됨");
                 selecting = false;
 
                 UIManager.Instance.ShowCharacterInfo(targetObjects[0]);
 
-                // 새로운 연결 추가 (색상 매개변수 제거)
+                // 적 선택이 완료되면 스킬 카드를 숨김
+                if (playerObjects.Count > 0)
+                {
+                    playerObjects[playerObjects.Count - 1].HideSkillCards();
+                }
+
                 arrowCreator.AddConnection(playerObjects[playerObjects.Count - 1].transform, selectedEnemy.transform);
             }
         }
@@ -194,12 +275,16 @@ public class BattleManager : MonoBehaviour
 
                 //동일한 플레이어 클릭 시 선택 취소
                 playerObjects.Remove(selectedPlayer);
+                selectedPlayer.isSelected = false;
+                selectedPlayer.ShowCharacterInfo();
                 Debug.Log("레이어 캐릭터 선택 취소됨");
             }
             else
             {
                 //새로운 플레이어 선택
                 playerObjects.Add(selectedPlayer);
+                selectedPlayer.isSelected = true;
+                selectedPlayer.ShowCharacterInfo();
                 Debug.Log("플레이어 캐릭터 선택됨");
                 selecting = true;
 

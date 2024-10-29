@@ -8,6 +8,9 @@ public class CharacterProfile : MonoBehaviour
     private Player player;
     public Player GetPlayer => player;
 
+    [SerializeField]
+    private SkillManager skillManager;
+
     public bool live;
 
     public int bonusDmg = 0;    //diff 차이에 따른 데미지 증가값
@@ -16,6 +19,8 @@ public class CharacterProfile : MonoBehaviour
     public int successCount = 0;  //성공 횟수
 
     public bool isSelected = false; // 선택된 상태를 나타내는 변수
+
+    private float initialYRotation;
 
     void Start()
     {
@@ -30,19 +35,36 @@ public class CharacterProfile : MonoBehaviour
 
         // 스킬 적용하여 캐릭터의 데미지 값을 설정합니다.
         ApplySkill();
+
+        initialYRotation = transform.rotation.eulerAngles.y;
     }
 
     public void ShowCharacterInfo()
     {
         UIManager.Instance.ShowCharacterInfo(this);
-        // 선택된 상태에 따라 테두리 효과 적용
+        
+        // 선택 상태에 따라 스킬 카드 처리
         if (isSelected)
         {
-            // 테두리 효과를 적용하는 코드
+            if (skillManager != null)
+            {
+                Debug.Log($"캐릭터 {player.charName}의 스킬 카드 활성화");
+                skillManager.AssignRandomSkillSprites(player.skills);
+            }
         }
         else
         {
-            // 기본 상태로 되돌리는 코드
+            HideSkillCards();
+        }
+    }
+
+    // 스킬 카드를 숨기는 메서드 추가
+    public void HideSkillCards()
+    {
+        if (skillManager != null)
+        {
+            Debug.Log($"캐릭터 {player.charName}의 스킬 카드 비활성화");
+            skillManager.DeactivateCards();
         }
     }
 
@@ -69,12 +91,29 @@ public class CharacterProfile : MonoBehaviour
 
     void Update()
     {
-        // 캐릭터가 카메라의 X 회전 값을 따라가도록 설정
+        // 캐릭터가 카메라를 계속 바라보게 합니다.
         Camera mainCamera = Camera.main;
         if (mainCamera != null)
         {
+            Vector3 direction = mainCamera.transform.position - transform.position;
+            direction.x = 0; // x축 회전을 방지하여 y축만 회전
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+            Vector3 euler = targetRotation.eulerAngles;
+            euler.y = initialYRotation; // 초기 Y 회전 값 유지
+            transform.rotation = Quaternion.Euler(euler);
+        }
+
+        // 태그에 따라 Y 회전값 수정
+        if (CompareTag("Player"))
+        {
             Vector3 euler = transform.rotation.eulerAngles;
-            euler.x = mainCamera.transform.eulerAngles.x;
+            euler.y = initialYRotation; // Player일 경우 초기 Y 회전 유지
+            transform.rotation = Quaternion.Euler(euler);
+        }
+        else if (CompareTag("Enemy"))
+        {
+            Vector3 euler = transform.rotation.eulerAngles;
+            euler.y = -initialYRotation; // Enemy일 경우 Y 회전을 음수로 설정
             transform.rotation = Quaternion.Euler(euler);
         }
     }

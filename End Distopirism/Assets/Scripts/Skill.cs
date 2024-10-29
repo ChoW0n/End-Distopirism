@@ -5,13 +5,16 @@ using UnityEngine;
 public class Skill : ScriptableObject
 {
     public string skillName;    // 스킬 이름
-    public Sprite sprite;       // 스킬 아이콘
+    public Sprite sprite;       // 전투 UI 스킬 아이콘
     public int maxDmg;          // 스킬의 최대 데미지
     public int minDmg;          // 스킬의 최소 데미지
     public int dmgUp;           // 레벨 상승 시 증가 데미지
     [TextArea(3, 5)]
     public string skillEffect;  // 스킬 효과 설명
     public AnimationClip animationClip;     //해당 스킬 애니메이션
+    public Sprite successSprite; // 시전 성공 시 사용할 스프라이트
+
+    public Sprite nomalSprite; //카드 상태일때 스프라이트
 
     // 스킬의 정보를 출력하는 메서드
     public void PrintSkillInfo()
