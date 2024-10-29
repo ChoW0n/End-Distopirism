@@ -69,27 +69,13 @@ public class CharacterProfile : MonoBehaviour
 
     void Update()
     {
-        // 캐릭터가 카메라를 계속 바라보게 합니다.
+        // 캐릭터가 카메라의 X 회전 값을 따라가도록 설정
         Camera mainCamera = Camera.main;
         if (mainCamera != null)
         {
-            Vector3 direction = mainCamera.transform.position - transform.position;
-            direction.x = 0; // x축 회전을 방지하여 y축만 회전
-            transform.rotation = Quaternion.LookRotation(direction);
-        }
-
-        // Flip 설정을 고려하여 좌우 반전을 유지합니다.
-        if (player.isFlipped)
-        {
-            Vector3 scale = transform.localScale;
-            scale.x = Mathf.Abs(scale.x); // Flip이 true일 때 양수로 설정
-            transform.localScale = scale;
-        }
-        else
-        {
-            Vector3 scale = transform.localScale;
-            scale.x = Mathf.Abs(scale.x) * -1; // Flip이 false일 때 음수로 설정
-            transform.localScale = scale;
+            Vector3 euler = transform.rotation.eulerAngles;
+            euler.x = mainCamera.transform.eulerAngles.x;
+            transform.rotation = Quaternion.Euler(euler);
         }
     }
 }

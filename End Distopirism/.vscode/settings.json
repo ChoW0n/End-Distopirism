@@ -2,8 +2,6 @@
     "dotnet.preferCSharpExtension": true,
     "files.exclude": {
         "**/*.log": true,
-        "**/*.csproj": true,
-        "**/*.sln": true,
         "**/*.mat": true,
         "**/*.unitypackage": true,
         "**/*.meta": true,
@@ -33,6 +31,6 @@
         ".vs": true,
         ".idea": true
     },
-    "dotnet.defaultSolution": "UnityHades.sln",
+    "dotnet.defaultSolution": "End Distopirism.sln",
     "terminal.integrated.allowChords": true
 }
