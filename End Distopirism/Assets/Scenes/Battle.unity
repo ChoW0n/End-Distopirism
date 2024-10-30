@@ -318,14 +318,14 @@ MonoBehaviour:
     maxHp: 599
     charSkillCost: 0
     hp: 599
-    defLevel: 5
-    dmgLevel: 10
+    defLevel: 10
+    dmgLevel: 50
     dmg: 0
     maxDmg: 0
     minDmg: 0
     dmgUp: 0
-    maxCoin: 1
-    coin: 1
+    maxCoin: 3
+    coin: 3
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
@@ -607,13 +607,13 @@ MonoBehaviour:
     charSkillCost: 0
     hp: 500
     defLevel: 10
-    dmgLevel: 50
+    dmgLevel: 47
     dmg: 0
     maxDmg: 0
     minDmg: 0
     dmgUp: 0
-    maxCoin: 5
-    coin: 5
+    maxCoin: 3
+    coin: 3
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
@@ -985,7 +985,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   target: {fileID: 0}
   smoothSpeed: 0.02
-  floorBackground: {fileID: 0}
+  floorBackground: {fileID: 1123632771}
   offset: {x: 0, y: 100, z: -300}
   mainCamera: {fileID: 868082949}
   zoomedSize: 460
@@ -1064,7 +1064,7 @@ MonoBehaviour:
     charSkillCost: 0
     hp: 500
     defLevel: 10
-    dmgLevel: 50
+    dmgLevel: 46
     dmg: 0
     maxDmg: 0
     minDmg: 0
@@ -1416,7 +1416,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: -1
-  m_Sprite: {fileID: 21300000, guid: 7d88887be19f72e468aea330e4f5bc8d, type: 3}
+  m_Sprite: {fileID: 21300000, guid: c6de3e7068b08d84290c9a2d71933169, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
