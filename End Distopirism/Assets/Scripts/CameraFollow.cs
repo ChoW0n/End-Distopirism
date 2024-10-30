@@ -8,7 +8,7 @@ public class CameraFollow : MonoBehaviour
     public float smoothSpeed = 0.125f; // 카메라 이동 속도
     public Vector3 offset; // 카메라와 타겟 간의 오프셋
     public Camera mainCamera; // 메인 카메라
-    public float zoomedSize = 340f; // 공격 시 카메라 사이즈
+    public float zoomedSize = 455f; // 공격 시 카메라 사이즈
     private float initialSize; // 초기 카메라 사이즈
     private Vector3 initialPosition; // 초기 카메라 위치
     private Quaternion initialRotation; // 초기 카메라 회전
@@ -29,7 +29,7 @@ public class CameraFollow : MonoBehaviour
         if (target != null)
         {
             // 타겟의 위치에 오프셋 추가
-            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + offset.y, target.position.z + offset.z);
+            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + offset.y+110, target.position.z + offset.z-100);
             Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed); // 부드러운 이동
             transform.position = smoothedPosition; // 카메라 위치 업데이트
         }
