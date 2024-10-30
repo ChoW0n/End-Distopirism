@@ -6,9 +6,10 @@ public class CameraFollow : MonoBehaviour
 {
     public Transform target; // 카메라가 따라갈 타겟
     public float smoothSpeed = 0.125f; // 카메라 이동 속도
+    public GameObject floorBackground;  //전투 시 깔아둘 바닥 오브젝트
     public Vector3 offset; // 카메라와 타겟 간의 오프셋
     public Camera mainCamera; // 메인 카메라
-    public float zoomedSize = 455f; // 공격 시 카메라 사이즈
+    public float zoomedSize = 460f; // 공격 시 카메라 사이즈
     private float initialSize; // 초기 카메라 사이즈
     private Vector3 initialPosition; // 초기 카메라 위치
     private Quaternion initialRotation; // 초기 카메라 회전
@@ -46,7 +47,7 @@ public class CameraFollow : MonoBehaviour
     // 카메라 각도를 공격 시 변경하는 메서드
     private void ChangeCameraAngle()
     {
-        StartCoroutine(SmoothRotate(new Vector3(35f, 0f, 0f), 1f)); // X 40으로 부드럽게 회전
+        StartCoroutine(SmoothRotate(new Vector3(22f, 0f, 0f), 1f)); // X 40으로 부드럽게 회전
         //StartCoroutine(SmoothPosition(new Vector3(0f, 0f, 0f), 1f)); // Z -10으로 부드럽게 이동
     }
 
@@ -91,7 +92,7 @@ public class CameraFollow : MonoBehaviour
         float startSize = mainCamera.orthographicSize; // 현재 카메라 사이즈
         float duration = 1f; // 줌 인에 걸리는 시간
         float elapsedTime = 0f;
-
+        floorBackground.SetActive(true);
         while (elapsedTime < duration)
         {
             mainCamera.orthographicSize = Mathf.Lerp(startSize, targetSize, elapsedTime / duration); // 사이즈 보간
@@ -106,6 +107,7 @@ public class CameraFollow : MonoBehaviour
     public void ResetCamera()
     {
         target = null; // 타겟 초기화
+        floorBackground.SetActive(false);
         StartCoroutine(SmoothZoom(initialSize)); // 부드럽게 초기 사이즈로 되돌리기
         StartCoroutine(MoveToInitialPosition()); // 초기 위치로 부드럽게 이동
         StartCoroutine(SmoothRotate(initialRotation.eulerAngles, 1f)); // 초기 회전으로 부드럽게 돌아가기
