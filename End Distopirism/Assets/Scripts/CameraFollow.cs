@@ -107,7 +107,6 @@ public class CameraFollow : MonoBehaviour
     public void ResetCamera()
     {
         target = null; // 타겟 초기화
-        floorBackground.SetActive(false);
         StartCoroutine(SmoothZoom(initialSize)); // 부드럽게 초기 사이즈로 되돌리기
         StartCoroutine(MoveToInitialPosition()); // 초기 위치로 부드럽게 이동
         StartCoroutine(SmoothRotate(initialRotation.eulerAngles, 1f)); // 초기 회전으로 부드럽게 돌아가기

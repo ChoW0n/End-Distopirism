@@ -9,64 +9,95 @@ public class TargetArrowCreator : MonoBehaviour
     public float arrowHeadLength = 40f;
     public float lineWidth = 5f;
     public float arrowHeadAngle = 20f;
-    public float drawDuration = 0.5f; // 화살표를 그리는 데 걸리는 시간
+    public float drawDuration = 0.5f;
 
-    private LineRenderer lineRenderer;
+    private List<LineRenderer> lineRenderers = new List<LineRenderer>();
     private List<(Transform player, Transform target)> connections = new List<(Transform, Transform)>();
-    private Coroutine drawCoroutine;
+    private List<Coroutine> activeCoroutines = new List<Coroutine>();
 
     private void Start()
     {
-        CreateLineRenderer();
+        // 시작 시 초기화
+        ClearConnections();
     }
 
-    private void CreateLineRenderer()
+    private LineRenderer CreateLineRenderer()
     {
-        lineRenderer = gameObject.AddComponent<LineRenderer>();
-        lineRenderer.startWidth = lineWidth;
-        lineRenderer.endWidth = lineWidth;
-        lineRenderer.positionCount = 0;
-        lineRenderer.useWorldSpace = true;
+        GameObject lineObj = new GameObject("Arrow Line");
+        lineObj.transform.SetParent(transform);
+        LineRenderer newLineRenderer = lineObj.AddComponent<LineRenderer>();
+        
+        newLineRenderer.startWidth = lineWidth;
+        newLineRenderer.endWidth = lineWidth;
+        newLineRenderer.positionCount = 0;
+        newLineRenderer.useWorldSpace = true;
 
-        lineRenderer.material = new Material(Shader.Find("Sprites/Default"));
-        lineRenderer.startColor = new Color(1f, 0.8f, 0.2f); // 밝은 노란색
-        lineRenderer.endColor = new Color(1f, 0.4f, 0f); // 주황색
+        newLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
+        newLineRenderer.startColor = new Color(1f, 0.8f, 0.2f);
+        newLineRenderer.endColor = new Color(1f, 0.4f, 0f);
+
+        return newLineRenderer;
     }
 
     public void AddConnection(Transform player, Transform target)
     {
-        connections.Clear(); // 기존 연결 제거
-        connections.Add((player, target));
-        if (drawCoroutine != null)
+        // 이미 존재하는 연결인지 확인
+        bool connectionExists = false;
+        for (int i = 0; i < connections.Count; i++)
         {
-            StopCoroutine(drawCoroutine);
+            if (connections[i].player == player && connections[i].target == target)
+            {
+                connectionExists = true;
+                break;
+            }
         }
-        drawCoroutine = StartCoroutine(DrawArrowCoroutine());
+
+        if (!connectionExists)
+        {
+            LineRenderer newLineRenderer = CreateLineRenderer();
+            lineRenderers.Add(newLineRenderer);
+            connections.Add((player, target));
+
+            var newCoroutine = StartCoroutine(DrawArrowCoroutine(lineRenderers.Count - 1));
+            activeCoroutines.Add(newCoroutine);
+        }
     }
 
     public void ClearConnections()
     {
+        // 활성화된 모든 코루틴 중지
+        foreach (var coroutine in activeCoroutines)
+        {
+            if (coroutine != null)
+            {
+                StopCoroutine(coroutine);
+            }
+        }
+        activeCoroutines.Clear();
+
+        // 모든 LineRenderer 제거
+        foreach (var renderer in lineRenderers)
+        {
+            if (renderer != null)
+            {
+                Destroy(renderer.gameObject);
+            }
+        }
+        lineRenderers.Clear();
         connections.Clear();
-        if (lineRenderer != null)
-        {
-            lineRenderer.positionCount = 0;
-        }
-        if (drawCoroutine != null)
-        {
-            StopCoroutine(drawCoroutine);
-            drawCoroutine = null;
-        }
     }
 
-    private IEnumerator DrawArrowCoroutine()
+    private IEnumerator DrawArrowCoroutine(int index)
     {
-        if (connections.Count == 0 || lineRenderer == null)
+        if (index >= connections.Count || index >= lineRenderers.Count)
         {
             yield break;
         }
 
-        Transform start = connections[0].player;
-        Transform end = connections[0].target;
+        var lineRenderer = lineRenderers[index];
+        var connection = connections[index];
+        Transform start = connection.player;
+        Transform end = connection.target;
 
         Vector3 startPoint = start.position + Vector3.up * 120f;
         Vector3 endPoint = end.position + Vector3.up * 120f;
@@ -75,6 +106,8 @@ public class TargetArrowCreator : MonoBehaviour
         float elapsedTime = 0f;
         while (elapsedTime < drawDuration)
         {
+            if (lineRenderer == null) yield break;
+
             elapsedTime += Time.deltaTime;
             float t = Mathf.Clamp01(elapsedTime / drawDuration);
 
@@ -91,7 +124,10 @@ public class TargetArrowCreator : MonoBehaviour
             yield return null;
         }
 
-        DrawArrowHead(endPoint);
+        if (lineRenderer != null)
+        {
+            DrawArrowHead(endPoint, lineRenderer);
+        }
     }
 
     private Vector3 CalculateBezierPoint(float t, Vector3 start, Vector3 control, Vector3 end)
@@ -102,8 +138,10 @@ public class TargetArrowCreator : MonoBehaviour
         return uu * start + 2 * u * t * control + tt * end;
     }
 
-    private void DrawArrowHead(Vector3 tipPoint)
+    private void DrawArrowHead(Vector3 tipPoint, LineRenderer lineRenderer)
     {
+        if (lineRenderer.positionCount < 2) return;
+
         Vector3 direction = (tipPoint - lineRenderer.GetPosition(lineRenderer.positionCount - 2)).normalized;
         Vector3 right = Vector3.Cross(direction, Vector3.forward).normalized;
 
@@ -111,9 +149,10 @@ public class TargetArrowCreator : MonoBehaviour
         Vector3 arrowLeft = arrowTip - direction * arrowHeadLength + right * arrowHeadLength * Mathf.Tan(arrowHeadAngle * Mathf.Deg2Rad);
         Vector3 arrowRight = arrowTip - direction * arrowHeadLength - right * arrowHeadLength * Mathf.Tan(arrowHeadAngle * Mathf.Deg2Rad);
 
-        lineRenderer.positionCount += 3;
-        lineRenderer.SetPosition(lineRenderer.positionCount - 3, arrowLeft);
-        lineRenderer.SetPosition(lineRenderer.positionCount - 2, arrowTip);
-        lineRenderer.SetPosition(lineRenderer.positionCount - 1, arrowRight);
+        int originalPositionCount = lineRenderer.positionCount;
+        lineRenderer.positionCount = originalPositionCount + 3;
+        lineRenderer.SetPosition(originalPositionCount, arrowLeft);
+        lineRenderer.SetPosition(originalPositionCount + 1, arrowTip);
+        lineRenderer.SetPosition(originalPositionCount + 2, arrowRight);
     }
 }

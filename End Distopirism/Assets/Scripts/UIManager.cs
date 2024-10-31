@@ -13,6 +13,9 @@ public class UIManager : MonoBehaviour
     public GameObject playerProfilePanel;
     public GameObject enemyProfilePanel;
 
+    public GameObject healthBarPrefab;  // 체력바 프리팹
+    public GameObject mentalityBarPrefab;  // 정신력바 프리팹
+
 
     // Singleton 인스턴스
     public static UIManager Instance
@@ -70,19 +73,66 @@ public class UIManager : MonoBehaviour
     // 캐릭터 정보 표시 함수
     public void ShowCharacterInfo(CharacterProfile character)
     {
-        if (character.CompareTag("Player"))
+        if (BattleManager.Instance.state == GameState.playerTurn || BattleManager.Instance.state == GameState.enemyTurn)
         {
-            playerProfilePanel.SetActive(true);
-
-            UpdatePlayerInfoPanel(character);
+            // 전투 중에는 캐릭터 정보를 표시하되, 스킬 카드는 숨김
+            if (character.CompareTag("Player"))
+            {
+                playerProfilePanel.SetActive(true);
+                UpdatePlayerInfoPanel(character);
+                // 스킬 카드 숨기기
+                HideSkillCards(playerProfilePanel);
+            }
+            else if (character.CompareTag("Enemy"))
+            {
+                enemyProfilePanel.SetActive(true);
+                UpdateEnemyInfoPanel(character);
+                // 스킬 카드 숨기기
+                HideSkillCards(enemyProfilePanel);
+            }
         }
-        else if (character.CompareTag("Enemy"))
+        else
         {
-            enemyProfilePanel.SetActive(true);
-
-            UpdateEnemyInfoPanel(character);
+            // 전투가 아닐 때 기존 동작 유지
+            if (character.CompareTag("Player"))
+            {
+                playerProfilePanel.SetActive(true);
+                UpdatePlayerInfoPanel(character);
+                ShowSkillCards(playerProfilePanel); // 스킬 카드 표시
+            }
+            else if (character.CompareTag("Enemy"))
+            {
+                enemyProfilePanel.SetActive(true);
+                UpdateEnemyInfoPanel(character);
+                ShowSkillCards(enemyProfilePanel); // 스킬 카드 표시
+            }
         }
+    }
 
+    // 스킬 카드를 숨기는 메서드 추가
+    public void HideSkillCards(GameObject profilePanel)
+    {
+        Transform skillCards = profilePanel.transform.Find("SkillCards");
+        if (skillCards != null)
+        {
+            foreach (Transform card in skillCards)
+            {
+                card.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    // 스킬 카드를 표시하는 메서드 추가
+    public void ShowSkillCards(GameObject profilePanel)
+    {
+        Transform skillCards = profilePanel.transform.Find("SkillCards");
+        if (skillCards != null)
+        {
+            foreach (Transform card in skillCards)
+            {
+                card.gameObject.SetActive(true);
+            }
+        }
     }
 
     //캐릭터 정보 패널 업데이트 함수
@@ -195,6 +245,23 @@ public class UIManager : MonoBehaviour
         }
 
         Destroy(damageText);
+    }
+
+    // 전투 시작과 종료에 따라 UI를 업데이트하는 메서드 추가
+    public void SetBattleUI(bool isBattle)
+    {
+        if (isBattle)
+        {
+            // 전투 시작 시 필요한 UI 요소를 숨기거나 비활성화
+            HideSkillCards(playerProfilePanel);
+            HideSkillCards(enemyProfilePanel);
+        }
+        else
+        {
+            // 전투 종료 시 필요한 UI 요소를 다시 표시
+            ShowSkillCards(playerProfilePanel);
+            ShowSkillCards(enemyProfilePanel);
+        }
     }
 
 }

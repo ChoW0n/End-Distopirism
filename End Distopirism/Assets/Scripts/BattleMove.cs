@@ -50,7 +50,7 @@ public class BattleMove : MonoBehaviour
 
         if (animator != null)
         {
-            animator.SetBool("Idle", true); // Idle 애니메이션 재생
+            animator.SetTrigger("Return"); // Return 애니메이션 재생
         }
 
         StartCoroutine(MoveCoroutine());
@@ -92,7 +92,7 @@ public class BattleMove : MonoBehaviour
         }
         transform.position = targetPosition;
 
-        // 중앙에 도착했을 때 Idle 애니메이션으로 전환
+        // 이동이 완료되면 Idle 애니메이션으로 전환
         if (animator != null)
         {
             animator.SetBool("Attack", false); // Attack 애니메이션 중지

@@ -77,6 +77,9 @@ public class BattleManager : MonoBehaviour
     {
         // 전투 시작 시 캐릭터 등장 애니메이션
         StartCoroutine(CharacterEntryAnimation());
+        
+        // UIManager에 전투 시작 알림
+        UIManager.Instance.SetBattleUI(true);
     }
 
     private IEnumerator CharacterEntryAnimation()
@@ -461,13 +464,13 @@ public class BattleManager : MonoBehaviour
     }
 
     //코인들이 남아있지 않다면
-    void ApplyDamageNoCoins(CharacterProfile playerObject, CharacterProfile targetObject)
-    {
-        CharacterProfile attacker = playerObject.GetPlayer.coin > 0 ? playerObject : targetObject;
-        CharacterProfile victim = attacker == playerObject ? targetObject : playerObject;
+    //void ApplyDamageNoCoins(CharacterProfile playerObject, CharacterProfile targetObject)
+    //{
+      //  CharacterProfile attacker = playerObject.GetPlayer.coin > 0 ? playerObject : targetObject;
+        //CharacterProfile victim = attacker == playerObject ? targetObject : playerObject;
 
-        StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
-    }
+        //StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
+    //}
 
 IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProfile victim)
 {
@@ -491,6 +494,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
         // 피해를 적용하고 데미지 텍스트 표시
         victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
+        victim.UpdateStatus(); // 피해를 입은 후 상태바 업데이트
         UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
         Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
 
@@ -520,9 +524,12 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     // 정신력 감소
     victim.GetPlayer.menTality -= 2;  // 패배 시 정신력 -2
+    victim.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
+    
     if (attacker.GetPlayer.menTality < 100)
     {
         attacker.GetPlayer.menTality += 1;    // 승리 시 정신력 +1
+        attacker.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
     }
 
     // 캐릭터들의 움직임이 끝난 후 대기
@@ -564,6 +571,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             playerObject.GetPlayer.menTality -= 10;
             targetObject.GetPlayer.menTality -= 10;
+            playerObject.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
+            targetObject.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
             Debug.Log($"{playerObject.GetPlayer.charName}과 {targetObject.GetPlayer.charName} 의 정신력 감소");
             draw = 0;
             StartCoroutine(ReturnCharacterToInitialPosition(playerObject));
@@ -634,6 +643,9 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     void EndBattle()    //전투 종료
     {
         Debug.Log("전투 종료");
+        
+        // UIManager에 전투 종료 알림
+        UIManager.Instance.SetBattleUI(false);
     }
 
     IEnumerator EnemyTurn() //적 공격턴
