@@ -9,7 +9,6 @@ public class CharacterProfile : MonoBehaviour
     private Player player;
     public Player GetPlayer => player;
 
-    [SerializeField]
     private SkillManager skillManager;
 
     public bool live;
@@ -31,6 +30,11 @@ public class CharacterProfile : MonoBehaviour
     private Transform hpPosition; // HPPosition 트랜스폼 참조
     private Transform mtPosition; // MTPosition 트랜스폼 참조
 
+    private Transform skillPosition; // SkillPosition 트랜스폼 참조
+    private GameObject currentSkillEffect; // 현재 활성화된 스킬 이펙트
+
+    private Skill selectedSkill; // 현재 선택된 스킬
+
     void Start()
     {
         player.coin = player.maxCoin;
@@ -42,7 +46,7 @@ public class CharacterProfile : MonoBehaviour
             }
         }
 
-        // 스킬 적용하여 캐릭터의 데미지 값을 설정합니다.
+        // 스킬 적용하여 캐릭터의 데미지 값을 설정
         ApplySkill();
 
         initialYRotation = transform.rotation.eulerAngles.y;
@@ -61,6 +65,35 @@ public class CharacterProfile : MonoBehaviour
             Debug.LogError($"캐릭터 {gameObject.name}에서 MTPosition을 찾을 수 없습니다.");
             return;
         }
+
+        // DOTween 애니메이션이 완료된 후 상태바 생성
+        StartCoroutine(WaitForScaleAndCreateBars());
+
+        // SkillPosition 찾기
+        skillPosition = transform.Find("SkillPosition");
+        if (skillPosition == null)
+        {
+            Debug.LogError($"캐릭터 {gameObject.name}에서 SkillPosition을 찾을 수 없습니다.");
+        }
+
+        // SkillManager 찾기
+        skillManager = GameObject.FindObjectOfType<SkillManager>();
+        if (skillManager == null)
+        {
+            Debug.LogError($"캐릭터 {gameObject.name}에서 SkillManager를 찾을 수 없습니다.");
+        }
+    }
+
+    private IEnumerator<object> WaitForScaleAndCreateBars()
+    {
+        // 캐릭터의 스케일이 0이 아닐 때까지 대기
+        while (transform.localScale.magnitude < 1f)
+        {
+            yield return null;
+        }
+
+        // 약간의 추가 딜레이
+        yield return new WaitForSeconds(0.2f);
 
         // 체력바와 정신력바 생성
         CreateStatusBars();
@@ -145,12 +178,17 @@ public class CharacterProfile : MonoBehaviour
         UIManager.Instance.ShowCharacterInfo(this);
         
         // 선택 상태에 따라 스킬 카드 처리
-        if (isSelected)
+        if (isSelected && BattleManager.Instance.state != GameState.enemyTurn)
         {
-            if (skillManager != null)
+            if (skillManager != null && player.skills != null && player.skills.Count > 0)
             {
                 Debug.Log($"캐릭터 {player.charName}의 스킬 카드 활성화");
                 skillManager.AssignRandomSkillSprites(player.skills);
+                skillManager.OnSkillSelected = (skill) => SelectSkill(skill);
+            }
+            else
+            {
+                Debug.LogWarning($"캐릭터 {player.charName}의 SkillManager 또는 스킬 리스트가 null입니다.");
             }
         }
         else
@@ -189,6 +227,7 @@ public class CharacterProfile : MonoBehaviour
     {
         if (healthBar != null) Destroy(healthBar);
         if (mentalityBar != null) Destroy(mentalityBar);
+        DestroySkillEffect(); // 스킬 이펙트도 제거
         gameObject.SetActive(false);
         // todo: 이팩트 재생
     }
@@ -217,6 +256,13 @@ public class CharacterProfile : MonoBehaviour
             // 상태바 값 업데이트
             UpdateStatusBars();
         }
+
+        // 스킬 이펙트 위치와 회전 업데이트
+        if (currentSkillEffect != null && skillPosition != null)
+        {
+            currentSkillEffect.transform.position = skillPosition.position;
+            currentSkillEffect.transform.rotation = Camera.main.transform.rotation;
+        }
     }
 
     // 캐릭터가 데미지를 받을 때 호출할 메서드
@@ -231,5 +277,117 @@ public class CharacterProfile : MonoBehaviour
     {
         player.menTality = Mathf.Clamp(newMentality, 0f, 100f);
         UpdateStatusBars();
+    }
+
+    // 스킬 이펙트 생성 및 표시
+    public void ShowSkillEffect(int initialDamage)
+    {
+        if (skillPosition == null) return;
+
+        // 이전 스킬 이펙트가 있다면 제거
+        if (currentSkillEffect != null)
+        {
+            Destroy(currentSkillEffect);
+        }
+
+        // 태그에 따라 적절한 프리팹 선택
+        GameObject prefab = CompareTag("Player") ? 
+            UIManager.Instance.playerSkillEffectPrefab : 
+            UIManager.Instance.enemySkillEffectPrefab;
+
+        // 스킬 이펙트를 캔버스의 자식으로 생성
+        currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, UIManager.Instance.canvas.transform);
+        
+        // Canvas 설정
+        Canvas skillCanvas = currentSkillEffect.GetComponent<Canvas>();
+        if (skillCanvas != null)
+        {
+            skillCanvas.renderMode = RenderMode.WorldSpace;
+            skillCanvas.worldCamera = Camera.main;
+            skillCanvas.sortingOrder = 5;
+        }
+        
+        // 데미지와 스킬 이름 텍스트 설정
+        Text dmgText = currentSkillEffect.transform.Find("DmgText").GetComponent<Text>();
+        Text skillText = currentSkillEffect.transform.Find("SkillText").GetComponent<Text>();
+        
+        if (dmgText != null)
+        {
+            dmgText.text = initialDamage.ToString();
+        }
+        
+        if (skillText != null)
+        {
+            // 선택된 스킬의 이름을 표시
+            skillText.text = selectedSkill != null ? selectedSkill.skillName : "기본 공격";
+        }
+
+        // 스킬 이펙트의 위치를 SkillPosition에 맞춤
+        currentSkillEffect.transform.position = skillPosition.position;
+    }
+
+    // 데미지 텍스트 업데이트 메서드 추가
+    public void UpdateSkillEffectDamage(int newDamage)
+    {
+        if (currentSkillEffect != null)
+        {
+            Text dmgText = currentSkillEffect.transform.Find("DmgText").GetComponent<Text>();
+            if (dmgText != null)
+            {
+                // 데미지 텍스트를 애니메이션과 함께 업데이트
+                StartCoroutine(AnimateDamageTextUpdate(dmgText, newDamage));
+            }
+        }
+    }
+
+    private IEnumerator<object> AnimateDamageTextUpdate(Text dmgText, int newDamage)
+    {
+        float duration = 0.5f;
+        float elapsedTime = 0f;
+        int startDamage = int.Parse(dmgText.text);
+        
+        while (elapsedTime < duration)
+        {
+            elapsedTime += Time.deltaTime;
+            float progress = elapsedTime / duration;
+            
+            // 현재 데미지 값을 보간하여 계산
+            int currentDamage = (int)Mathf.Lerp(startDamage, newDamage, progress);
+            dmgText.text = currentDamage.ToString();
+            
+            yield return null;
+        }
+        
+        // 최종 값으로 설정
+        dmgText.text = newDamage.ToString();
+    }
+
+    // 스킬 이펙트 제거 메서드 추가
+    public void DestroySkillEffect()
+    {
+        if (currentSkillEffect != null)
+        {
+            Destroy(currentSkillEffect);
+            currentSkillEffect = null;
+        }
+    }
+
+    public void SelectSkill(Skill skill)
+    {
+        selectedSkill = skill;
+        // 선택된 스킬을 플레이어에 적용
+        ApplySelectedSkill();
+        Debug.Log($"스킬 선택됨: {skill.skillName}");
+    }
+
+    private void ApplySelectedSkill()
+    {
+        if (selectedSkill != null)
+        {
+            player.maxDmg = selectedSkill.maxDmg;
+            player.minDmg = selectedSkill.minDmg;
+            player.dmgUp = selectedSkill.dmgUp;
+            Debug.Log($"스킬 적용됨: {selectedSkill.skillName}, 데미지: {selectedSkill.minDmg}-{selectedSkill.maxDmg}");
+        }
     }
 }

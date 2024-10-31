@@ -16,6 +16,9 @@ public class UIManager : MonoBehaviour
     public GameObject healthBarPrefab;  // 체력바 프리팹
     public GameObject mentalityBarPrefab;  // 정신력바 프리팹
 
+    public GameObject playerSkillEffectPrefab;  // 플레이어 스킬 이펙트 프리팹
+    public GameObject enemySkillEffectPrefab;   // 적 스킬 이펙트 프리팹
+
 
     // Singleton 인스턴스
     public static UIManager Instance

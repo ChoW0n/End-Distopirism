@@ -36,6 +36,7 @@ public class BattleManager : MonoBehaviour
 
     public TargetArrowCreator arrowCreator; // 추가된 변수
 
+    private bool skillSelected = false;
 
     void Awake()
     {
@@ -150,7 +151,7 @@ public class BattleManager : MonoBehaviour
         // 모든 애니메이션이 끝나고 잠시 대기
         yield return new WaitForSeconds(enemies.Length * delay + 0.5f);
 
-        // 전투 시작
+        // 투 시작
         state = GameState.playerTurn;
     }
 
@@ -209,107 +210,50 @@ public class BattleManager : MonoBehaviour
         return true;
     }
 
-    void SelectTarget()  //내 캐릭터&타겟 선택
+    void SelectTarget()
     {
-        //클릭된 오브젝트 가져오기
-        GameObject clickObject = UIManager.Instance.MouseGetObject();
-
-        if (clickObject == null)
-            return;
-
-        if (clickObject.CompareTag("Enemy"))
+        if (!skillSelected && !selecting)
         {
-            CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
-
-            if (targetObjects.Contains(selectedEnemy))
+            // 플레이어 선택 로직
+            GameObject clickObject = UIManager.Instance.MouseGetObject();
+            if (clickObject != null && clickObject.CompareTag("Player"))
             {
-                targetObjects.Remove(selectedEnemy);
-                selectedEnemy.isSelected = false;
-                Debug.Log("적 캐릭터 선택 취소됨");
-                selecting = true;
-                arrowCreator.ClearConnections();
-                RedrawAllConnections();
-
-                // 적 선택이 취소되면 플레이어의 스킬 카드를 다시 보여줌
-                if (playerObjects.Count > 0)
+                CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
+                if (!playerObjects.Contains(selectedPlayer))
                 {
-                    playerObjects[playerObjects.Count - 1].ShowCharacterInfo();
+                    playerObjects.Add(selectedPlayer);
+                    selectedPlayer.isSelected = true;
+                    selectedPlayer.ShowCharacterInfo();
                 }
             }
-
-            if (selecting && playerObjects.Count > 0)
+        }
+        else if (skillSelected && selecting)
+        {
+            // 적 선택 로직
+            GameObject clickObject = UIManager.Instance.MouseGetObject();
+            if (clickObject != null && clickObject.CompareTag("Enemy"))
             {
-                targetObjects.Add(selectedEnemy);
-                selectedEnemy.isSelected = true;
-                Debug.Log("적 캐릭터 선택됨");
-                selecting = false;
-
-                UIManager.Instance.ShowCharacterInfo(targetObjects[0]);
-
-                // 적 선택이 완료되면 스킬 카드를 숨김
-                if (playerObjects.Count > 0)
+                CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
+                if (!targetObjects.Contains(selectedEnemy))
                 {
-                    playerObjects[playerObjects.Count - 1].HideSkillCards();
+                    targetObjects.Add(selectedEnemy);
+                    selectedEnemy.isSelected = true;
+                    selecting = false;
+                    skillSelected = false;
+                    
+                    // 화살표 연결
+                    if (playerObjects.Count > 0)
+                    {
+                        arrowCreator.AddConnection(playerObjects[playerObjects.Count - 1].transform, selectedEnemy.transform);
+                    }
                 }
-
-                arrowCreator.AddConnection(playerObjects[playerObjects.Count - 1].transform, selectedEnemy.transform);
             }
         }
 
-        if (clickObject.CompareTag("Player"))
-        {
-            if (selecting)
-            {
-                Debug.Log("적을 선택해주세요.");
-                return;
-            }
-
-            CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
-
-            //플레이어가 이미 선택된 플레이어 리스트에 있는지 확인
-            if (playerObjects.Contains(selectedPlayer))
-            {
-                //매칭된 적 삭제
-                int index = playerObjects.IndexOf(selectedPlayer);
-                if (index != -1 && index < targetObjects.Count)
-                {
-                    targetObjects.RemoveAt(index);
-                }
-
-                //동일한 플레이어 클릭 시 선택 취소
-                playerObjects.Remove(selectedPlayer);
-                selectedPlayer.isSelected = false;
-                selectedPlayer.ShowCharacterInfo();
-                Debug.Log("레이어 캐릭터 선택 취소됨");
-            }
-            else
-            {
-                //새로운 플레이어 선택
-                playerObjects.Add(selectedPlayer);
-                selectedPlayer.isSelected = true;
-                selectedPlayer.ShowCharacterInfo();
-                Debug.Log("플레이어 캐릭터 선택됨");
-                selecting = true;
-
-                UIManager.Instance.ShowCharacterInfo(playerObjects[0]);
-            }
-
-            RedrawAllConnections();
-        }
-
-        //아군과 적이 모두 선택되었는지 확인
+        // 선택 상태 업데이트
         playerSelect = playerObjects.Count > 0;
         enemySelect = targetObjects.Count > 0;
-        if (playerObjects.Count == playerCheck && targetObjects.Count == enemyCheck)
-        {
-            allTargetSelected = true;
-        }
-        else
-        {
-            allTargetSelected = false;
-        }
-
-
+        allTargetSelected = (playerObjects.Count == playerCheck && targetObjects.Count == enemyCheck);
     }
 
     private void RedrawAllConnections()
@@ -480,6 +424,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     if (attackerMove != null)
     {
         attackerMove.Attack(); // Hit 애니메이션 재생
+        // 초기 스킬 이펙트 표시
+        attacker.ShowSkillEffect(attacker.GetPlayer.dmg);
     }
 
     for (int j = 0; j < attacker.GetPlayer.coin; j++)
@@ -490,6 +436,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             CoinRoll(attacker, ref attacker.successCount);
             attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
+            // 데미지가 변경될 때마다 스킬 이펙트 업데이트
+            attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
         }
 
         // 피해를 적용하고 데미지 텍스트 표시
@@ -540,6 +488,10 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     StartCoroutine(ReturnCharacterToInitialPosition(attacker));
     StartCoroutine(ReturnCharacterToInitialPosition(victim));
+
+    // 전투 종료 시 스킬 이펙트 제거
+    attacker.DestroySkillEffect();
+    victim.DestroySkillEffect();
 
     //카메라를 초기 위치와 사이즈로 되돌리기
     CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
@@ -644,6 +596,16 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     {
         Debug.Log("전투 종료");
         
+        // 모든 캐릭터의 스킬 이펙트 제거
+        foreach (var player in playerObjects)
+        {
+            player.DestroySkillEffect();
+        }
+        foreach (var enemy in targetObjects)
+        {
+            enemy.DestroySkillEffect();
+        }
+        
         // UIManager에 전투 종료 알림
         UIManager.Instance.SetBattleUI(false);
     }
@@ -740,5 +702,12 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             characterMove.ReturnToInitialPosition();
             yield return new WaitUntil(() => !characterMove.IsMoving());
         }
+    }
+
+    public void OnSkillSelected()
+    {
+        skillSelected = true;
+        selecting = true; // 적 선택 모드 활성화
+        Debug.Log("스킬 선택 완료, 적 선택 모드로 전환");
     }
 }

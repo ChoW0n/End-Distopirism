@@ -10,12 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1db1306fda4998642a4f4050170ffa8c, type: 3}
-  m_Name: 1002
+  m_Name: 1003
   m_EditorClassIdentifier: 
-  skillName: "\uBC14\uC704"
+  skillName: "\uBCA0\uAE30 3"
   sprite: {fileID: 21300000, guid: 48f82160233089645b648daee9f589bc, type: 3}
   maxDmg: 10
   minDmg: 1
   dmgUp: 5
   skillEffect: ZZZZZZZZZZZZZZZZZZZZZZZZZZ
   animationClip: {fileID: 0}
+  successSprite: {fileID: 21300000, guid: 638a8aab847484e4ca66985a28ddc6fd, type: 3}
+  nomalSprite: {fileID: 21300000, guid: d8908c34ce3161449a14146d7b116f4f, type: 3}
