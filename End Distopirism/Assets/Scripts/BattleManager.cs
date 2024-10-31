@@ -36,6 +36,12 @@ public class BattleManager : MonoBehaviour
 
     public TargetArrowCreator arrowCreator; // 추가된 변수
 
+    public Transform[] playerBattlePositions; // 플레이어 전투 위치
+    public Transform[] enemyBattlePositions;  // 적 전투 위치
+
+    private float shakeDuration = 0.3f;  // 진동 지속 시간
+    private float shakeIntensity = 4f; // 진동 강도
+
     private bool skillSelected = false;
 
     void Awake()
@@ -446,6 +452,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
         Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
 
+        StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
+
         // 공격자 전진, 피해자 후퇴
         if (attackerMove != null)
         {
@@ -625,23 +633,41 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     private void MoveCombatants()
     {
-        Vector3 centerPoint = CalculateCenterPoint();
-
-        foreach (CharacterProfile player in playerObjects)
+        // 각 전투 쌍마다 위치 오브젝트의 X값을 랜덤으로 설정
+        for (int i = 0; i < Mathf.Min(playerBattlePositions.Length, enemyBattlePositions.Length); i++)
         {
-            BattleMove playerMove = player.GetComponent<BattleMove>();
-            if (playerMove != null)
+            float randomOffsetX = Random.Range(-300f, 300f);
+
+            // 위치 오브젝트의 X값 수정
+            Vector3 playerPos = playerBattlePositions[i].position;
+            Vector3 enemyPos = enemyBattlePositions[i].position;
+            
+            // 플레이어 위치 설정
+            playerBattlePositions[i].position = new Vector3(playerPos.x + randomOffsetX, playerPos.y, playerPos.z);
+            
+            // 적 위치는 플레이어보다 200 오른쪽에 설정
+            enemyBattlePositions[i].position = new Vector3(playerBattlePositions[i].position.x + 200f, enemyPos.y, enemyPos.z);
+
+            // 플레이어 이동
+            if (i < playerObjects.Count)
             {
-                playerMove.MoveTowardsCenter(centerPoint, true);  // true는 플레이어 측임을 나타냄
+                BattleMove playerMove = playerObjects[i].GetComponent<BattleMove>();
+                if (playerMove != null)
+                {
+
+                    playerMove.MoveToPosition(playerBattlePositions[i].position);
+                }
             }
-        }
 
-        foreach (CharacterProfile enemy in targetObjects)
-        {
-            BattleMove enemyMove = enemy.GetComponent<BattleMove>();
-            if (enemyMove != null)
+            // 적 이동
+            if (i < targetObjects.Count)
             {
-                enemyMove.MoveTowardsCenter(centerPoint, false);  // false는 적 측임을 나타냄
+                BattleMove enemyMove = targetObjects[i].GetComponent<BattleMove>();
+                if (enemyMove != null)
+                {
+
+                    enemyMove.MoveToPosition(enemyBattlePositions[i].position);
+                }
             }
         }
     }

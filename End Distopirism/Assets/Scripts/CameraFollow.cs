@@ -27,12 +27,12 @@ public class CameraFollow : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (target != null)
+        if (target != null && !CameraShake.Instance.IsShaking())
         {
             // 타겟의 위치에 오프셋 추가
-            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + offset.y+110, target.position.z + offset.z-100);
-            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed); // 부드러운 이동
-            transform.position = smoothedPosition; // 카메라 위치 업데이트
+            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + offset.y + 110, target.position.z + offset.z - 100);
+            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
+            transform.position = smoothedPosition;
         }
     }
 

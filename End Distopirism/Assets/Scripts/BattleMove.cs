@@ -20,25 +20,14 @@ public class BattleMove : MonoBehaviour
         animator = GetComponent<Animator>();
     }
 
-    public void MoveTowardsCenter(Vector3 centerPoint, bool isPlayerSide)
+    public void MoveToPosition(Vector3 position)
     {
-        Vector3 directionToCenter = (centerPoint - transform.position).normalized;
-
-        float additionalSpacing = 50f; //추가 간격
-
-        if (isPlayerSide)
-        {
-            targetPosition = transform.position + directionToCenter * (Vector3.Distance(transform.position, centerPoint) - spacingDistance - additionalSpacing);
-        }
-        else
-        {
-            targetPosition = transform.position + directionToCenter * (Vector3.Distance(transform.position, centerPoint) - spacingDistance - additionalSpacing);
-        }
+        targetPosition = position;
 
         // Attack 애니메이션 재생
         if (animator != null)
         {
-            animator.SetBool("Attack", true); // Attack 애니메이션 재생
+            animator.SetBool("Attack", true);
         }
 
         StartCoroutine(MoveCoroutine());
@@ -50,7 +39,7 @@ public class BattleMove : MonoBehaviour
 
         if (animator != null)
         {
-            animator.SetTrigger("Return"); // Return 애니메이션 재생
+            animator.SetBool("Idle", true); // Idle 애니메이션 재생
         }
 
         StartCoroutine(MoveCoroutine());
@@ -59,7 +48,13 @@ public class BattleMove : MonoBehaviour
     public void Advance()
     {
         Vector3 direction = (targetPosition - initialPosition).normalized;
-        targetPosition = transform.position + direction * advanceDistance;
+        // Y값을 현재 위치의 Y값으로 고정
+        float fixedY = transform.position.y;
+        targetPosition = new Vector3(
+            transform.position.x + direction.x * advanceDistance,
+            fixedY,
+            transform.position.z
+        );
 
         if (animator != null)
         {
@@ -72,11 +67,17 @@ public class BattleMove : MonoBehaviour
     public void Retreat()
     {
         Vector3 direction = (initialPosition - targetPosition).normalized;
-        targetPosition = transform.position + direction * retreatDistance;
+        // Y값을 현재 위치의 Y값으로 고정
+        float fixedY = transform.position.y;
+        targetPosition = new Vector3(
+            transform.position.x + direction.x * retreatDistance,
+            fixedY,
+            transform.position.z
+        );
 
         if (animator != null)
         {
-            animator.SetTrigger("Return"); 
+            animator.SetTrigger("Return");      //Return 애니메이션 재생
         }
 
         StartCoroutine(RetreatCoroutine());

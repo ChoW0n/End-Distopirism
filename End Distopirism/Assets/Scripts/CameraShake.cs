@@ -4,8 +4,7 @@ using System.Collections;
 public class CameraShake : MonoBehaviour
 {
     public static CameraShake Instance { get; private set; }
-
-    private Vector3 originalPosition;
+    private bool isShaking = false;
 
     private void Awake()
     {
@@ -19,26 +18,29 @@ public class CameraShake : MonoBehaviour
         }
     }
 
-    private void Start()
-    {
-        originalPosition = transform.localPosition;
-    }
-
     public IEnumerator Shake(float duration, float magnitude)
     {
+        isShaking = true;
         float elapsed = 0f;
 
         while (elapsed < duration)
         {
-            float x = Random.Range(-1f, 1f) * magnitude;
-            float y = Random.Range(-1f, 1f) * magnitude;
+            // 현재 카메라 위치를 기준으로 랜덤한 오프셋 추가
+            Vector3 currentPos = transform.position;
+            float x = currentPos.x + Random.Range(-1f, 1f) * magnitude;
+            float y = currentPos.y + Random.Range(-1f, 1f) * magnitude;
 
-            transform.localPosition = new Vector3(x, y, originalPosition.z);
+            transform.position = new Vector3(x, y, currentPos.z);
 
             elapsed += Time.deltaTime;
             yield return null;
         }
 
-        transform.localPosition = originalPosition;
+        isShaking = false;
+    }
+
+    public bool IsShaking()
+    {
+        return isShaking;
     }
 }
