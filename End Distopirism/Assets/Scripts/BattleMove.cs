@@ -47,7 +47,7 @@ public class BattleMove : MonoBehaviour
 
     public void Advance()
     {
-        Vector3 direction = (targetPosition - initialPosition).normalized;
+        Vector3 direction = (transform.position - initialPosition).normalized;
         // Y값을 현재 위치의 Y값으로 고정
         float fixedY = transform.position.y;
         targetPosition = new Vector3(
@@ -66,7 +66,7 @@ public class BattleMove : MonoBehaviour
 
     public void Retreat()
     {
-        Vector3 direction = (initialPosition - targetPosition).normalized;
+        Vector3 direction = (initialPosition - transform.position).normalized;
         // Y값을 현재 위치의 Y값으로 고정
         float fixedY = transform.position.y;
         targetPosition = new Vector3(
