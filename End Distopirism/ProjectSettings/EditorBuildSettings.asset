@@ -14,4 +14,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/StageSelect.unity
     guid: 42f3eb8927d48884999c84506c999d5d
+  - enabled: 1
+    path: Assets/Scenes/DeckBuilding.unity
+    guid: 732759756df9c434fae67f0314199db1
   m_configObjects: {}

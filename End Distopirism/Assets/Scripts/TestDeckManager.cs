@@ -67,6 +67,13 @@ public class TestDeckManager : MonoBehaviour
     private float lastClickTime = -1f;
     private int lastClickedIndex = -1;
 
+    [Header("스테이지 설정")]
+    [SerializeField] private StageData currentStageData;
+    private int maxSelectableCharacters;
+
+    [Header("UI 버튼")]
+    [SerializeField] private Button startButton; // 시작 버튼
+
     private void Awake()
     {
         ValidateReferences();
@@ -94,12 +101,45 @@ public class TestDeckManager : MonoBehaviour
 
     private void Start()
     {
+        // StageData가 할당되지 않았을 경우 Resources 폴더에서 로드
+        if (currentStageData == null)
+        {
+            currentStageData = Resources.Load<StageData>($"StageData/Stage{DeckData.currentStage}");
+            if (currentStageData == null)
+            {
+                Debug.LogError($"Stage{DeckData.currentStage}의 StageData를 찾을 수 없습니다. Resources/StageData 폴더에 StageData 에셋이 있는지 확인해주세요.");
+                maxSelectableCharacters = 3; // 기본값 설정
+            }
+            else
+            {
+                maxSelectableCharacters = currentStageData.requiredCharacterCount;
+            }
+        }
+        else
+        {
+            maxSelectableCharacters = currentStageData.requiredCharacterCount;
+        }
+
         LoadCharacterPrefabs();
         cardSelectPanel.SetActive(false);
         SetupSelectedCharacterPanel();
         SetupSelectedCardPanel();
         LoadSkillCards();
         InitializeButtons();
+
+        // 시작 버튼 이벤트 연결
+        if (startButton != null)
+        {
+            startButton.onClick.RemoveAllListeners(); // 기존 리스너 제거
+            startButton.onClick.AddListener(OnStartButtonClick);
+        }
+        else
+        {
+            Debug.LogError("시작 버튼이 할당되지 않았습니다.");
+        }
+
+        // 시작 버튼 초기 상태 설정
+        UpdateStartButtonState();
     }
 
     private void LoadCharacterPrefabs()
@@ -501,9 +541,25 @@ public class TestDeckManager : MonoBehaviour
     {
         if (!selectedCharacterIndices.Contains(characterIndex))
         {
+            // 캐릭터 선택 제한 확인
+            if (selectedCharacterIndices.Count >= maxSelectableCharacters)
+            {
+                Debug.LogWarning($"스테이지 {DeckData.currentStage}에서는 최대 {maxSelectableCharacters}명의 캐릭터만 선택할 수 있습니다.");
+                return;
+            }
+
             // 전투 대상으로 추가
             selectedCharacterIndices.Add(characterIndex);
             CreateSelectedCharacterIcon(characterIndex);
+            
+            // 선택된 프리팹 저장
+            if (characterPrefabDict.TryGetValue(characterButtons[characterIndex], out GameObject prefab))
+            {
+                DeckData.selectedCharacterPrefabs.Add(prefab);
+            }
+
+            // 시작 버튼 상태 업데이트
+            UpdateStartButtonState();
         }
     }
 
@@ -593,6 +649,15 @@ public class TestDeckManager : MonoBehaviour
                     cardSelectPanel.SetActive(false);
                     ClearSelectedCards();
                 }
+
+                // 선택 해제 시 DeckData에서도 제거
+                if (index != -1 && index < DeckData.selectedCharacterPrefabs.Count)
+                {
+                    DeckData.selectedCharacterPrefabs.RemoveAt(index);
+                }
+
+                // 시작 버튼 상태 업데이트
+                UpdateStartButtonState();
             }
             catch (System.Exception e)
             {
@@ -731,5 +796,29 @@ public class TestDeckManager : MonoBehaviour
             }
         }
         return -1;
+    }
+
+    private void UpdateStartButtonState()
+    {
+        if (startButton != null)
+        {
+            // 필요한 수만큼 캐릭터가 선택되었는지 확인
+            bool canStart = selectedCharacterIndices.Count == maxSelectableCharacters;
+            startButton.interactable = canStart;
+        }
+    }
+
+    private void OnStartButtonClick()
+    {
+        // SceneButtonManager를 찾아서 스테이지 시작
+        SceneButtonManager sceneManager = FindObjectOfType<SceneButtonManager>();
+        if (sceneManager != null)
+        {
+            sceneManager.OnDeckBuildingComplete();
+        }
+        else
+        {
+            Debug.LogError("SceneButtonManager를 찾을 수 없습니다.");
+        }
     }
 }

@@ -34,7 +34,7 @@ public class BattleManager : MonoBehaviour
     public List<CharacterProfile> targetObjects = new List<CharacterProfile>();
     public List<CharacterProfile> playerObjects = new List<CharacterProfile>();
 
-    public TargetArrowCreator arrowCreator; // 추가된 변수
+    public TargetArrowCreator arrowCreator; // 추가된 변��
 
     public Transform[] playerBattlePositions; // 플레이어 전투 위치
     public Transform[] enemyBattlePositions;  // 적 전투 위치
@@ -43,6 +43,9 @@ public class BattleManager : MonoBehaviour
     private float shakeIntensity = 4f; // 진동 강도
 
     private bool skillSelected = false;
+
+    [Header("스테이지 설정")]
+    [SerializeField] private StageData stageData;
 
     void Awake()
     {
@@ -59,10 +62,40 @@ public class BattleManager : MonoBehaviour
 
     public void Start()
     {
+        // StageData가 할당되지 않았을 경우 Resources 폴더에서 로드
+        if (stageData == null)
+        {
+            stageData = Resources.Load<StageData>($"StageData/Stage{DeckData.currentStage}");
+            if (stageData == null)
+            {
+                Debug.LogError($"Stage{DeckData.currentStage}의 StageData를 찾을 수 없습니다. Resources/StageData 폴더에 StageData 에셋이 있는지 확인해주세요.");
+                return;
+            }
+        }
+
+        // 선택된 캐릭터들이 있는지 확인
+        if (DeckData.selectedCharacterPrefabs == null || DeckData.selectedCharacterPrefabs.Count == 0)
+        {
+            Debug.LogError("선택된 캐릭터가 없습니다.");
+            return;
+        }
+
+        // 캐릭터 위치가 설정되어 있는지 확인
+        if (stageData.characterPositions == null || stageData.characterPositions.Length == 0)
+        {
+            Debug.LogError("StageData에 캐릭터 위치가 설정되어 있지 않습니다.");
+            return;
+        }
+
+        // 선택된 플레이어 캐릭터들 생성
+        SpawnSelectedCharacters();
+
         GameObject[] players = GameObject.FindGameObjectsWithTag("Player");
         GameObject[] enemys = GameObject.FindGameObjectsWithTag("Enemy");
         playerCheck = players.Length;
         enemyCheck = enemys.Length;
+
+        Debug.Log($"생성된 플레이어 수: {players.Length}, 적 수: {enemys.Length}");
 
         // 게임 시작시 전투 시작
         BattleStart();
@@ -279,7 +312,7 @@ public class BattleManager : MonoBehaviour
             float maxMenTality = 100f; // 최대 정신력
             float maxProbability = 0.6f; // 최대 확률 (60%)
 
-            // 정신력에 따른 확률 계산
+            // 정신력에 른 확률 계산
             float currentProbability = Mathf.Max(0f, maxProbability * (Object.GetPlayer.menTality / maxMenTality));
 
             for (int j = 1; j < Object.GetPlayer.coin - 1; j++)
@@ -467,7 +500,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 전진과 후퇴가 끝날 때까지 대기
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
-        // 피해자가 사망했는지 확인
+        // ���해자가 사망했는지 확인
         if (0 >= victim.GetPlayer.hp)
         {
             victim.gameObject.SetActive(false);
@@ -735,5 +768,42 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         skillSelected = true;
         selecting = true; // 적 선택 모드 활성화
         Debug.Log("스킬 선택 완료, 적 선택 모드로 전환");
+    }
+
+    private void SpawnSelectedCharacters()
+    {
+        Debug.Log($"캐릭터 생성 시작: {DeckData.selectedCharacterPrefabs.Count}개의 캐릭터");
+        
+        for (int i = 0; i < DeckData.selectedCharacterPrefabs.Count; i++)
+        {
+            if (i < stageData.characterPositions.Length)
+            {
+                Vector3 spawnPosition = stageData.characterPositions[i];
+                GameObject characterPrefab = DeckData.selectedCharacterPrefabs[i];
+                
+                Debug.Log($"캐릭터 {i + 1} 생성 위치: {spawnPosition}");
+                
+                GameObject character = Instantiate(
+                    characterPrefab,
+                    spawnPosition,
+                    Quaternion.identity
+                );
+                
+                // 태그 설정
+                character.tag = "Player";
+                
+                // 캐릭터 초기화 로직
+                CharacterProfile profile = character.GetComponent<CharacterProfile>();
+                if (profile != null)
+                {
+                    profile.GetPlayer.Init();
+                    Debug.Log($"캐릭터 {profile.GetPlayer.charName} 생성 완료");
+                }
+            }
+            else
+            {
+                Debug.LogWarning($"캐릭터 {i + 1}의 생성 위치가 정의되지 않았습니다.");
+            }
+        }
     }
 }
