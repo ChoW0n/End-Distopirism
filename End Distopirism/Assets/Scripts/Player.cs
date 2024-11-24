@@ -48,6 +48,8 @@ public class Player
 
     public bool isFlipped { get; set; }
 
+    public Sprite charSprite; // 캐릭터 스프라이트
+
     public void Init()
     {
         hp = maxHp;
