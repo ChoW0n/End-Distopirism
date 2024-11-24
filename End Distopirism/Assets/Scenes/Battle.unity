@@ -131,6 +131,62 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1943806773}
     m_Modifications:
+    - target: {fileID: 1481009264194450023, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 1481009264194450023, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4498397380858262537, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 4498397380858262537, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5918432080937302915, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 5918432080937302915, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6591151364901987513, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 6591151364901987513, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7312135679710413952, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 7312135679710413952, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7383458980139857257, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 7383458980139857257, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7402502337337563200, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 7402502337337563200, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7940692328786759546, guid: aacb2361542f9cc4d83ebc699f9172c5, type: 3}
       propertyPath: m_Name
       value: PlayerInfoPanel
@@ -475,6 +531,7 @@ MonoBehaviour:
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+    charSprite: {fileID: 0}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -1460,6 +1517,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
     - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
+    charSprite: {fileID: 0}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -1705,7 +1763,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8b0aff9c7b3078d48b458b61456cea40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damageTextPrefab: {fileID: 1086182536178314378, guid: f2ef3cb4019e4d843a363bac573e9659, type: 3}
+  damageTextPrefab: {fileID: 1758907937922634839, guid: 8291538a2bb025f45b7e430d7a762202, type: 3}
   canvas: {fileID: 1943806772}
   playerProfilePanel: {fileID: 2081317365}
   enemyProfilePanel: {fileID: 1878296296}
@@ -1921,6 +1979,38 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1943806773}
     m_Modifications:
+    - target: {fileID: 240474481840765972, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 240474481840765972, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 895009487151771476, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 895009487151771476, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5615079009069903410, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 5615079009069903410, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6229491935483709985, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 6229491935483709985, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 7940692328786759546, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
       propertyPath: m_Name
       value: EnemyInfoPanel
@@ -1928,6 +2018,14 @@ PrefabInstance:
     - target: {fileID: 7940692328786759546, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8138351195395193128, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 8138351195395193128, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8186004305847821800, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
       propertyPath: m_Pivot.x
@@ -2008,6 +2106,22 @@ PrefabInstance:
     - target: {fileID: 8186004305847821800, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8718032654784458028, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 8718032654784458028, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8719749572782948535, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_fontAsset
+      value: 
+      objectReference: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
+    - target: {fileID: 8719749572782948535, guid: a5d5cb868623ad5448386fd116e4ab48, type: 3}
+      propertyPath: m_hasFontAssetChanged
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -2603,6 +2717,7 @@ MonoBehaviour:
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+    charSprite: {fileID: 0}
   live: 0
   bonusDmg: 0
   coinBonus: 0
