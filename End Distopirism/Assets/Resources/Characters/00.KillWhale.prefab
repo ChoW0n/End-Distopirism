@@ -172,7 +172,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
     - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
-    charSprite: {fileID: 0}
+    charSprite: {fileID: 21300000, guid: 10fed5edae046ac439e8ced5274c0125, type: 3}
   live: 0
   bonusDmg: 0
   coinBonus: 0
