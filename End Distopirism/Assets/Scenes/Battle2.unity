@@ -360,6 +360,7 @@ MonoBehaviour:
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+    charSprite: {fileID: 0}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -682,6 +683,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+    charSprite: {fileID: 0}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -1200,6 +1202,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+    charSprite: {fileID: 0}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -1838,6 +1841,7 @@ MonoBehaviour:
   arrowCreator: {fileID: 0}
   playerBattlePositions: []
   enemyBattlePositions: []
+  stageData: {fileID: 0}
 --- !u!1 &1448075421
 GameObject:
   m_ObjectHideFlags: 0
@@ -2393,6 +2397,7 @@ MonoBehaviour:
     menTality: 100
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+    charSprite: {fileID: 0}
   live: 0
   bonusDmg: 0
   coinBonus: 0
