@@ -5,16 +5,20 @@ using UnityEngine.SceneManagement;
 
 public class SceneButtonManager : MonoBehaviour
 {
+    private static string nextSceneName; // 다음에 로드할 씬 이름을 저장
+
     public void OnGameStartButtonClick()
     {
-        SceneManager.LoadScene("StageSelect");
+        nextSceneName = "StageSelect";
+        SceneManager.LoadScene("Loading");
     }
 
     public void OnStage1ButtonClick()
     {
         DeckData.currentStage = 1;
         DeckData.selectedCharacterPrefabs.Clear(); // 이전 선택 초기화
-        SceneManager.LoadScene("DeckBuilding");
+        nextSceneName = "DeckBuilding";
+        SceneManager.LoadScene("Loading");
     }
 
     public void OnDeckBuildingComplete()
@@ -24,14 +28,21 @@ public class SceneButtonManager : MonoBehaviour
         if (stageData != null)
         {
             // StageData에 설정된 씬 이름으로 이동
-            SceneManager.LoadScene(stageData.sceneName);
+            nextSceneName = stageData.sceneName;
         }
         else
         {
             // StageData를 찾지 못한 경우 기본 이름 사용
-            SceneManager.LoadScene($"Stage{DeckData.currentStage}");
+            nextSceneName = $"Stage{DeckData.currentStage}";
             Debug.LogWarning($"Stage{DeckData.currentStage}의 StageData를 찾을 수 없습니다. 기본 씬 이름을 사용합니다.");
         }
+        SceneManager.LoadScene("Loading");
+    }
+
+    // 다음 씬 이름을 가져오는 정적 메서드
+    public static string GetNextSceneName()
+    {
+        return nextSceneName;
     }
 
     // Start is called before the first frame update
