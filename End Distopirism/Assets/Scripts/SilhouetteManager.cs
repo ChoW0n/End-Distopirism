@@ -43,6 +43,7 @@ public class Silhouette : MonoBehaviour
             silhouette.transform.parent = bank.transform;
             SpriteRenderer sr = silhouette.AddComponent<SpriteRenderer>();
             sr.color = new Color(1, 1, 1, 0);  // 초기 투명 상태
+            sr.sortingOrder = -3;  // 소팅 레이어를 -3으로 설정
             silhouetteList.Add(silhouette);
         }
     }

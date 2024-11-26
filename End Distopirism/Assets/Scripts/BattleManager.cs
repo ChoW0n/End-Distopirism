@@ -593,7 +593,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             loser.GetPlayer.coin--;
             i--;    //다시 싸우기
-            loser.ShowCharacterInfo();
         }
         else
         {

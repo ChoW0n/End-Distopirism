@@ -594,7 +594,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -2
   m_Sprite: {fileID: 21300000, guid: 096c7627ef91c9a42889d71bf275caa2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1067,7 +1067,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -1
+  m_SortingOrder: -4
   m_Sprite: {fileID: 21300000, guid: c6de3e7068b08d84290c9a2d71933169, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1361,7 +1361,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: -2
+  m_SortingOrder: -5
   m_Sprite: {fileID: 21300000, guid: 3e914894064291a4a911ffa7b8bd283a, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
@@ -1734,7 +1734,7 @@ MonoBehaviour:
   enemyBattlePositions:
   - {fileID: 1196901211}
   - {fileID: 1492872816}
-  stageData: {fileID: 0}
+  stageData: {fileID: 11400000, guid: bd817df6edb6ecb49b6b41394c276e38, type: 2}
 --- !u!1 &1448075421
 GameObject:
   m_ObjectHideFlags: 0
@@ -1770,7 +1770,7 @@ MonoBehaviour:
   enemyProfilePanel: {fileID: 1878296296}
   healthBarPrefab: {fileID: 7244979570873313242, guid: 1d73c299db557694cb39caa94e2d124f, type: 3}
   mentalityBarPrefab: {fileID: 7244979570873313242, guid: ff6949b0a45c2d64baad4531872e8c55, type: 3}
-  playerSkillEffectPrefab: {fileID: 4928899520783052884, guid: d0ad6ab1ddcb8804d9fdde008aaffd47, type: 3}
+  playerSkillEffectPrefab: {fileID: 1808741783310874080, guid: 63a62f158f4fc524ab9a846c3884e278, type: 3}
   enemySkillEffectPrefab: {fileID: 1808741783310874080, guid: aa23e0923c8df8644baedeca47b21d17, type: 3}
 --- !u!4 &1448075423
 Transform:
@@ -2336,10 +2336,10 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -1
   m_TargetDisplay: 0
 --- !u!224 &1943806773
 RectTransform:
@@ -2625,7 +2625,7 @@ SpriteRenderer:
   m_LightmapParameters: {fileID: 0}
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: -2
   m_Sprite: {fileID: 21300000, guid: 096c7627ef91c9a42889d71bf275caa2, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0

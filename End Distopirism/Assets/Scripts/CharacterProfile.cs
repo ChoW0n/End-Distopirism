@@ -1,7 +1,10 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
 using UnityEngine.UI;
+using TMPro;
+using DG.Tweening;
 
 public class CharacterProfile : MonoBehaviour
 {
@@ -84,7 +87,7 @@ public class CharacterProfile : MonoBehaviour
         }
     }
 
-    private IEnumerator<object> WaitForScaleAndCreateBars()
+    private IEnumerator WaitForScaleAndCreateBars()
     {
         // 캐릭터의 스케일이 0이 아닐 때까지 대기
         while (transform.localScale.magnitude < 1f)
@@ -227,7 +230,7 @@ public class CharacterProfile : MonoBehaviour
     {
         if (healthBar != null) Destroy(healthBar);
         if (mentalityBar != null) Destroy(mentalityBar);
-        DestroySkillEffect(); // 스킬 이펙트도 제거
+        DestroySkillEffect(); // 스킬 이펙트도 거
         gameObject.SetActive(false);
         // todo: 이팩트 재생
     }
@@ -284,21 +287,17 @@ public class CharacterProfile : MonoBehaviour
     {
         if (skillPosition == null) return;
 
-        // 이전 스킬 이펙트가 있다면 제거
         if (currentSkillEffect != null)
         {
             Destroy(currentSkillEffect);
         }
 
-        // 태그에 따라 적절한 프리팹 선택
         GameObject prefab = CompareTag("Player") ? 
             UIManager.Instance.playerSkillEffectPrefab : 
             UIManager.Instance.enemySkillEffectPrefab;
 
-        // 스킬 이펙트를 캔버스의 자식으로 생성
         currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, UIManager.Instance.canvas.transform);
         
-        // Canvas 설정
         Canvas skillCanvas = currentSkillEffect.GetComponent<Canvas>();
         if (skillCanvas != null)
         {
@@ -307,9 +306,10 @@ public class CharacterProfile : MonoBehaviour
             skillCanvas.sortingOrder = 5;
         }
         
-        // 데미지와 스킬 이름 텍스트 설정
-        Text dmgText = currentSkillEffect.transform.Find("DmgText").GetComponent<Text>();
-        Text skillText = currentSkillEffect.transform.Find("SkillText").GetComponent<Text>();
+        // TMP 컴포넌트 참
+        TextMeshProUGUI dmgText = currentSkillEffect.transform.Find("DmgText").GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI skillText = currentSkillEffect.transform.Find("SkillText").GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI coinText = currentSkillEffect.transform.Find("CoinText").GetComponent<TextMeshProUGUI>();
         
         if (dmgText != null)
         {
@@ -318,48 +318,97 @@ public class CharacterProfile : MonoBehaviour
         
         if (skillText != null)
         {
-            // 선택된 스킬의 이름을 표시
             skillText.text = selectedSkill != null ? selectedSkill.skillName : "기본 공격";
         }
 
-        // 스킬 이펙트의 위치를 SkillPosition에 맞춤
+        if (coinText != null)
+        {
+            coinText.text = successCount.ToString();
+        }
+
         currentSkillEffect.transform.position = skillPosition.position;
     }
 
-    // 데미지 텍스트 업데이트 메서드 추가
     public void UpdateSkillEffectDamage(int newDamage)
     {
         if (currentSkillEffect != null)
         {
-            Text dmgText = currentSkillEffect.transform.Find("DmgText").GetComponent<Text>();
+            TextMeshProUGUI dmgText = currentSkillEffect.transform.Find("DmgText").GetComponent<TextMeshProUGUI>();
             if (dmgText != null)
             {
-                // 데미지 텍스트를 애니메이션과 함께 업데이트
                 StartCoroutine(AnimateDamageTextUpdate(dmgText, newDamage));
             }
         }
     }
 
-    private IEnumerator<object> AnimateDamageTextUpdate(Text dmgText, int newDamage)
+    public void UpdateCoinCount(int count)
     {
-        float duration = 0.5f;
+        if (currentSkillEffect != null)
+        {
+            TextMeshProUGUI coinText = currentSkillEffect.transform.Find("CoinText").GetComponent<TextMeshProUGUI>();
+            if (coinText != null)
+            {
+                StartCoroutine(AnimateCoinTextUpdate(coinText, count));
+            }
+        }
+    }
+
+    private IEnumerator AnimateDamageTextUpdate(TextMeshProUGUI dmgText, int newDamage)
+    {
+        float duration = 0.4f;
         float elapsedTime = 0f;
         int startDamage = int.Parse(dmgText.text);
+        Vector3 originalScale = dmgText.transform.localScale;
+        Color originalColor = dmgText.color;
         
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
             float progress = elapsedTime / duration;
             
-            // 현재 데미지 값을 보간하여 계산
+            // 현기 애니메이션
+            float scaleFactor = 1f + Mathf.Sin(progress * Mathf.PI) * 0.4f;
+            dmgText.transform.localScale = originalScale * scaleFactor;
+            
+            // 색상 변경
+            dmgText.color = Color.Lerp(Color.red, originalColor, progress);
+            
+            // 숫자 업데이트
             int currentDamage = (int)Mathf.Lerp(startDamage, newDamage, progress);
             dmgText.text = currentDamage.ToString();
             
             yield return null;
         }
         
-        // 최종 값으로 설정
+        // 최종 상태로 설정
+        dmgText.transform.localScale = originalScale;
+        dmgText.color = originalColor;
         dmgText.text = newDamage.ToString();
+    }
+
+    private IEnumerator AnimateCoinTextUpdate(TextMeshProUGUI coinText, int count)
+    {
+        float duration = 0.4f;
+        Vector3 originalScale = coinText.transform.localScale;
+        Color originalColor = coinText.color;
+        
+        // 텍스트 업데이트 - 숫자만 표시
+        coinText.text = count.ToString();
+        
+        // 크기 확대 및 색상 변경
+        coinText.transform.DOScale(originalScale * 1.4f, duration * 0.5f)
+            .SetEase(Ease.OutQuad)
+            .OnComplete(() => {
+                coinText.transform.DOScale(originalScale, duration * 0.5f)
+                    .SetEase(Ease.InQuad);
+            });
+        
+        // 색상 애니메이션
+        Sequence colorSequence = DOTween.Sequence();
+        colorSequence.Append(DOTween.To(() => coinText.color, x => coinText.color = x, Color.red, duration * 0.5f))
+                    .Append(DOTween.To(() => coinText.color, x => coinText.color = x, originalColor, duration * 0.5f));
+        
+        yield return new WaitForSeconds(duration);
     }
 
     // 스킬 이펙트 제거 메서드 추가
