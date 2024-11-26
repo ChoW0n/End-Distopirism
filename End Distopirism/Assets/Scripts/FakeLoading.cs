@@ -43,7 +43,7 @@ public class FakeLoading : MonoBehaviour
 
     private IEnumerator LoadingCoroutine(string nextSceneName)
     {
-        float randomTime = Random.Range(7f, 9f);
+        float randomTime = Random.Range(5f, 7f);
         float currentTime = 0f;
         int lastProgress = 0;
         

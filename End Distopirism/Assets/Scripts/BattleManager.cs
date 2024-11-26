@@ -34,7 +34,7 @@ public class BattleManager : MonoBehaviour
     public List<CharacterProfile> targetObjects = new List<CharacterProfile>();
     public List<CharacterProfile> playerObjects = new List<CharacterProfile>();
 
-    public TargetArrowCreator arrowCreator; // 추가된 변��
+    public TargetArrowCreator arrowCreator; // 추가된 변
 
     public Transform[] playerBattlePositions; // 플레이어 전투 위치
     public Transform[] enemyBattlePositions;  // 적 전투 위치
@@ -49,6 +49,7 @@ public class BattleManager : MonoBehaviour
 
     void Awake()
     {
+        DOTween.Init(false, true, LogBehaviour.Verbose);
         state = GameState.start; // 전투 시작 알림
         if (Instance == null)
         {
@@ -62,6 +63,8 @@ public class BattleManager : MonoBehaviour
 
     public void Start()
     {
+        DOTween.Init(false, true, LogBehaviour.Verbose);
+        
         // StageData가 할당되지 않았을 경우 Resources 폴더에서 로드
         if (stageData == null)
         {
@@ -258,6 +261,22 @@ public class BattleManager : MonoBehaviour
             if (clickObject != null && clickObject.CompareTag("Player"))
             {
                 CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
+                
+                // 이미 다른 캐릭터가 선택되어 있고, 스킬-적 선택이 완료되지 않은 경우
+                if (playerObjects.Count > 0 && targetObjects.Count == 0)
+                {
+                    // 이전 선택된 캐릭터의 선택 해제
+                    foreach (var player in playerObjects)
+                    {
+                        player.isSelected = false;
+                    }
+                    playerObjects.Clear();
+                    
+                    // 화살표 연결 제거
+                    arrowCreator.ClearConnections();
+                }
+
+                // 새로운 캐릭터 선택
                 if (!playerObjects.Contains(selectedPlayer))
                 {
                     playerObjects.Add(selectedPlayer);
@@ -500,7 +519,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 전진과 후퇴가 끝날 때까지 대기
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
-        // ���해자가 사망했는지 확인
+        // 해자가 사망했는지 확인
         if (0 >= victim.GetPlayer.hp)
         {
             victim.gameObject.SetActive(false);

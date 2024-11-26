@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using UnityEngine.SceneManagement;
+using DG.Tweening;
 
 public class FadeManager : MonoBehaviour
 {
@@ -105,5 +106,6 @@ public class FadeManager : MonoBehaviour
     private void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        DOTween.Clear();
     }
 } 

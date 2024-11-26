@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.UI;
 using DG.Tweening; // DOTween 네임스페이스 추가
 using UnityEngine.EventSystems;
+using TMPro;
+using System.Linq; // LINQ 추가
 
 public class SkillManager : MonoBehaviour
 {
@@ -31,6 +33,10 @@ public class SkillManager : MonoBehaviour
 
     private bool isCardCentered = false; // 카드가 중앙에 있는지 여부
     private int centeredCardIndex = -1; // 현재 중앙에 있는 카드의 인덱스
+
+    private TextMeshProUGUI card1Text;
+    private TextMeshProUGUI card2Text;
+    private TextMeshProUGUI card3Text;
 
     void Start()
     {
@@ -136,6 +142,90 @@ public class SkillManager : MonoBehaviour
             eventSystem.AddComponent<EventSystem>();
             eventSystem.AddComponent<StandaloneInputModule>();
         }
+
+        // 카드 텍스트 컴포넌트 찾기
+        if (skillCardsTransform != null)
+        {
+            // Text(TMP) 컴포넌트 찾기
+            if (card1Image != null) 
+            {
+                Transform textTransform = null;
+                string childNames = "";
+                foreach (Transform child in card1Image.transform)
+                {
+                    childNames += child.name + ", ";
+                    if (child.name.Equals("SkillInfo", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        textTransform = child;
+                        break;
+                    }
+                }
+
+                if (textTransform != null)
+                {
+                    card1Text = textTransform.GetComponent<TextMeshProUGUI>();
+                    Debug.Log($"Card1 Text Transform 경로: {GetFullPath(textTransform)}");
+                }
+                else
+                {
+                    Debug.LogError($"Card1의 SkillInfo 오브젝트를 찾을 수 없습니다. 현재 자식 오브젝트들: {childNames}");
+                }
+            }
+
+            if (card2Image != null)
+            {
+                Transform textTransform = null;
+                string childNames = "";
+                foreach (Transform child in card2Image.transform)
+                {
+                    childNames += child.name + ", ";
+                    if (child.name.Equals("SkillInfo", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        textTransform = child;
+                        break;
+                    }
+                }
+
+                if (textTransform != null)
+                {
+                    card2Text = textTransform.GetComponent<TextMeshProUGUI>();
+                    Debug.Log($"Card2 Text Transform 경로: {GetFullPath(textTransform)}");
+                }
+                else
+                {
+                    Debug.LogError($"Card2의 SkillInfo 오브젝트를 찾을 수 없습니다. 현재 자식 오브젝트들: {childNames}");
+                }
+            }
+
+            if (card3Image != null)
+            {
+                Transform textTransform = null;
+                string childNames = "";
+                foreach (Transform child in card3Image.transform)
+                {
+                    childNames += child.name + ", ";
+                    if (child.name.Equals("SkillInfo", System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        textTransform = child;
+                        break;
+                    }
+                }
+
+                if (textTransform != null)
+                {
+                    card3Text = textTransform.GetComponent<TextMeshProUGUI>();
+                    Debug.Log($"Card3 Text Transform 경로: {GetFullPath(textTransform)}");
+                }
+                else
+                {
+                    Debug.LogError($"Card3의 SkillInfo 오브젝트를 찾을 수 없습니다. 현재 자식 오브젝트들: {childNames}");
+                }
+            }
+
+            Debug.Log($"Card1 Text: {(card1Text != null ? "찾음" : "못찾음")}");
+            Debug.Log($"Card2 Text: {(card2Text != null ? "찾음" : "못찾음")}");
+            Debug.Log($"Card3 Text: {(card3Text != null ? "찾음" : "못찾음")}");
+        }
     }
 
     // Update is called once per frame
@@ -150,7 +240,7 @@ public class SkillManager : MonoBehaviour
     public void DeactivateCards()
     {
         Image[] cards = { card1Image, card2Image, card3Image };
-        float delay = 0.1f; // 카드 간 딜레이
+        float delay = 0.1f;
 
         for (int i = 0; i < cards.Length; i++)
         {
@@ -166,27 +256,42 @@ public class SkillManager : MonoBehaviour
                 canvasGroup = cards[i].gameObject.AddComponent<CanvasGroup>();
             }
 
-            // 카드 회전 및 축소 애니메이션
-            cards[i].transform
-                .DOScale(Vector3.zero, 0.3f)
-                .SetDelay(delay * i)
-                .SetEase(Ease.InBack);
+            try
+            {
+                // 기존 Tween 제거
+                DOTween.Kill(cards[i].transform, true);
+                DOTween.Kill(canvasGroup, true);
 
-            cards[i].transform
-                .DORotate(new Vector3(0, 180f, 0), 0.3f)
-                .SetDelay(delay * i)
-                .SetEase(Ease.InQuad);
+                // 새로운 시퀀스 생성
+                Sequence cardSequence = DOTween.Sequence()
+                    .SetAutoKill(true)  // 자동 정리 활성화
+                    .OnComplete(() => {
+                        if (cards[index] != null && cards[index].gameObject != null)
+                        {
+                            cards[index].gameObject.SetActive(false);
+                        }
+                    });
 
-            // 페이드 아웃 효과
-            DOTween.To(() => canvasGroup.alpha, x => canvasGroup.alpha = x, 0f, 0.3f)
-                .SetDelay(delay * i)
-                .SetEase(Ease.InQuad)
-                .OnStart(() => Debug.Log($"카드{index + 1} 페이드 아웃 시작"))
-                .OnComplete(() => 
-                {
-                    Debug.Log($"카드{index + 1} 페이드 아웃 완료");
-                    cards[index].gameObject.SetActive(false);
-                });
+                // 애니메이션 추가
+                cardSequence.Join(cards[i].transform
+                    .DOScale(Vector3.zero, 0.3f)
+                    .SetDelay(delay * i)
+                    .SetEase(Ease.InBack));
+
+                cardSequence.Join(cards[i].transform
+                    .DORotate(new Vector3(0, 180f, 0), 0.3f)
+                    .SetDelay(delay * i)
+                    .SetEase(Ease.InQuad));
+
+                cardSequence.Join(canvasGroup
+                    .DOFade(0f, 0.3f)
+                    .SetDelay(delay * i)
+                    .SetEase(Ease.InQuad));
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"DeactivateCards 에러 (카드 {index}): {e.Message}");
+            }
         }
     }
 
@@ -206,18 +311,35 @@ public class SkillManager : MonoBehaviour
         // 스킬 선택 및 할당
         currentSkills = new Skill[3];
         Image[] cards = { card1Image, card2Image, card3Image };
+        TextMeshProUGUI[] cardTexts = { card1Text, card2Text, card3Text };
 
         for (int i = 0; i < 3; i++)
         {
             int randomIndex = Random.Range(0, playerSkills.Count);
             currentSkills[i] = playerSkills[randomIndex];
             
-            if (currentSkills[i] == null) continue;
+            if (currentSkills[i] == null) 
+            {
+                Debug.LogError($"Card {i+1}의 스킬이 null입니다.");
+                continue;
+            }
 
             int index = i;
             cards[i].gameObject.SetActive(true);
             cards[i].sprite = currentSkills[i].nomalSprite;
             
+            // 스킬 이펙트 텍스트 설정 및 디버그
+            if (cardTexts[i] != null)
+            {
+                Debug.Log($"Card {i+1} 스킬 이펙트 텍스트 설정: {currentSkills[i].skillEffect}");
+                cardTexts[i].text = currentSkills[i].skillEffect;
+                cardTexts[i].gameObject.SetActive(true); // 텍스트 오브젝트 활성화
+            }
+            else
+            {
+                Debug.LogError($"Card {i+1}의 Text 컴포넌트를 찾을 수 없습니다.");
+            }
+
             // 초기 위치 저장
             originalPositions[i] = cards[i].transform.position;
             
@@ -226,9 +348,16 @@ public class SkillManager : MonoBehaviour
 
             // 카드 생성 애니메이션
             float delay = 0.2f * i;
-            cards[i].transform.DOScale(Vector3.one, cardAnimationDuration)
-                .SetDelay(delay)
-                .SetEase(Ease.OutBack);
+            try
+            {
+                cards[i].transform.DOScale(Vector3.one, cardAnimationDuration)
+                    .SetDelay(delay)
+                    .SetEase(Ease.OutBack);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"카드 {i+1} 생성 애니메이션 에러: {e.Message}");
+            }
 
             // 마우스 이벤트 설정
             EventTrigger trigger = cards[i].gameObject.GetComponent<EventTrigger>();
@@ -244,8 +373,15 @@ public class SkillManager : MonoBehaviour
             enterEntry.callback.AddListener((data) => {
                 if (!isCardCentered) // 카드가 중앙에 없을 때만 확대
                 {
-                    DOTween.Kill(cards[index].transform);
-                    cards[index].transform.DOScale(cardHoverScale, 0.3f).SetEase(Ease.OutQuad);
+                    try
+                    {
+                        DOTween.Kill(cards[index].transform);
+                        cards[index].transform.DOScale(cardHoverScale, 0.3f).SetEase(Ease.OutQuad);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"카드 {index+1} 마우스 오버 에러: {e.Message}");
+                    }
                 }
             });
             trigger.triggers.Add(enterEntry);
@@ -256,8 +392,15 @@ public class SkillManager : MonoBehaviour
             exitEntry.callback.AddListener((data) => {
                 if (!isCardCentered) // 카드가 중앙에 없을 때만 축소
                 {
-                    DOTween.Kill(cards[index].transform);
-                    cards[index].transform.DOScale(1f, 0.3f).SetEase(Ease.OutQuad);
+                    try
+                    {
+                        DOTween.Kill(cards[index].transform);
+                        cards[index].transform.DOScale(1f, 0.3f).SetEase(Ease.OutQuad);
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"카드 {index+1} 마우스 아웃 에러: {e.Message}");
+                    }
                 }
             });
             trigger.triggers.Add(exitEntry);
@@ -310,46 +453,48 @@ public class SkillManager : MonoBehaviour
         OnSkillSelected?.Invoke(selectedSkill);
         
         Image[] cards = { card1Image, card2Image, card3Image };
-        GameObject[] cardObjects = new GameObject[cards.Length];
-
-        // 각 카드의 GameObject 참조 저장
-        for (int i = 0; i < cards.Length; i++)
-        {
-            if (cards[i] != null)
-            {
-                cardObjects[i] = cards[i].gameObject;
-            }
-        }
-
+        
         // 선택되지 않은 카드들 페이드 아웃
         for (int i = 0; i < cards.Length; i++)
         {
             if (cards[i] == null) continue;
-
-            int currentIndex = i; // 클로저를 위한 로컬 변수
             
             if (i != index)
             {
-                // 선택되지 않은 카드 페이드 아웃
-                cards[i].transform.DOScale(0f, 0.3f)
-                    .SetEase(Ease.InBack)
-                    .OnComplete(() => 
-                    {
-                        if (cardObjects[currentIndex] != null)
-                        {
-                            cardObjects[currentIndex].SetActive(false);
-                        }
-                    });
+                try
+                {
+                    cards[i].transform.DOScale(0f, 0.3f)
+                        .SetEase(Ease.InBack)
+                        .OnComplete(() => {
+                            if (cards[i] != null && cards[i].gameObject != null)
+                            {
+                                cards[i].gameObject.SetActive(false);
+                            }
+                        });
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"카드 {i+1} 페이드 아웃 에러: {e.Message}");
+                }
             }
             else
             {
-                // 선택된 카드는 원래 위치로
-                if (currentIndex < originalPositions.Length && originalPositions[currentIndex] != null)
+                try
                 {
-                    cards[i].transform.DOMove(originalPositions[currentIndex], 0.3f)
-                        .SetEase(Ease.OutQuad);
-                    cards[i].transform.DOScale(1f, 0.3f)
-                        .SetEase(Ease.OutQuad);
+                    // 선택된 카드도 페이드 아웃
+                    cards[i].transform.DOScale(0f, 0.3f)
+                        .SetEase(Ease.InBack)
+                        .SetDelay(0.2f) // 약간의 딜레이 후 페이드 아웃
+                        .OnComplete(() => {
+                            if (cards[i] != null && cards[i].gameObject != null)
+                            {
+                                cards[i].gameObject.SetActive(false);
+                            }
+                        });
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogError($"선택된 카드 {i+1} 페이드 아웃 에러: {e.Message}");
                 }
             }
         }
@@ -456,13 +601,67 @@ public class SkillManager : MonoBehaviour
 
     private void OnDestroy()
     {
-        // 씬 전환 시 DOTween 애니메이션 정리
-        if (card1Image != null && card1Image.transform != null)
-            DOTween.Kill(card1Image.transform);
-        if (card2Image != null && card2Image.transform != null)
-            DOTween.Kill(card2Image.transform);
-        if (card3Image != null && card3Image.transform != null)
-            DOTween.Kill(card3Image.transform);
+        try
+        {
+            // 모든 Tween 정리
+            DOTween.KillAll();
+
+            // 각 카드별 Tween 정리
+            CleanupCardTweens(card1Image);
+            CleanupCardTweens(card2Image);
+            CleanupCardTweens(card3Image);
+
+            // 이벤트 리스너 제거
+            RemoveAllCardListeners();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"OnDestroy 에러: {e.Message}");
+        }
+    }
+
+    private void CleanupCardTweens(Image cardImage)
+    {
+        if (cardImage != null && cardImage.gameObject != null)
+        {
+            try
+            {
+                // Transform Tween 정리
+                DOTween.Kill(cardImage.transform, true);
+
+                // CanvasGroup Tween 정리
+                var canvasGroup = cardImage.GetComponent<CanvasGroup>();
+                if (canvasGroup != null)
+                {
+                    DOTween.Kill(canvasGroup, true);
+                }
+
+                // EventTrigger 제거
+                var trigger = cardImage.GetComponent<EventTrigger>();
+                if (trigger != null)
+                {
+                    trigger.triggers.Clear();
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"CleanupCardTweens 에러: {e.Message}");
+            }
+        }
+    }
+
+    private void RemoveAllCardListeners()
+    {
+        try
+        {
+            if (card1Button != null) card1Button.onClick.RemoveAllListeners();
+            if (card2Button != null) card2Button.onClick.RemoveAllListeners();
+            if (card3Button != null) card3Button.onClick.RemoveAllListeners();
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"RemoveAllCardListeners 에러: {e.Message}");
+        }
     }
 
     // 전체 경로를 가져오는 헬퍼 메서드

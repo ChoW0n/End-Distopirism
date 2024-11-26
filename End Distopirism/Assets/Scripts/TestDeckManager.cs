@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
+using DG.Tweening;
 
 public class TestDeckManager : MonoBehaviour
 {
@@ -214,16 +215,22 @@ public class TestDeckManager : MonoBehaviour
                 Image buttonImage = button.GetComponent<Image>();
                 if (buttonImage != null)
                 {
-                    // CharacterProfile의 Player 정보에서 스프라이트 가져오기
-                    buttonImage.sprite = characterProfile.GetPlayer.charSprite; // Player 클래스에 charSprite 필드 추가 필요
+                    buttonImage.sprite = characterProfile.GetPlayer.charSprite;
                     buttonImage.preserveAspect = true;
                 }
 
-                // 캐릭터 이름 설정
-                TextMeshProUGUI nameText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
-                if (nameText != null)
+                // TextMeshPro 텍스트 컴포넌트 제거
+                TextMeshProUGUI tmpText = buttonObj.GetComponentInChildren<TextMeshProUGUI>();
+                if (tmpText != null)
                 {
-                    nameText.text = characterProfile.GetPlayer.charName;
+                    Destroy(tmpText.gameObject);
+                }
+
+                // Legacy Text 컴포넌트 제거
+                Text legacyText = buttonObj.GetComponentInChildren<Text>();
+                if (legacyText != null)
+                {
+                    Destroy(legacyText.gameObject);
                 }
 
                 // 딕셔너리에 프리팹 참조 저장
@@ -275,6 +282,25 @@ public class TestDeckManager : MonoBehaviour
                 cardImage.sprite = skill.nomalSprite;
                 cardImage.preserveAspect = true;
             }
+
+            // SkillInfo 텍스트 설정
+            Transform skillInfoTransform = cardButtonObj.transform.Find("SkillInfo");
+            if (skillInfoTransform != null)
+            {
+                TextMeshProUGUI skillInfoText = skillInfoTransform.GetComponent<TextMeshProUGUI>();
+                if (skillInfoText != null)
+                {
+                    skillInfoText.text = skill.skillEffect;
+                }
+                else
+                {
+                    Debug.LogError($"SkillInfo에 TextMeshProUGUI 컴포넌트가 없습니다: {skill.skillName}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"SkillInfo 오브젝트를 찾을 수 없습니다: {skill.skillName}");
+            }
             
             // Count 텍스트 초기화
             Transform countTransform = cardButtonObj.transform.Find("Count");
@@ -283,13 +309,12 @@ public class TestDeckManager : MonoBehaviour
                 TextMeshProUGUI countText = countTransform.GetComponentInChildren<TextMeshProUGUI>();
                 if (countText != null)
                 {
-                    // 현재 보유한 카드 수를 표시
                     int currentCount = GetCurrentCardCount(skill);
                     countText.text = $"{currentCount}/{MAX_CARD_COUNT}";
                 }
             }
             
-            cardButton.gameObject.AddComponent<SkillReference>().skill = skill;
+            cardButtonObj.AddComponent<SkillReference>().skill = skill;
             cardButtons.Add(cardButton);
         }
     }
@@ -359,6 +384,13 @@ public class TestDeckManager : MonoBehaviour
             {
                 cardImage.sprite = selectedSkill.nomalSprite;
                 cardImage.preserveAspect = true;
+            }
+            
+            // SkillInfo 텍스트 설정
+            TextMeshProUGUI skillInfoText = newCard.GetComponentInChildren<TextMeshProUGUI>();
+            if (skillInfoText != null)
+            {
+                skillInfoText.text = selectedSkill.skillEffect;
             }
             
             newCard.AddComponent<SkillReference>().skill = selectedSkill;
@@ -433,36 +465,18 @@ public class TestDeckManager : MonoBehaviour
     
     private void SetupSelectedCharacterPanel()
     {
+        // GridLayoutGroup 제거 (단일 캐릭터가 패널을 꽉 채우도록)
         GridLayoutGroup gridLayout = selectedCharacterPanel.GetComponent<GridLayoutGroup>();
-        if (gridLayout == null)
+        if (gridLayout != null)
         {
-            gridLayout = selectedCharacterPanel.gameObject.AddComponent<GridLayoutGroup>();
+            Destroy(gridLayout);
         }
-
-        // 수평 방향으로 캐릭터 배치
-        gridLayout.cellSize = new Vector2(characterSize, characterSize);
-        gridLayout.spacing = new Vector2(characterSpacing, characterSpacing);
-        gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
-        gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;  // 수평 방향 우선
-        gridLayout.childAlignment = TextAnchor.UpperLeft;
-        gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        gridLayout.constraintCount = maxCharactersPerRow;
-        gridLayout.padding = new RectOffset(10, 10, 10, 10);
 
         // ContentSizeFitter 제거 (패널 크기 고정)
         ContentSizeFitter sizeFitter = selectedCharacterPanel.GetComponent<ContentSizeFitter>();
         if (sizeFitter != null)
         {
             Destroy(sizeFitter);
-        }
-
-        // 기존에 생성된 캐릭터들의 위치 재조정
-        for (int i = 0; i < selectedCharacterObjects.Count; i++)
-        {
-            if (selectedCharacterObjects[i] != null)
-            {
-                selectedCharacterObjects[i].transform.SetSiblingIndex(i);
-            }
         }
     }
 
@@ -529,11 +543,29 @@ public class TestDeckManager : MonoBehaviour
         // 기존 선택된 카드들 초기화
         ClearSelectedCards();
         
-        // 해당 캐릭터의 덱 정보 로드
+        // 해당 캐릭터�� 덱 정보 로드
         LoadExistingDeck(characterIndex);
 
         // 버튼 하이라이트 효과
         UpdateCharacterButtonsHighlight();
+
+        // SelectedCharacterPanel 업데이트
+        UpdateSelectedCharacterPanel();
+    }
+
+    private void UpdateSelectedCharacterPanel()
+    {
+        // SelectedCharacterPanel의 모든 자식 오브젝트 제거
+        foreach (Transform child in selectedCharacterPanel)
+        {
+            Destroy(child.gameObject);
+        }
+
+        // 현재 선택된 캐릭터만 SelectedCharacterPanel에 추가
+        if (currentCharacterIndex >= 0 && currentCharacterIndex < characterButtons.Length)
+        {
+            CreateSelectedCharacterIcon(currentCharacterIndex);
+        }
     }
 
     // 더블 클릭: 전투 대상으로 추가
@@ -548,9 +580,8 @@ public class TestDeckManager : MonoBehaviour
                 return;
             }
 
-            // 전투 대상으로 추가
+            // 전투 대상으로 추가 (SelectedCharacterPanel에는 추가하지 않음)
             selectedCharacterIndices.Add(characterIndex);
-            CreateSelectedCharacterIcon(characterIndex);
             
             // 선택된 프리팹 저장
             if (characterPrefabDict.TryGetValue(characterButtons[characterIndex], out GameObject prefab))
@@ -560,6 +591,9 @@ public class TestDeckManager : MonoBehaviour
 
             // 시작 버튼 상태 업데이트
             UpdateStartButtonState();
+            
+            // 버튼 하이라이트만 업데이트
+            UpdateCharacterButtonsHighlight();
         }
     }
 
@@ -592,14 +626,16 @@ public class TestDeckManager : MonoBehaviour
     private void CreateSelectedCharacterIcon(int characterIndex)
     {
         GameObject selectedChar = Instantiate(characterPrefab, selectedCharacterPanel);
-        selectedCharacterObjects.Add(selectedChar);
         
-        selectedChar.transform.SetSiblingIndex(selectedCharacterObjects.Count - 1);
-        
+        // RectTransform 설정으로 패널에 꽉 차게 표시
         RectTransform rectTransform = selectedChar.GetComponent<RectTransform>();
         if (rectTransform != null)
         {
-            rectTransform.sizeDelta = characterImageSize;
+            rectTransform.anchorMin = Vector2.zero;
+            rectTransform.anchorMax = Vector2.one;
+            rectTransform.sizeDelta = Vector2.zero;
+            rectTransform.anchoredPosition = Vector2.zero;
+            rectTransform.localScale = Vector3.one;
         }
         
         Image charImage = selectedChar.GetComponent<Image>();
@@ -609,13 +645,19 @@ public class TestDeckManager : MonoBehaviour
             charImage.preserveAspect = true;
         }
         
+        // 버튼 컴포넌트 제거
         Button charButton = selectedChar.GetComponent<Button>();
         if (charButton != null)
         {
-            charButton.onClick.AddListener(() => OnSelectedCharacterClick(characterIndex));
+            Destroy(charButton);
         }
 
-        UpdateCharacterButtonsHighlight();
+        // 텍스트 컴포넌트가 있다면 제거
+        TextMeshProUGUI[] texts = selectedChar.GetComponentsInChildren<TextMeshProUGUI>();
+        foreach (var text in texts)
+        {
+            Destroy(text.gameObject);
+        }
     }
 
     private void UnselectCharacter(int characterIndex)
@@ -820,5 +862,10 @@ public class TestDeckManager : MonoBehaviour
         {
             Debug.LogError("SceneButtonManager를 찾을 수 없습니다.");
         }
+    }
+
+    private void OnDestroy()
+    {
+        DOTween.KillAll();
     }
 }
