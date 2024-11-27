@@ -16,6 +16,10 @@ public class Skill : ScriptableObject
 
     public Sprite nomalSprite; //카드 상태일때 스프라이트
 
+    [Header("덱 빌딩 설정")]
+    [Tooltip("덱에 넣을 수 있는 최대 카드 수 (0 = 제한 없음)")]
+    public int maxCardCount = 3;  // 덱에 넣을 수 있는 최대 카드 수
+
     // 스킬의 정보를 출력하는 메서드
     public void PrintSkillInfo()
     {

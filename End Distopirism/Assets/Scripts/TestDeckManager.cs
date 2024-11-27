@@ -3,6 +3,11 @@ using UnityEngine.UI;
 using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
+using UnityEngine.EventSystems;
+
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class TestDeckManager : MonoBehaviour
 {
@@ -20,8 +25,6 @@ public class TestDeckManager : MonoBehaviour
     [SerializeField] private float characterSpacing = 10f;
     [SerializeField] private float characterSize = 100f;
     [SerializeField] private int maxCharactersPerRow = 5;
-    [SerializeField] private float characterPanelHeight = 120f;
-    [SerializeField] private Vector2 characterImageSize = new Vector2(80f, 80f);
     
     [Header("카드 선택 UI")]
     [SerializeField, Tooltip("카드 선택 패널")]
@@ -39,7 +42,7 @@ public class TestDeckManager : MonoBehaviour
     
     [Header("카드 패널 설정")]
     [SerializeField] private float cardSpacing = 10f;
-    [SerializeField] private float cardSize = 100f;
+    [SerializeField] private Vector2 cardSize = new Vector2(200f, 300f);
     [SerializeField] private int maxCardsPerRow = 5;
     [SerializeField] private float cardPanelHeight = 120f;
     [SerializeField] private Vector2 cardImageSize = new Vector2(80f, 80f);
@@ -74,6 +77,20 @@ public class TestDeckManager : MonoBehaviour
 
     [Header("UI 버튼")]
     [SerializeField] private Button startButton; // 시작 버튼
+
+    [Header("카드 확대 설정")]
+    [SerializeField] private float cardHoverScale = 1.5f;  // 카드 확대 배율
+    [SerializeField] private float cardHoverDuration = 0.2f;  // 확대/축소 애니메이션 시간
+
+    // 클래스 상단에 변수 추가
+    private GameObject currentHoveredCard = null;
+    private Canvas cardScrollCanvas;
+    private Canvas selectedCardCanvas;
+
+    [Header("선택된 카드 패널 설정")]
+    [SerializeField] private int selectedCardsPerRow = 5;  // 한 줄당 최대 카드 수
+    [SerializeField] private float selectedCardSpacing = 10f;  // 카드 간격
+    [SerializeField] private float selectedPanelPadding = 10f;  // 패널 여백
 
     private void Awake()
     {
@@ -176,11 +193,11 @@ public class TestDeckManager : MonoBehaviour
         
         if (characterPrefabs == null || characterPrefabs.Length == 0)
         {
-            Debug.LogError("Resources/Characters 폴더에서 캐릭터 프리팹을 찾을 수 없습니다.");
+            Debug.LogError("Resources/Characters 폴더에서 캐릭 수 없습니다.");
             return;
         }
         
-        // 유효한 캐릭터 프리팹만 필터링
+        // 효한 캐릭터 프리팹만 필터링
         List<GameObject> validPrefabs = new List<GameObject>();
         foreach (GameObject prefab in characterPrefabs)
         {
@@ -240,20 +257,64 @@ public class TestDeckManager : MonoBehaviour
         }
     }
 
+    private void SetupCardCanvases()
+    {
+        // CardScroll Canvas 정
+        cardScrollCanvas = cardScrollContent.gameObject.AddComponent<Canvas>();
+        cardScrollCanvas.overrideSorting = true;
+        cardScrollCanvas.sortingOrder = 1;
+
+        // SelectedCard Canvas 설정
+        selectedCardCanvas = selectedCardPanel.gameObject.AddComponent<Canvas>();
+        selectedCardCanvas.overrideSorting = true;
+        selectedCardCanvas.sortingOrder = 2;
+
+        // GraphicRaycaster 추가
+        if (cardScrollContent.GetComponent<GraphicRaycaster>() == null)
+            cardScrollContent.gameObject.AddComponent<GraphicRaycaster>();
+        if (selectedCardPanel.GetComponent<GraphicRaycaster>() == null)
+            selectedCardPanel.gameObject.AddComponent<GraphicRaycaster>();
+    }
+
     private void LoadSkillCards()
     {
-        // Content의 GridLayoutGroup 설정
+        SetupCardCanvases();
+
+        // GridLayoutGroup 설정
         GridLayoutGroup gridLayout = cardScrollContent.GetComponent<GridLayoutGroup>();
         if (gridLayout == null)
         {
             gridLayout = cardScrollContent.gameObject.AddComponent<GridLayoutGroup>();
         }
 
+        // 프리팹의 RectTransform에서 크기 가져오기
+        RectTransform cardButtonRect = cardButtonPrefab.GetComponent<RectTransform>();
+        Vector2 originalCardSize = new Vector2(185.6f, 246.4f);  // 프리팹의 정확한 크기로 설정
+
+        // GridLayout 설정
+        gridLayout.childAlignment = TextAnchor.UpperCenter;
+        gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        gridLayout.startAxis = GridLayoutGroup.Axis.Vertical;
+        gridLayout.cellSize = originalCardSize;
+        gridLayout.spacing = new Vector2(cardSpacing, cardSpacing);
+        gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
+        gridLayout.constraintCount = maxCardsPerRow;
+        gridLayout.padding = new RectOffset(10, 10, 10, 10);
+
+        // Content에 Canvas 컴포넌트 추가
+        Canvas contentCanvas = cardScrollContent.GetComponent<Canvas>();
+        if (contentCanvas == null)
+        {
+            contentCanvas = cardScrollContent.gameObject.AddComponent<Canvas>();
+            contentCanvas.overrideSorting = true;
+            contentCanvas.sortingOrder = 1;
+        }
+
         // 상단에서 아래로 카드가 생성되도록 설정
         gridLayout.childAlignment = TextAnchor.UpperCenter;
         gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
         gridLayout.startAxis = GridLayoutGroup.Axis.Vertical;
-        gridLayout.cellSize = new Vector2(cardSize, cardSize);
+        gridLayout.cellSize = new Vector2(cardSize.x, cardSize.y);
         gridLayout.spacing = new Vector2(cardSpacing, cardSpacing);
         gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
         gridLayout.constraintCount = maxCardsPerRow;
@@ -271,10 +332,23 @@ public class TestDeckManager : MonoBehaviour
         // 스킬 카드 생성
         Skill[] skills = Resources.LoadAll<Skill>("Skills");
         
-        foreach (Skill skill in skills)
+        for (int i = 0; i < skills.Length; i++)
         {
+            Skill skill = skills[i];
             GameObject cardButtonObj = Instantiate(cardButtonPrefab, cardScrollContent);
-            Button cardButton = cardButtonObj.GetComponent<Button>();
+            
+            // 카기 크 설정
+            RectTransform cardRect = cardButtonObj.GetComponent<RectTransform>();
+            if (cardRect != null)
+            {
+                cardRect.sizeDelta = originalCardSize;
+                cardRect.localScale = Vector3.one;  // 스케일을 1로 설정
+            }
+
+            // 카드 버튼 이름 지정
+            cardButtonObj.name = $"CardButton{i + 1}_{skill.name}";
+            
+            cardButtons.Add(cardButtonObj.GetComponent<Button>());
             
             Image cardImage = cardButtonObj.GetComponent<Image>();
             if (cardImage != null && skill.nomalSprite != null)
@@ -294,7 +368,7 @@ public class TestDeckManager : MonoBehaviour
                 }
                 else
                 {
-                    Debug.LogError($"SkillInfo에 TextMeshProUGUI 컴포넌트가 없습니다: {skill.skillName}");
+                    Debug.LogError($"SkillInfo에 TextMeshProUGUI 포넌트가 없습니다: {skill.skillName}");
                 }
             }
             else
@@ -315,7 +389,35 @@ public class TestDeckManager : MonoBehaviour
             }
             
             cardButtonObj.AddComponent<SkillReference>().skill = skill;
-            cardButtons.Add(cardButton);
+
+            // 이벤트 트리거 설정
+            EventTrigger eventTrigger = cardButtonObj.GetComponent<EventTrigger>();
+            if (eventTrigger != null)
+                Destroy(eventTrigger);
+            
+            eventTrigger = cardButtonObj.AddComponent<EventTrigger>();
+
+            int index = i; // 클로저를 위한 인덱스 복사
+
+            // 마우스 진입 이벤트
+            EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+            enterEntry.eventID = EventTriggerType.PointerEnter;
+            enterEntry.callback.AddListener((data) => { OnCardHoverEnter(cardButtonObj); });
+            eventTrigger.triggers.Add(enterEntry);
+
+            // 마우스 이탈 이벤트
+            EventTrigger.Entry exitEntry = new EventTrigger.Entry();
+            exitEntry.eventID = EventTriggerType.PointerExit;
+            exitEntry.callback.AddListener((data) => { OnCardHoverExit(cardButtonObj); });
+            eventTrigger.triggers.Add(exitEntry);
+
+            // 클릭 이벤트
+            var button = cardButtonObj.GetComponent<Button>();
+            if (button != null)
+            {
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => OnCardSelected(index));
+            }
         }
     }
 
@@ -357,9 +459,11 @@ public class TestDeckManager : MonoBehaviour
         if (selectedCardDict.ContainsKey(selectedSkill))
         {
             int currentCount = cardCountDict[selectedSkill];
-            if (currentCount >= MAX_CARD_COUNT)
+            int maxCount = selectedSkill.maxCardCount > 0 ? selectedSkill.maxCardCount : MAX_CARD_COUNT;
+            
+            if (currentCount >= maxCount)
             {
-                Debug.Log($"{selectedSkill.skillName} 카드는 최대 {MAX_CARD_COUNT}장까지만 추가할 수 있습니다.");
+                Debug.Log($"{selectedSkill.skillName} 카드는 최대 {maxCount}장까지만 추가할 수 있습니다.");
                 return;
             }
 
@@ -369,72 +473,108 @@ public class TestDeckManager : MonoBehaviour
         else // 새로운 카드 추가
         {
             GameObject newCard = Instantiate(cardPrefab, selectedCardPanel);
-            selectedCards.Add(newCard);
-            selectedCardDict.Add(selectedSkill, newCard);
-            cardCountDict.Add(selectedSkill, 1);
             
-            RectTransform rectTransform = newCard.GetComponent<RectTransform>();
-            if (rectTransform != null)
+            // Canvas 설정을 먼저 수행
+            Canvas cardCanvas = newCard.AddComponent<Canvas>();
+            cardCanvas.overrideSorting = true;
+            cardCanvas.sortingOrder = 10 + selectedCards.Count;  // 기본 정렬 순서를 10부터 시작
+
+            // GraphicRaycaster 추가
+            GraphicRaycaster raycaster = newCard.AddComponent<GraphicRaycaster>();
+
+            // 카드 크기 설정
+            RectTransform cardRect = newCard.GetComponent<RectTransform>();
+            if (cardRect != null)
             {
-                rectTransform.sizeDelta = cardImageSize;
+                cardRect.sizeDelta = new Vector2(185.6f, 246.4f);
+                cardRect.localScale = Vector3.one;
+
+                // SkillInfo 설정
+                Transform skillInfoTr = newCard.transform.Find("SkillInfo");
+                if (skillInfoTr != null)
+                {
+                    RectTransform skillInfoRect = skillInfoTr.GetComponent<RectTransform>();
+                    if (skillInfoRect != null)
+                    {
+                        skillInfoRect.anchorMin = new Vector2(0.5f, 0.5f);
+                        skillInfoRect.anchorMax = new Vector2(0.5f, 0.5f);
+                        skillInfoRect.sizeDelta = new Vector2(100f, 58.4557f);
+                        skillInfoRect.anchoredPosition = new Vector2(0f, -38.4f);
+                        skillInfoRect.localScale = new Vector3(1.209023f, 1.209023f, 1.209023f);
+                    }
+
+                    // SkillInfo 텍스트 - 텍스트 내용만 변경
+                    TextMeshProUGUI skillInfoText = skillInfoTr.GetComponent<TextMeshProUGUI>();
+                    if (skillInfoText != null)
+                    {
+                        skillInfoText.text = selectedSkill.skillEffect;
+                    }
+                }
+
+                // Count 설정
+                Transform countTr = newCard.transform.Find("Count");
+                if (countTr != null)
+                {
+                    RectTransform countRect = countTr.GetComponent<RectTransform>();
+                    if (countRect != null)
+                    {
+                        countRect.anchorMin = new Vector2(0.5f, 0.5f);
+                        countRect.anchorMax = new Vector2(0.5f, 0.5f);
+                        countRect.sizeDelta = new Vector2(60f, 60f);
+                        countRect.anchoredPosition = new Vector2(0f, -97.628f);
+                        countRect.localScale = new Vector3(0.6108197f, 0.6108197f, 0.6108197f);
+                    }
+
+                    TextMeshProUGUI countText = countTr.GetComponentInChildren<TextMeshProUGUI>();
+                    if (countText != null)
+                    {
+                        countText.text = "1";
+                    }
+                }
             }
-            
+
+            // 이미지 설정
             Image cardImage = newCard.GetComponent<Image>();
             if (cardImage != null)
             {
                 cardImage.sprite = selectedSkill.nomalSprite;
                 cardImage.preserveAspect = true;
+                cardImage.raycastTarget = true;
             }
-            
-            // SkillInfo 텍스트 설정
-            TextMeshProUGUI skillInfoText = newCard.GetComponentInChildren<TextMeshProUGUI>();
-            if (skillInfoText != null)
-            {
-                skillInfoText.text = selectedSkill.skillEffect;
-            }
+
+            selectedCards.Add(newCard);
+            selectedCardDict.Add(selectedSkill, newCard);
+            cardCountDict.Add(selectedSkill, 1);
             
             newCard.AddComponent<SkillReference>().skill = selectedSkill;
-            
-            // 카운트 텍스트 초기화
-            InitializeCardCount(newCard);
-            
-            Button cardButton = newCard.GetComponent<Button>();
-            if (cardButton != null)
+
+            // 이벤트 트리거 설정
+            EventTrigger eventTrigger = newCard.AddComponent<EventTrigger>();
+            eventTrigger.triggers.Clear();  // 기존 트리거 제거
+
+            // 마우스 진입 이벤트
+            EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+            enterEntry.eventID = EventTriggerType.PointerEnter;
+            enterEntry.callback.AddListener((data) => { OnCardHoverEnter(newCard); });
+            eventTrigger.triggers.Add(enterEntry);
+
+            // 마우스 이탈 이벤트
+            EventTrigger.Entry exitEntry = new EventTrigger.Entry();
+            exitEntry.eventID = EventTriggerType.PointerExit;
+            exitEntry.callback.AddListener((data) => { OnCardHoverExit(newCard); });
+            eventTrigger.triggers.Add(exitEntry);
+
+            // 클릭 이벤트
+            Button button = newCard.GetComponent<Button>();
+            if (button != null)
             {
-                cardButton.onClick.AddListener(() => UnselectCard(newCard));
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => UnselectCard(newCard));
             }
         }
 
         // 카드 선택 후 모든 카드의 카운트 텍스트 업데이트
         UpdateAllCardCounts();
-    }
-
-    private void InitializeCardCount(GameObject card)
-    {
-        // Count 오브젝트 찾기
-        Transform countTransform = card.transform.Find("Count");
-        if (countTransform != null)
-        {
-            // CountText (TMP) 컴포넌트 찾기
-            TextMeshProUGUI countText = countTransform.GetComponentInChildren<TextMeshProUGUI>();
-            if (countText != null)
-            {
-                countText.text = "1";
-            }
-        }
-    }
-
-    private void UpdateCardCount(GameObject card, int count)
-    {
-        Transform countTransform = card.transform.Find("Count");
-        if (countTransform != null)
-        {
-            TextMeshProUGUI countText = countTransform.GetComponentInChildren<TextMeshProUGUI>();
-            if (countText != null)
-            {
-                countText.text = count.ToString();
-            }
-        }
     }
 
     private void UnselectCard(GameObject card)
@@ -485,31 +625,47 @@ public class TestDeckManager : MonoBehaviour
         RectTransform panelRect = selectedCardPanel.GetComponent<RectTransform>();
         if (panelRect != null)
         {
-            panelRect.sizeDelta = new Vector2(panelRect.sizeDelta.x, cardPanelHeight);
+            // 프리팹의 원본 크기를 기준으로 패널 높이 설정
+            RectTransform cardPrefabRect = cardPrefab.GetComponent<RectTransform>();
+            float cardHeight = cardPrefabRect != null ? cardPrefabRect.sizeDelta.y : cardSize.y;
+            // 여러 줄을 수용할 수 있도록 높이 설정
+            panelRect.sizeDelta = new Vector2(panelRect.sizeDelta.x, (cardHeight + selectedPanelPadding) * 3);  // 최대 3줄까지 표시
         }
 
+        // GridLayoutGroup 설정
         GridLayoutGroup gridLayout = selectedCardPanel.GetComponent<GridLayoutGroup>();
         if (gridLayout == null)
         {
             gridLayout = selectedCardPanel.gameObject.AddComponent<GridLayoutGroup>();
         }
 
-        gridLayout.cellSize = new Vector2(cardSize, cardSize);
-        gridLayout.spacing = new Vector2(cardSpacing, cardSpacing);
-        gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
-        gridLayout.startAxis = GridLayoutGroup.Axis.Vertical;
-        gridLayout.childAlignment = TextAnchor.UpperLeft;
-        gridLayout.constraint = GridLayoutGroup.Constraint.FixedRowCount;
-        gridLayout.constraintCount = 1;
-        gridLayout.padding = new RectOffset(10, 10, 10, 10);
+        // 프리팹의 원본 크기 사용
+        RectTransform prefabRect = cardPrefab.GetComponent<RectTransform>();
+        Vector2 originalCardSize = prefabRect != null ? prefabRect.sizeDelta : cardSize;
 
+        // GridLayout 설정 수정
+        gridLayout.cellSize = originalCardSize;
+        gridLayout.spacing = new Vector2(selectedCardSpacing, selectedCardSpacing);
+        gridLayout.startCorner = GridLayoutGroup.Corner.UpperLeft;
+        gridLayout.startAxis = GridLayoutGroup.Axis.Horizontal;
+        gridLayout.childAlignment = TextAnchor.UpperLeft;
+        gridLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;  // 열 수 제한으로 변경
+        gridLayout.constraintCount = selectedCardsPerRow;  // 한 줄당 최대 카드 수
+        gridLayout.padding = new RectOffset(
+            (int)selectedPanelPadding, 
+            (int)selectedPanelPadding, 
+            (int)selectedPanelPadding, 
+            (int)selectedPanelPadding
+        );
+
+        // ContentSizeFitter 추가
         ContentSizeFitter sizeFitter = selectedCardPanel.GetComponent<ContentSizeFitter>();
         if (sizeFitter == null)
         {
             sizeFitter = selectedCardPanel.gameObject.AddComponent<ContentSizeFitter>();
         }
         sizeFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-        sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        sizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;  // 세로 크기를 내용에 맞게 조절
     }
     
     private void OnCharacterButtonClick(int characterIndex)
@@ -543,7 +699,7 @@ public class TestDeckManager : MonoBehaviour
         // 기존 선택된 카드들 초기화
         ClearSelectedCards();
         
-        // 해당 캐릭터�� 덱 정보 로드
+        // 해당 캐릭터 덱 정보 로드
         LoadExistingDeck(characterIndex);
 
         // 버튼 하이라이트 효과
@@ -571,7 +727,12 @@ public class TestDeckManager : MonoBehaviour
     // 더블 클릭: 전투 대상으로 추가
     private void OnCharacterDoubleClick(int characterIndex)
     {
-        if (!selectedCharacterIndices.Contains(characterIndex))
+        // 이미 선택된 캐릭터인 경우 선택 해제
+        if (selectedCharacterIndices.Contains(characterIndex))
+        {
+            UnselectCharacter(characterIndex);
+        }
+        else 
         {
             // 캐릭터 선택 제한 확인
             if (selectedCharacterIndices.Count >= maxSelectableCharacters)
@@ -588,13 +749,13 @@ public class TestDeckManager : MonoBehaviour
             {
                 DeckData.selectedCharacterPrefabs.Add(prefab);
             }
-
-            // 시작 버튼 상태 업데이트
-            UpdateStartButtonState();
-            
-            // 버튼 하이라이트만 업데이트
-            UpdateCharacterButtonsHighlight();
         }
+
+        // 시작 버튼 상태 업데이트
+        UpdateStartButtonState();
+        
+        // 버튼 하이라이트만 업데이트
+        UpdateCharacterButtonsHighlight();
     }
 
     // 버튼 하이라이트 업데이트
@@ -607,7 +768,7 @@ public class TestDeckManager : MonoBehaviour
                 // 현재 선택된 캐릭터는 회색으로 표시
                 characterButtons[i].image.color = (i == currentCharacterIndex) ? Color.gray : Color.white;
                 
-                // 전투 대상으로 선택된 캐릭터들은 다른 색상으로 표시
+                // 전투 대상으로 선택된 캐릭터들은 다른 색으로 표시
                 if (selectedCharacterIndices.Contains(i))
                 {
                     characterButtons[i].image.color = new Color(0.7f, 1f, 0.7f); // 연한 녹색
@@ -662,63 +823,38 @@ public class TestDeckManager : MonoBehaviour
 
     private void UnselectCharacter(int characterIndex)
     {
-        // 선택된 캐릭터 목록에서 해당 캐릭터의 인덱스 찾기
-        int index = selectedCharacterIndices.IndexOf(characterIndex);
-        if (index != -1 && index < selectedCharacterObjects.Count)
+        // 선택된 캐릭터 목록에서 제거
+        if (selectedCharacterIndices.Contains(characterIndex))
         {
-            try
+            int index = selectedCharacterIndices.IndexOf(characterIndex);
+            selectedCharacterIndices.Remove(characterIndex);
+
+            // DeckData에서도 제거
+            if (index < DeckData.selectedCharacterPrefabs.Count)
             {
-                selectedCharacterIndices.RemoveAt(index);
-                
-                // 선택된 캐릭터 오브젝트가 유효한지 확인
-                GameObject charObject = selectedCharacterObjects[index];
-                if (charObject != null)
-                {
-                    selectedCharacterObjects.RemoveAt(index);
-                    Destroy(charObject);
-                }
-                
-                // 버튼 색상 초기화
-                if (characterIndex < characterButtons.Length && characterButtons[characterIndex] != null)
-                {
-                    characterButtons[characterIndex].image.color = Color.white;
-                }
-                
-                // 현재 선택된 캐릭터와 동일한 경우 초기화
-                if (currentCharacterIndex == characterIndex)
-                {
-                    currentCharacterIndex = -1;
-                    cardSelectPanel.SetActive(false);
-                    ClearSelectedCards();
-                }
-
-                // 선택 해제 시 DeckData에서도 제거
-                if (index != -1 && index < DeckData.selectedCharacterPrefabs.Count)
-                {
-                    DeckData.selectedCharacterPrefabs.RemoveAt(index);
-                }
-
-                // 시작 버튼 상태 업데이트
-                UpdateStartButtonState();
+                DeckData.selectedCharacterPrefabs.RemoveAt(index);
             }
-            catch (System.Exception e)
+
+            // 버튼 색상 초기화
+            if (characterIndex < characterButtons.Length && characterButtons[characterIndex] != null)
             {
-                Debug.LogError($"캐릭터 선택 해제 중 오류 발생: {e.Message}");
-                // 오류 발생 시 리스트 초기화
-                selectedCharacterIndices.Clear();
-                foreach (var obj in selectedCharacterObjects)
-                {
-                    if (obj != null) Destroy(obj);
-                }
-                selectedCharacterObjects.Clear();
+                characterButtons[characterIndex].image.color = Color.white;
+            }
+            
+            // 현재 선택된 캐릭터와 동일한 경우 초기화
+            if (currentCharacterIndex == characterIndex)
+            {
                 currentCharacterIndex = -1;
                 cardSelectPanel.SetActive(false);
                 ClearSelectedCards();
             }
+
+            // 시작 버튼 상태 업데이트
+            UpdateStartButtonState();
         }
         else
         {
-            Debug.LogWarning($"선택된 캐릭터를 찾을 수 없습니다. CharacterIndex: {characterIndex}, SelectedIndex: {index}");
+            Debug.LogWarning($"선택된 캐릭터 목록에서 캐릭터를 찾을 수 없습니다. CharacterIndex: {characterIndex}");
         }
     }
     
@@ -751,7 +887,8 @@ public class TestDeckManager : MonoBehaviour
                     if (countText != null)
                     {
                         int currentCount = GetCurrentCardCount(skillRef.skill);
-                        countText.text = $"{currentCount}/{MAX_CARD_COUNT}";
+                        int maxCount = skillRef.skill.maxCardCount > 0 ? skillRef.skill.maxCardCount : MAX_CARD_COUNT;
+                        countText.text = $"{currentCount}/{maxCount}";
                     }
                 }
             }
@@ -790,7 +927,7 @@ public class TestDeckManager : MonoBehaviour
             #if UNITY_EDITOR
             UnityEditor.EditorUtility.SetDirty(characterPrefab);
             UnityEditor.AssetDatabase.SaveAssets();
-            Debug.Log($"캐릭터 {characterProfile.GetPlayer.charName}의 덱이 저장되었습니다.");
+            Debug.Log($"캐릭터 {characterProfile.GetPlayer.charName}의 덱이 저장되었습니.");
             #endif
         }
     }
@@ -868,4 +1005,216 @@ public class TestDeckManager : MonoBehaviour
     {
         DOTween.KillAll();
     }
+
+    // OnCardHoverEnter 메서드 수정
+    private void OnCardHoverEnter(GameObject card)
+    {
+        if (currentHoveredCard != null && currentHoveredCard != card)
+        {
+            OnCardHoverExit(currentHoveredCard);
+        }
+
+        currentHoveredCard = card;
+        
+        // 현재 진행 중인 트윈 중지
+        DOTween.Kill(card.transform, true);
+        
+        // Canvas 정렬 순서를 최상위로 설정
+        Canvas cardCanvas = card.GetComponent<Canvas>();
+        if (cardCanvas != null)
+        {
+            cardCanvas.sortingOrder = 1000;  // 호버 시 매우 높은 값으로 설정
+        }
+        
+        // 카드 확대
+        card.transform.DOScale(Vector3.one * cardHoverScale, cardHoverDuration)
+            .SetEase(Ease.OutQuad);
+    }
+
+    // OnCardHoverExit 메서드 수정
+    private void OnCardHoverExit(GameObject card)
+    {
+        if (currentHoveredCard != card)
+            return;
+
+        currentHoveredCard = null;
+        
+        // 현재 진행 중인 트윈 중지
+        DOTween.Kill(card.transform, true);
+        
+        // Canvas 정렬 순서를 원래대로 복원
+        Canvas cardCanvas = card.GetComponent<Canvas>();
+        if (cardCanvas != null)
+        {
+            int index = selectedCards.IndexOf(card);
+            cardCanvas.sortingOrder = 10 + (index != -1 ? index : 0);  // 기본값 10에 인덱스 추가
+        }
+        
+        // 카드 크기 복원
+        card.transform.DOScale(Vector3.one, cardHoverDuration)
+            .SetEase(Ease.OutQuad);
+    }
+
+    // 카드 자식 요소들의 레이아웃을 설정하는 새로운 메서드
+    private void SetupCardChildElements(GameObject card)
+    {
+        // SkillInfo 설정
+        Transform skillInfoTr = card.transform.Find("SkillInfo");
+        if (skillInfoTr != null)
+        {
+            RectTransform skillInfoRect = skillInfoTr.GetComponent<RectTransform>();
+            if (skillInfoRect != null)
+            {
+                // 프리팹의 정확한 설정값 적용
+                skillInfoRect.anchorMin = new Vector2(0.5f, 0.5f);  // center
+                skillInfoRect.anchorMax = new Vector2(0.5f, 0.5f);  // center
+                skillInfoRect.sizeDelta = new Vector2(100f, 58.4557f);  // Width, Height
+                skillInfoRect.anchoredPosition = new Vector2(0f, -38.4f);  // Pos X, Pos Y
+                skillInfoRect.localScale = new Vector3(1.209023f, 1.209023f, 1.209023f);  // Scale
+            }
+        }
+
+        // Count 설정
+        Transform countTr = card.transform.Find("Count");
+        if (countTr != null)
+        {
+            RectTransform countRect = countTr.GetComponent<RectTransform>();
+            if (countRect != null)
+            {
+                // 프리팹의 정확한 설정값 적용
+                countRect.anchorMin = new Vector2(0.5f, 0.5f);  // center
+                countRect.anchorMax = new Vector2(0.5f, 0.5f);  // center
+                countRect.sizeDelta = new Vector2(60f, 60f);  // Width, Height
+                countRect.anchoredPosition = new Vector2(0f, -97.628f);  // Pos X, Pos Y
+                countRect.localScale = new Vector3(0.6108197f, 0.6108197f, 0.6108197f);  // Scale
+            }
+        }
+    }
+
+    // UpdateCardCount 메서드 추가
+    private void UpdateCardCount(GameObject card, int count)
+    {
+        Transform countTransform = card.transform.Find("Count");
+        if (countTransform != null)
+        {
+            TextMeshProUGUI countText = countTransform.GetComponentInChildren<TextMeshProUGUI>();
+            if (countText != null)
+            {
+                countText.text = count.ToString();
+            }
+        }
+    }
+
+    // InitializeCardCount 메서드도 추가 (이미 있다면 무시)
+    private void InitializeCardCount(GameObject card)
+    {
+        Transform countTransform = card.transform.Find("Count");
+        if (countTransform != null)
+        {
+            TextMeshProUGUI countText = countTransform.GetComponentInChildren<TextMeshProUGUI>();
+            if (countText != null)
+            {
+                countText.text = "1";
+            }
+        }
+    }
+
+    #if UNITY_EDITOR
+    private void OnDrawGizmos()
+    {
+        // 캐릭터 스크롤 그리드 시각화
+        DrawCharacterGridGizmos();
+        
+        // 선택된 카드 패널 그리드 시각화
+        DrawSelectedCardGridGizmos();
+    }
+
+    private void DrawCharacterGridGizmos()
+    {
+        if (characterScrollContent != null)
+        {
+            GridLayoutGroup grid = characterScrollContent.GetComponent<GridLayoutGroup>();
+            if (grid != null)
+            {
+                Gizmos.color = new Color(0, 1, 0, 0.3f); // 반투��� 녹색
+
+                // 그리드 셀 표시
+                Vector3 startPos = characterScrollContent.position;
+                int columns = maxCharactersPerRow;
+                int rows = Mathf.CeilToInt((float)characterButtons.Length / columns);
+
+                for (int y = 0; y < rows; y++)
+                {
+                    for (int x = 0; x < columns; x++)
+                    {
+                        Vector3 cellPos = startPos + new Vector3(
+                            (x * (characterSize + grid.spacing.x)) + grid.padding.left,
+                            -(y * (characterSize + grid.spacing.y)) - grid.padding.top,
+                            0
+                        );
+
+                        // 셀 영역 표시
+                        Gizmos.DrawCube(cellPos + new Vector3(characterSize/2, -characterSize/2, 0), 
+                            new Vector3(characterSize, characterSize, 1));
+
+                        // 셀 테두리 표시
+                        Gizmos.color = Color.green;
+                        Gizmos.DrawWireCube(cellPos + new Vector3(characterSize/2, -characterSize/2, 0), 
+                            new Vector3(characterSize, characterSize, 1));
+                    }
+                }
+
+                // 전체 영역 테두리 표시
+                Gizmos.color = Color.yellow;
+                float totalWidth = columns * characterSize + (columns - 1) * grid.spacing.x + grid.padding.left + grid.padding.right;
+                float totalHeight = rows * characterSize + (rows - 1) * grid.spacing.y + grid.padding.top + grid.padding.bottom;
+                Vector3 areaCenter = startPos + new Vector3(totalWidth/2, -totalHeight/2, 0);
+                Gizmos.DrawWireCube(areaCenter, new Vector3(totalWidth, totalHeight, 1));
+            }
+        }
+    }
+
+    private void DrawSelectedCardGridGizmos()
+    {
+        if (selectedCardPanel != null)
+        {
+            GridLayoutGroup grid = selectedCardPanel.GetComponent<GridLayoutGroup>();
+            if (grid != null)
+            {
+                Gizmos.color = new Color(0, 0.5f, 1f, 0.3f); // 반투명 파란색
+
+                Vector3 startPos = selectedCardPanel.position;
+                Vector2 cardSize = new Vector2(185.6f, 246.4f);  // 카드 크기
+
+                // 그리드 셀 표시
+                for (int x = 0; x < selectedCardsPerRow; x++)
+                {
+                    Vector3 cellPos = startPos + new Vector3(
+                        (x * (cardSize.x + selectedCardSpacing)) + selectedPanelPadding,
+                        -selectedPanelPadding,
+                        0
+                    );
+
+                    // 셀 영역 표시
+                    Gizmos.DrawCube(cellPos + new Vector3(cardSize.x/2, -cardSize.y/2, 0), 
+                        new Vector3(cardSize.x, cardSize.y, 1));
+
+                    // 셀 테두리 표시
+                    Gizmos.color = Color.blue;
+                    Gizmos.DrawWireCube(cellPos + new Vector3(cardSize.x/2, -cardSize.y/2, 0), 
+                        new Vector3(cardSize.x, cardSize.y, 1));
+                }
+
+                // 전체 영역 테두리 표시
+                Gizmos.color = Color.yellow;
+                float totalWidth = selectedCardsPerRow * cardSize.x + 
+                    (selectedCardsPerRow - 1) * selectedCardSpacing + 
+                    selectedPanelPadding * 2;
+                float totalHeight = cardSize.y + selectedPanelPadding * 2;
+                Vector3 areaCenter = startPos + new Vector3(totalWidth/2, -totalHeight/2, 0);
+                Gizmos.DrawWireCube(areaCenter, new Vector3(totalWidth, totalHeight, 1));
+            }
+        }
+    }
+    #endif
 }

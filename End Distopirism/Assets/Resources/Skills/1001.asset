@@ -12,12 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1db1306fda4998642a4f4050170ffa8c, type: 3}
   m_Name: 1001
   m_EditorClassIdentifier: 
-  skillName: "\uBCA0\uAE30 1"
+  skillName: "\uB9C8\uBB34\uB9AC"
   sprite: {fileID: 21300000, guid: 48f82160233089645b648daee9f589bc, type: 3}
   maxDmg: 10
   minDmg: 10
   dmgUp: 6
-  skillEffect: "\uC0C1\uB300\uB97C \uB9C8\uAD6C \uBCB1\uB2C8\uB2E4."
+  skillEffect: "\uD569 \uC2B9\uB9AC\uC2DC\uC5D0 \uC0C1\uB300\uC758 \uCCB4\uB825\uC774
+    1% \uBBF8\uB9CC\uC774\uB77C\uBA74 \uCC98\uD615\uD55C\uB2E4.\n\uD569 \uD328\uBC30\uC2DC\uC5D0\uB294
+    \uC815\uC2E0\uB825\uC758 5% \uAC10\uC18C."
   animationClip: {fileID: 0}
   successSprite: {fileID: 21300000, guid: 48f82160233089645b648daee9f589bc, type: 3}
   nomalSprite: {fileID: 21300000, guid: d5aeb2424c0f4ae4fa4284859eefcd90, type: 3}
+  maxCardCount: 3
