@@ -39,7 +39,7 @@ public class BattleMove : MonoBehaviour
 
         if (animator != null)
         {
-            animator.SetBool("Idle", true); // Idle 애니메이션 재생
+            animator.SetTrigger("Return"); // Idle 애니메이션 재생
         }
 
         StartCoroutine(MoveCoroutine());
