@@ -221,6 +221,8 @@ public class BattleManager : MonoBehaviour
         //전투 시작 시 캐릭터 정보 패널 비활성화
         UIManager.Instance.playerProfilePanel.SetActive(false);
         UIManager.Instance.enemyProfilePanel.SetActive(false);
+
+        UIManager.Instance.TurnCount();
     }
 
     private IEnumerator WaitForMovementAndAttack()
@@ -298,6 +300,7 @@ public class BattleManager : MonoBehaviour
                     selectedEnemy.isSelected = true;
                     selecting = false;
                     skillSelected = false;
+                    //selectedEnemy.ShowCharacterInfo();
                     
                     // 화살표 연결
                     if (playerObjects.Count > 0)

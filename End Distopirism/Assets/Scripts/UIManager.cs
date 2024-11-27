@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro;  // TextMeshPro 추가
+using TMPro;  
 
 public class UIManager : MonoBehaviour
 {
-    public GameObject damageTextPrefab;  // TextMeshPro - Text를 포함한 프리팹으로 교체 필요
+    public GameObject damageTextPrefab; 
     public Canvas canvas;
     private static UIManager uimInstance;
 
@@ -19,6 +19,19 @@ public class UIManager : MonoBehaviour
 
     public GameObject playerSkillEffectPrefab;
     public GameObject enemySkillEffectPrefab;
+
+    [SerializeField]
+    private TextMeshProUGUI turnText;
+    private int currentTurn = 0;
+
+    public GameObject pausePanel;
+    private Canvas pausePanelCanvas;
+
+    private bool isPaused = false;
+
+    [SerializeField] private Button speedButton;
+    [SerializeField] private TextMeshProUGUI speedButtonText;
+    private bool isSpeedUp = false;
 
     public static UIManager Instance
     {
@@ -40,6 +53,32 @@ public class UIManager : MonoBehaviour
         }
     }
 
+    public void Start()
+    {
+        currentTurn = 0;
+        UpdateTurnText();
+
+        if (pausePanel != null)
+        {
+            pausePanelCanvas = pausePanel.GetComponent<Canvas>();
+            pausePanelCanvas.sortingOrder = 100;
+        }
+
+        if (speedButton != null)
+        {
+            speedButton.onClick.AddListener(ToggleGameSpeed);
+            speedButtonText.text = "x1";
+        }
+    }
+
+    public void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            TogglePause();
+        }
+    }
+
     public GameObject MouseGetObject()
     {
         Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
@@ -50,9 +89,75 @@ public class UIManager : MonoBehaviour
         {
             clickObject = hit.transform.gameObject;
             Debug.Log("클릭한 오브젝트: " + clickObject.name);
+            Debug.Log("오브젝트 태그: " + clickObject.tag);
+
             return clickObject;
         }
+        Debug.Log("충돌 없음");
         return null;
+    }
+
+    public void ToggleGameSpeed()
+    {
+        isSpeedUp = !isSpeedUp;
+        Time.timeScale = isSpeedUp ? 2f : 1f;
+        
+        if (speedButtonText != null)
+        {
+            speedButtonText.text = isSpeedUp ? "x2" : "x1";
+        }
+    }
+
+    public void TogglePause()
+    {
+        if (isPaused)
+        {
+            ResumeGame();
+        }
+        else
+        {
+            PauseGame();
+        }
+    }
+
+    public void PauseGame()
+    {
+        Time.timeScale = 0f;
+        pausePanel.SetActive(true);
+        pausePanel.transform.SetAsLastSibling();
+        isPaused = true;
+    }
+
+    public void ResumeGame()
+    {
+        Time.timeScale = 1f;
+        pausePanel.SetActive(false);
+        isPaused = false;
+    }
+
+    public void ExitGame()
+    {
+        SceneManager.LoadScene("MainScene");
+    }
+
+    public void TurnCount()
+    {
+        currentTurn++;
+        UpdateTurnText();
+    }
+
+    public void UpdateTurnText()
+    {
+        if (turnText != null)
+        {
+            turnText.text = "" + currentTurn;
+        }
+    }
+
+    public void ResetTurnText()
+    {
+        currentTurn = 1;
+        UpdateTurnText();
     }
 
     public void ShowCharacterInfo(CharacterProfile character)
@@ -84,7 +189,7 @@ public class UIManager : MonoBehaviour
             {
                 enemyProfilePanel.SetActive(true);
                 UpdateEnemyInfoPanel(character);
-                ShowSkillCards(enemyProfilePanel);
+                //ShowSkillCards(enemyProfilePanel);
             }
         }
     }
