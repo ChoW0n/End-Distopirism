@@ -92,6 +92,10 @@ public class TestDeckManager : MonoBehaviour
     [SerializeField] private float selectedCardSpacing = 10f;  // 카드 간격
     [SerializeField] private float selectedPanelPadding = 10f;  // 패널 여백
 
+    [SerializeField] private GameObject characterInfoPanelPrefab; // 캐릭터 정보 패널 프리팹
+    [SerializeField] private Transform characterInfoParent; // 캐릭터 정보 패널이 생성될 부모 Transform
+    private GameObject currentCharacterInfoPanel; // 현재 표시 중인 캐릭터 정보 패널
+
     private void Awake()
     {
         ValidateReferences();
@@ -730,6 +734,9 @@ public class TestDeckManager : MonoBehaviour
     {
         // 현재 선택된 캐릭터 변경
         currentCharacterIndex = characterIndex;
+
+        // 캐릭터 정보 패널 활성화
+        ShowCharacterInfo(characterIndex);
         
         // 카드 선택 패널 활성화
         cardSelectPanel.SetActive(true);
@@ -1255,4 +1262,36 @@ public class TestDeckManager : MonoBehaviour
         }
     }
     #endif
+
+    private void ShowCharacterInfo(int characterIndex)
+    {
+        // 이전 정보 패널 제거
+        if (currentCharacterInfoPanel != null)
+        {
+            Destroy(currentCharacterInfoPanel);
+        }
+
+        // 캐릭터 프리팹 가져오기
+        if (characterPrefabDict.TryGetValue(characterButtons[characterIndex], out GameObject characterPrefab))
+        {
+            CharacterProfile profile = characterPrefab.GetComponent<CharacterProfile>();
+            if (profile != null)
+            {
+                // 새 정보 패널 생성
+                currentCharacterInfoPanel = Instantiate(characterInfoPanelPrefab, characterInfoParent);
+                
+                // 정보 패널의 텍스트 컴포넌트들 찾기
+                TextMeshProUGUI nameText = currentCharacterInfoPanel.transform.Find("NameText")?.GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI dmgText = currentCharacterInfoPanel.transform.Find("DmgText")?.GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI defText = currentCharacterInfoPanel.transform.Find("DefText")?.GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI coinText = currentCharacterInfoPanel.transform.Find("CoinText")?.GetComponent<TextMeshProUGUI>();
+
+                // 텍스트 업데이트
+                if (nameText != null) nameText.text = "" + profile.GetPlayer.charName;
+                if (dmgText != null) dmgText.text = "" + profile.GetPlayer.dmgLevel;
+                if (defText != null) defText.text = "" + profile.GetPlayer.defLevel;
+                if (coinText != null) coinText.text = "" + profile.GetPlayer.coin;
+            }
+        }
+    }
 }

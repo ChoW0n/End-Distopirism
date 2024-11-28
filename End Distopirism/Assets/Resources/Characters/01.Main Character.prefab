@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player:
-    charName: 1
+    charName: 2
     maxHp: 500
     charSkillCost: 0
     hp: 500
