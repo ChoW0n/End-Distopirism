@@ -331,15 +331,38 @@ public class SkillManager : MonoBehaviour
             // 스킬 이펙트 텍스트 설정 및 디버그
             if (cardTexts[i] != null)
             {
-                Debug.Log($"Card {i+1} 스킬 이펙트 텍스트 설정: {currentSkills[i].skillEffect}");
+                // SkillInfo 텍스트 설정
                 cardTexts[i].text = currentSkills[i].skillEffect;
-                cardTexts[i].gameObject.SetActive(true); // 텍스트 오브젝트 활성화
+                cardTexts[i].gameObject.SetActive(true);
+                
+                // SkillName 텍스트 찾기 및 설정
+                Transform skillNameTransform = cards[i].transform.Find("SkillName");
+                if (skillNameTransform != null)
+                {
+                    TextMeshProUGUI skillNameText = skillNameTransform.GetComponent<TextMeshProUGUI>();
+                    if (skillNameText != null)
+                    {
+                        skillNameText.text = currentSkills[i].skillName;
+                        skillNameText.gameObject.SetActive(true);
+                        Debug.Log($"Card {i+1} 스킬 이름 설정: {currentSkills[i].skillName}");
+                    }
+                    else
+                    {
+                        Debug.LogError($"Card {i+1}의 SkillName TMP 컴포넌트를 찾을 수 없습니다.");
+                    }
+                }
+                else
+                {
+                    Debug.LogError($"Card {i+1}의 SkillName 오브젝트를 찾을 수 없습니다.");
+                }
+                
+                Debug.Log($"Card {i+1} 스킬 효과 설정: {currentSkills[i].skillEffect}");
             }
             else
             {
-                Debug.LogError($"Card {i+1}의 Text 컴포넌트를 찾을 수 없습니다.");
+                Debug.LogError($"Card {i+1}의 SkillInfo Text 컴포넌트를 찾을 수 없습니다.");
             }
-
+            
             // 초기 위치 저장
             originalPositions[i] = cards[i].transform.position;
             

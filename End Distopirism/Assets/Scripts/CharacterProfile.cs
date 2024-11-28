@@ -36,7 +36,12 @@ public class CharacterProfile : MonoBehaviour
     private Transform skillPosition; // SkillPosition 트랜스폼 참조
     private GameObject currentSkillEffect; // 현재 활성화된 스킬 이펙트
 
-    private Skill selectedSkill; // 현재 선택된 스킬
+    private Skill selectedSkill; // 현재 선택된 스
+
+    [Header("Sound Effects")]
+    public AudioClip dashSound;  // 대시 사운드
+    public AudioClip hitSound;   // 피해 사운드
+    private AudioSource audioSource;  // 오디오 소스 컴포넌트
 
     void Start()
     {
@@ -85,6 +90,11 @@ public class CharacterProfile : MonoBehaviour
         {
             Debug.LogError($"캐릭터 {gameObject.name}에서 SkillManager를 찾을 수 없습니다.");
         }
+
+        // AudioSource 컴포넌트 추가
+        audioSource = gameObject.AddComponent<AudioSource>();
+        audioSource.playOnAwake = false;
+        audioSource.spatialBlend = 0f;  // 2D 사운드로 설정
     }
 
     private IEnumerator WaitForScaleAndCreateBars()
@@ -105,8 +115,16 @@ public class CharacterProfile : MonoBehaviour
 
     private void CreateStatusBars()
     {
+        // Canvas2 찾기
+        GameObject canvas2 = GameObject.Find("Canvas2");
+        if (canvas2 == null)
+        {
+            Debug.LogError("Canvas2를 찾을 수 없습니다!");
+            return;
+        }
+
         // 체력바 생성
-        healthBar = Instantiate(UIManager.Instance.healthBarPrefab, hpPosition.position, Quaternion.identity, UIManager.Instance.canvas.transform);
+        healthBar = Instantiate(UIManager.Instance.healthBarPrefab, hpPosition.position, Quaternion.identity, canvas2.transform);
         healthFill = healthBar.transform.Find("Fill").GetComponent<Image>();
         
         // Canvas 설정
@@ -130,7 +148,7 @@ public class CharacterProfile : MonoBehaviour
         }
 
         // 정신력바 생성
-        mentalityBar = Instantiate(UIManager.Instance.mentalityBarPrefab, mtPosition.position, Quaternion.identity, UIManager.Instance.canvas.transform);
+        mentalityBar = Instantiate(UIManager.Instance.mentalityBarPrefab, mtPosition.position, Quaternion.identity, canvas2.transform);
         mentalityFill = mentalityBar.transform.Find("Fill").GetComponent<Image>();
         
         Canvas mentalityCanvas = mentalityBar.GetComponent<Canvas>();
@@ -159,14 +177,16 @@ public class CharacterProfile : MonoBehaviour
         if (healthFill != null)
         {
             float targetHealth = Mathf.Clamp01((float)player.hp / player.maxHp);
-            healthFill.fillAmount = Mathf.Lerp(healthFill.fillAmount, targetHealth, Time.deltaTime * 5f);
+            DOTween.To(() => healthFill.fillAmount, x => healthFill.fillAmount = x, targetHealth, 0.5f)
+                .SetEase(Ease.OutQuad);
         }
 
         // 정신력바 업데이트
         if (mentalityFill != null)
         {
             float targetMentality = Mathf.Clamp01(player.menTality / 100f);
-            mentalityFill.fillAmount = Mathf.Lerp(mentalityFill.fillAmount, targetMentality, Time.deltaTime * 5f);
+            DOTween.To(() => mentalityFill.fillAmount, x => mentalityFill.fillAmount = x, targetMentality, 0.5f)
+                .SetEase(Ease.OutQuad);
         }
     }
 
@@ -211,7 +231,7 @@ public class CharacterProfile : MonoBehaviour
         UIManager.Instance.ShowSkillCards(this.CompareTag("Player") ? UIManager.Instance.playerProfilePanel : UIManager.Instance.enemyProfilePanel);
     }
 
-    // 스킬을 캐릭터에 적용하는 메서드
+    // 스킬을 캐릭터에 적용하는 서드
     void ApplySkill()
     {
         if (player.skills != null && player.skills.Count > 0)
@@ -228,11 +248,65 @@ public class CharacterProfile : MonoBehaviour
 
     public void OnDeath()
     {
+        StartCoroutine(DeathSequence());
+    }
+
+    private IEnumerator DeathSequence()
+    {
+        // 상태바 페이드 아웃
+        if (healthBar != null)
+        {
+            CanvasGroup healthBarCanvas = healthBar.GetComponent<CanvasGroup>();
+            if (healthBarCanvas == null)
+            {
+                healthBarCanvas = healthBar.AddComponent<CanvasGroup>();
+            }
+            DOTween.To(() => healthBarCanvas.alpha, x => healthBarCanvas.alpha = x, 0f, 1f);
+        }
+
+        if (mentalityBar != null)
+        {
+            CanvasGroup mentalityBarCanvas = mentalityBar.GetComponent<CanvasGroup>();
+            if (mentalityBarCanvas == null)
+            {
+                mentalityBarCanvas = mentalityBar.AddComponent<CanvasGroup>();
+            }
+            DOTween.To(() => mentalityBarCanvas.alpha, x => mentalityBarCanvas.alpha = x, 0f, 1f);
+        }
+
+        // 캐릭터 스프라이트 페이드 아웃
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        if (spriteRenderer != null)
+        {
+            // 페이드 아웃 시퀀스 생성
+            Sequence deathSequence = DOTween.Sequence();
+            
+            // 캐릭터를 위로 살짝 띄우면서 페이드 아웃
+            deathSequence.Join(transform.DOMoveY(transform.position.y + 1f, 1f).SetEase(Ease.OutQuad));
+            deathSequence.Join(spriteRenderer.DOFade(0f, 1f).SetEase(Ease.InQuad));
+            
+            // 캐릭터 회전 효과 추가
+            deathSequence.Join(transform.DORotate(new Vector3(0f, 360f, 0f), 1f, RotateMode.FastBeyond360));
+            
+            // 크기 줄이기 효과
+            deathSequence.Join(transform.DOScale(Vector3.zero, 1f).SetEase(Ease.InBack));
+
+            yield return deathSequence.WaitForCompletion();
+        }
+        else
+        {
+            yield return new WaitForSeconds(1f);
+        }
+
+        // 스킬 이펙트 제거
+        DestroySkillEffect();
+
+        // 상태바 완전히 제거
         if (healthBar != null) Destroy(healthBar);
         if (mentalityBar != null) Destroy(mentalityBar);
-        DestroySkillEffect(); // 스킬 이펙트도 거
+
+        // 캐릭터 비활성화
         gameObject.SetActive(false);
-        // todo: 이팩트 재생
     }
 
     void Update()
@@ -242,7 +316,7 @@ public class CharacterProfile : MonoBehaviour
         if (mainCamera != null)
         {
             Vector3 euler = transform.rotation.eulerAngles;
-            euler.x = mainCamera.transform.eulerAngles.x; // X축 회전만 카메라를 따라감
+            euler.x = mainCamera.transform.eulerAngles.x; // X 회전만 카메라를 따라감
             // Y축과 Z축은 현재 값을 유지
             transform.rotation = Quaternion.Euler(euler);
         }
@@ -278,8 +352,15 @@ public class CharacterProfile : MonoBehaviour
     // 정신력이 변경될 때 호출할 메서드
     public void UpdateMentality(float newMentality)
     {
+        float oldMentality = player.menTality;
         player.menTality = Mathf.Clamp(newMentality, 0f, 100f);
-        UpdateStatusBars();
+        
+        // 값이 실제로 변경되었을 때만 업데이트
+        if (oldMentality != player.menTality)
+        {
+            UpdateStatusBars();
+            Debug.Log($"정신력 변경: {oldMentality} -> {player.menTality}");
+        }
     }
 
     // 스킬 이펙트 생성 및 표시
@@ -306,7 +387,7 @@ public class CharacterProfile : MonoBehaviour
             skillCanvas.sortingOrder = 5;
         }
         
-        // TMP 컴포넌트 참
+        // TMP 컴포넌트 참조
         TextMeshProUGUI dmgText = currentSkillEffect.transform.Find("DmgText").GetComponent<TextMeshProUGUI>();
         TextMeshProUGUI skillText = currentSkillEffect.transform.Find("SkillText").GetComponent<TextMeshProUGUI>();
         TextMeshProUGUI coinText = currentSkillEffect.transform.Find("CoinText").GetComponent<TextMeshProUGUI>();
@@ -437,6 +518,26 @@ public class CharacterProfile : MonoBehaviour
             player.minDmg = selectedSkill.minDmg;
             player.dmgUp = selectedSkill.dmgUp;
             Debug.Log($"스킬 적용됨: {selectedSkill.skillName}, 데미지: {selectedSkill.minDmg}-{selectedSkill.maxDmg}");
+        }
+    }
+
+    // 대시 사운드 재생 메서드 추가
+    public void PlayDashSound()
+    {
+        if (audioSource != null && dashSound != null)
+        {
+            audioSource.clip = dashSound;
+            audioSource.Play();
+        }
+    }
+
+    // 피해 사운드 재생 메서드 추가
+    public void PlayHitSound()
+    {
+        if (audioSource != null && hitSound != null)
+        {
+            audioSource.clip = hitSound;
+            audioSource.Play();
         }
     }
 }

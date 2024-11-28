@@ -357,6 +357,33 @@ public class TestDeckManager : MonoBehaviour
                 cardImage.preserveAspect = true;
             }
 
+            // SkillName 텍스트 설정
+            Transform skillNameTransform = cardButtonObj.transform.Find("SkillName");
+            if (skillNameTransform != null)
+            {
+                RectTransform skillNameRect = skillNameTransform.GetComponent<RectTransform>();
+                if (skillNameRect != null)
+                {
+                    // 기존 anchoredPosition에서 Y값만 6.1 증가
+                    Vector2 currentPos = skillNameRect.anchoredPosition;
+                    skillNameRect.anchoredPosition = new Vector2(currentPos.x, currentPos.y + 6.1f);
+                }
+
+                TextMeshProUGUI skillNameText = skillNameTransform.GetComponent<TextMeshProUGUI>();
+                if (skillNameText != null)
+                {
+                    skillNameText.text = skill.skillName;
+                }
+                else
+                {
+                    Debug.LogError($"SkillName에 TextMeshProUGUI 컴포넌트가 없습니다: {skill.skillName}");
+                }
+            }
+            else
+            {
+                Debug.LogError($"SkillName 오브젝트를 찾을 수 없습니다: {skill.skillName}");
+            }
+
             // SkillInfo 텍스트 설정
             Transform skillInfoTransform = cardButtonObj.transform.Find("SkillInfo");
             if (skillInfoTransform != null)
@@ -488,6 +515,17 @@ public class TestDeckManager : MonoBehaviour
             {
                 cardRect.sizeDelta = new Vector2(185.6f, 246.4f);
                 cardRect.localScale = Vector3.one;
+
+                // SkillName 설정
+                Transform skillNameTr = newCard.transform.Find("SkillName");
+                if (skillNameTr != null)
+                {
+                    TextMeshProUGUI skillNameText = skillNameTr.GetComponent<TextMeshProUGUI>();
+                    if (skillNameText != null)
+                    {
+                        skillNameText.text = selectedSkill.skillName;
+                    }
+                }
 
                 // SkillInfo 설정
                 Transform skillInfoTr = newCard.transform.Find("SkillInfo");
@@ -1136,7 +1174,7 @@ public class TestDeckManager : MonoBehaviour
             GridLayoutGroup grid = characterScrollContent.GetComponent<GridLayoutGroup>();
             if (grid != null)
             {
-                Gizmos.color = new Color(0, 1, 0, 0.3f); // 반투��� 녹색
+                Gizmos.color = new Color(0, 1, 0, 0.3f); // 반투 녹색
 
                 // 그리드 셀 표시
                 Vector3 startPos = characterScrollContent.position;

@@ -4,6 +4,8 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using TMPro;  
+using UnityEngine.EventSystems;
+using DG.Tweening;
 
 public class UIManager : MonoBehaviour
 {
@@ -32,6 +34,14 @@ public class UIManager : MonoBehaviour
     [SerializeField] private Button speedButton;
     [SerializeField] private TextMeshProUGUI speedButtonText;
     private bool isSpeedUp = false;
+
+    [Header("Game End UI")]
+    public GameObject gameEndPanel;
+    public Button menuButton;
+
+    [Header("Loading Screen")]
+    public GameObject loadingScreen;
+    public Image fadeImage;
 
     public static UIManager Instance
     {
@@ -68,6 +78,28 @@ public class UIManager : MonoBehaviour
         {
             speedButton.onClick.AddListener(ToggleGameSpeed);
             speedButtonText.text = "x1";
+        }
+
+        // GameEnd UI 초기화
+        if (gameEndPanel != null)
+        {
+            gameEndPanel.SetActive(false);
+
+            // Menu 버튼 이벤트 설정
+            if (menuButton != null)
+            {
+                menuButton.onClick.AddListener(LoadMainScene);
+            }
+        }
+
+        // Loading Screen 초기화
+        if (loadingScreen != null)
+        {
+            loadingScreen.SetActive(false);
+            if (fadeImage != null)
+            {
+                fadeImage.color = new Color(0, 0, 0, 0);
+            }
         }
     }
 
@@ -268,7 +300,15 @@ public class UIManager : MonoBehaviour
 
     public void ShowBattleResultText(string message, Vector3 position)
     {
-        GameObject damageText = Instantiate(damageTextPrefab, position, Quaternion.identity, canvas.transform);
+        // Canvas2 찾기
+        GameObject canvas2 = GameObject.Find("Canvas2");
+        if (canvas2 == null)
+        {
+            Debug.LogError("Canvas2를 찾을 수 없습니다!");
+            return;
+        }
+
+        GameObject damageText = Instantiate(damageTextPrefab, position, Quaternion.identity, canvas2.transform);
         TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
         textComponent.text = message;
 
@@ -286,10 +326,18 @@ public class UIManager : MonoBehaviour
 
     public void ShowDamageTextNearCharacter(int damage, Transform characterTransform)
     {
+        // Canvas2 찾기
+        GameObject canvas2 = GameObject.Find("Canvas2");
+        if (canvas2 == null)
+        {
+            Debug.LogError("Canvas2를 찾을 수 없습니다!");
+            return;
+        }
+
         Vector3 randomOffset = Random.insideUnitCircle * 50f;
         Vector3 spawnPosition = characterTransform.position + new Vector3(randomOffset.x, 100f + randomOffset.y, 0);
 
-        GameObject damageText = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity, canvas.transform);
+        GameObject damageText = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity, canvas2.transform);
         TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
         textComponent.text = "-" + damage.ToString();
         textComponent.color = Color.red;
@@ -329,5 +377,48 @@ public class UIManager : MonoBehaviour
             ShowSkillCards(playerProfilePanel);
             ShowSkillCards(enemyProfilePanel);
         }
+    }
+
+    public void ShowGameEndUI()
+    {
+        if (gameEndPanel == null) return;
+
+        gameEndPanel.SetActive(true);
+        gameEndPanel.transform.SetAsLastSibling();
+
+        // Menu 버튼 이벤트 수정
+        if (menuButton != null)
+        {
+            menuButton.onClick.RemoveAllListeners();
+            menuButton.onClick.AddListener(LoadMainScene);
+        }
+    }
+
+    // 씬 전환 메서드 추가
+    public void LoadMainScene()
+    {
+        StartCoroutine(LoadSceneWithFakeLoading("MainScene"));
+    }
+
+    private IEnumerator LoadSceneWithFakeLoading(string sceneName)
+    {
+        // 로딩 화면 활성화
+        if (loadingScreen != null)
+        {
+            loadingScreen.SetActive(true);
+            loadingScreen.transform.SetAsLastSibling();
+
+            // 페이드 인
+            if (fadeImage != null)
+            {
+                fadeImage.DOFade(1f, 0.5f);
+            }
+        }
+
+        // 페이크 로딩 시간
+        yield return new WaitForSeconds(1f);
+
+        // 씬 로드
+        SceneManager.LoadScene(sceneName);
     }
 }

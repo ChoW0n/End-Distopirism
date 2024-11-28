@@ -364,8 +364,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 1208.65}
-  m_SizeDelta: {x: 0, y: 2000}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 15, y: 1900.7}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &321985868
 GameObject:
@@ -557,8 +557,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 69488036}
   m_HandleRect: {fileID: 69488035}
   m_Direction: 2
-  m_Value: -0.000000050498656
-  m_Size: 0
+  m_Value: 1
+  m_Size: 0.41632515
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1042,15 +1042,15 @@ MonoBehaviour:
   characterButtons: []
   selectedCharacterPanel: {fileID: 1859610711}
   characterPrefab: {fileID: 6685820286248760040, guid: 3c13c40132b134e42994f4a36f6d6b7a, type: 3}
-  characterSpacing: 5
+  characterSpacing: 0
   characterSize: 170
-  maxCharactersPerRow: 3
+  maxCharactersPerRow: 2
   cardSelectPanel: {fileID: 282194961}
   cardScrollContent: {fileID: 282194962}
   cardButtonPrefab: {fileID: 5702003165530961871, guid: 015fc4567ac0e58468a57dfcf092a2a7, type: 3}
   selectedCardPanel: {fileID: 1506304629}
-  cardPrefab: {fileID: 6365293001981937820, guid: de5b176293a21db459e5c220e2c9ca39, type: 3}
-  cardSpacing: 10
+  cardPrefab: {fileID: 5702003165530961871, guid: 015fc4567ac0e58468a57dfcf092a2a7, type: 3}
+  cardSpacing: 0
   cardSize: {x: 200, y: 300}
   maxCardsPerRow: 3
   cardPanelHeight: 120
@@ -1061,7 +1061,7 @@ MonoBehaviour:
   startButton: {fileID: 921455278}
   cardHoverScale: 1.5
   cardHoverDuration: 0.2
-  selectedCardsPerRow: 5
+  selectedCardsPerRow: 3
   selectedCardSpacing: 10
   selectedPanelPadding: 10
 --- !u!4 &732757931
@@ -1316,8 +1316,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2115564060}
   m_HandleRect: {fileID: 2115564059}
   m_Direction: 2
-  m_Value: 0.000000100997234
-  m_Size: 0.00000012207032
+  m_Value: 1
+  m_Size: 0.4163466
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1779,7 +1779,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 481.14325}
+  m_AnchoredPosition: {x: 0, y: 1597.6047}
   m_SizeDelta: {x: 0, y: 2000}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1506304628
@@ -1814,8 +1814,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 1208.6492}
-  m_SizeDelta: {x: 0, y: 2000}
+  m_AnchoredPosition: {x: 30, y: 0}
+  m_SizeDelta: {x: -30, y: 1900.8}
   m_Pivot: {x: 0, y: 1}
 --- !u!1 &1570210088
 GameObject:
@@ -2475,8 +2475,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: -150, y: 12.869995}
-  m_SizeDelta: {x: 580.42, y: -288.6491}
+  m_AnchoredPosition: {x: -150.08, y: 12.869995}
+  m_SizeDelta: {x: 616.83, y: -288.6491}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2079885994
 MonoBehaviour:
@@ -2739,8 +2739,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 752281374}
   m_HandleRect: {fileID: 752281373}
   m_Direction: 2
-  m_Value: 0.69883466
-  m_Size: 0.2011976
+  m_Value: -0.000000038204163
+  m_Size: 0
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:

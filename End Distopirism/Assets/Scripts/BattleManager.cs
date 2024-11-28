@@ -76,7 +76,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // 선택된 캐릭터들이 있는지 확인
+        // 선택된 캐릭터들이  인
         if (DeckData.selectedCharacterPrefabs == null || DeckData.selectedCharacterPrefabs.Count == 0)
         {
             Debug.LogError("선택된 캐릭터가 없습니다.");
@@ -233,8 +233,9 @@ public class BattleManager : MonoBehaviour
 
     private bool AllCombatantsStoppedMoving()
     {
-        foreach (CharacterProfile player in playerObjects)
+        foreach (CharacterProfile player in playerObjects.ToList())
         {
+            if (player == null) continue;
             BattleMove playerMove = player.GetComponent<BattleMove>();
             if (playerMove != null && playerMove.IsMoving())
             {
@@ -242,8 +243,9 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        foreach (CharacterProfile enemy in targetObjects)
+        foreach (CharacterProfile enemy in targetObjects.ToList())
         {
+            if (enemy == null) continue;
             BattleMove enemyMove = enemy.GetComponent<BattleMove>();
             if (enemyMove != null && enemyMove.IsMoving())
             {
@@ -264,7 +266,7 @@ public class BattleManager : MonoBehaviour
             {
                 CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
                 
-                // 이미 다른 캐릭터가 선택되어 있고, 스킬-적 선택이 완료되지 않은 경우
+                // 이미 다른 캐릭터가 택되 있고, 스킬-적 선택이 완료되지 않은 경우
                 if (playerObjects.Count > 0 && targetObjects.Count == 0)
                 {
                     // 이전 선택된 캐릭터의 선택 해제
@@ -334,7 +336,7 @@ public class BattleManager : MonoBehaviour
             float maxMenTality = 100f; // 최대 정신력
             float maxProbability = 0.6f; // 최대 확률 (60%)
 
-            // 정신력에 른 확률 계산
+            // 정신에 른 확률 계산
             float currentProbability = Mathf.Max(0f, maxProbability * (Object.GetPlayer.menTality / maxMenTality));
 
             for (int j = 1; j < Object.GetPlayer.coin - 1; j++)
@@ -377,7 +379,7 @@ public class BattleManager : MonoBehaviour
         yield return new WaitForSeconds(1f);
 
 
-        Debug.Log("플레이어 공격");
+        Debug.Log("플레이어 격");
         DiffCheck();
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
 
@@ -423,7 +425,7 @@ public class BattleManager : MonoBehaviour
 
         isAttacking = false;
 
-        // 모든 전투가 끝난 후에 캐릭터들을 원래 위치로 돌려보내는 부분을 주석 처리
+        // 모든 전투 끝난 후에 캐릭터들을 원래 위치로 돌려보내는 부분을 주석 처리
         // ReturnCombatantsToInitialPositions();
 
         yield return new WaitUntil(() => AllCombatantsStoppedMoving());
@@ -446,13 +448,12 @@ public class BattleManager : MonoBehaviour
         playerDamage = (int)(Random.Range(playerObject.GetPlayer.maxDmg, playerObject.GetPlayer.minDmg) + playerObject.coinBonus + playerObject.bonusDmg);
         targetDamage = (int)(Random.Range(targetObject.GetPlayer.maxDmg, targetObject.GetPlayer.minDmg) + targetObject.coinBonus + targetObject.bonusDmg);
 
-        playerObject.GetPlayer.dmg = playerDamage; // 플레이어의 데미지 저장
-        targetObject.GetPlayer.dmg = targetDamage; // 적의 데미지 저장
+        playerObject.GetPlayer.dmg = playerDamage;
+        targetObject.GetPlayer.dmg = targetDamage;
 
         Debug.Log($"{playerObject.GetPlayer.charName}의 최종 데미지: {playerDamage}");
         Debug.Log($"{targetObject.GetPlayer.charName}의 최종 데미지: {targetDamage}");
 
-        // 승리/패배 문구 표시
         Vector3 playerObjectPosition = playerObject.transform.position;
         Vector3 targetObjectPosition = targetObject.transform.position;
 
@@ -460,11 +461,13 @@ public class BattleManager : MonoBehaviour
         {
             UIManager.Instance.ShowBattleResultText("승리", playerObjectPosition + Vector3.up * 250f);
             UIManager.Instance.ShowBattleResultText("패배", targetObjectPosition + Vector3.up * 250f);
+            playerObject.PlayHitSound(); // 합 승리 시 히트 사운드
         }
         else
         {
             UIManager.Instance.ShowBattleResultText("패배", playerObjectPosition + Vector3.up * 250f);
             UIManager.Instance.ShowBattleResultText("승리", targetObjectPosition + Vector3.up * 250f);
+            targetObject.PlayHitSound(); // 합 승리 시 히트 사운드
         }
     }
 
@@ -485,7 +488,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     if (attackerMove != null)
     {
         attackerMove.Attack(); // Hit 애니메이션 재생
-        // 초기 스킬 이펙트 표시
         attacker.ShowSkillEffect(attacker.GetPlayer.dmg);
     }
 
@@ -497,40 +499,88 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             CoinRoll(attacker, ref attacker.successCount);
             attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
-            // 데미지가 변경될 때마다 스킬 이펙트 업데이트
             attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
         }
 
-        // 피해를 적용하고 데미지 텍스트 표시
-        victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
-        victim.UpdateStatus(); // 피해를 입은 후 상태바 업데이트
-        UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
-        Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
-
-        StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
-
-        // 공격자 전진, 피해자 후퇴
+        // 공격자 전진, 피해자 후퇴 시작
         if (attackerMove != null)
         {
-            attackerMove.Advance(); // Attack 애니메이션 재생
+            attacker.PlayDashSound(); // 대시 사운드 먼저 재생
+            yield return new WaitForSeconds(0.1f); // 약간의 딜레이
+            attackerMove.Advance();
         }
         if (victimMove != null)
         {
+            victim.PlayDashSound(); // 대시 사운드 먼저 재생
+            yield return new WaitForSeconds(0.1f); // 약간의 딜레이
             victimMove.Retreat();
         }
 
         // 전진과 후퇴가 끝날 때까지 대기
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
-        // 해자가 사망했는지 확인
-        if (0 >= victim.GetPlayer.hp)
+        // 피해를 적용하고 데미지 텍스트 표시
+        victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
+        victim.UpdateStatus();
+        UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
+        attacker.PlayHitSound(); // 데미지를 입힐 때 히트 사운드 재생
+        Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
+
+        StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
+
+        // 피해자가 사망했는지 확인
+        if (victim != null && 0 >= victim.GetPlayer.hp)
         {
-            victim.gameObject.SetActive(false);
-            break; // 피해자가 사망하면 루프 종료
+            // OnDeath 메서드 호출 전에 필요한 정리 작업 수행
+            victim.DestroySkillEffect();
+            
+            // 실루엣 매니저 비활성화 및 제거
+            Silhouette silhouette = victim.GetComponent<Silhouette>();
+            if (silhouette != null)
+            {
+                silhouette.Active = false;
+                // 실루엣 ���크 찾아서 제거
+                Transform bank = GameObject.Find($"{victim.gameObject.name}_SilhouetteBank")?.transform;
+                if (bank != null)
+                {
+                    Destroy(bank.gameObject);
+                }
+            }
+            
+            // 체력 체크 및 전투 종료 체크
+            if (victim.CompareTag("Player"))
+            {
+                playerCheck--;
+            }
+            else if (victim.CompareTag("Enemy"))
+            {
+                enemyCheck--;
+            }
+            CheckBattleEnd(); // 즉시 전투 종료 체크
+            
+            // OnDeath 메서드 호출 (페이드 아웃 애니메이션 실행)
+            victim.OnDeath();
+            
+            // 페이드 아웃 애니메이션이 완료될 때까지 대기
+            yield return new WaitForSeconds(1.5f);
+            
+            // 피해자 리스트에서 제거
+            if (targetObjects.Contains(victim))
+            {
+                targetObjects.Remove(victim);
+            }
+            if (playerObjects.Contains(victim))
+            {
+                playerObjects.Remove(victim);
+            }
+            
+            // 피해자 완전히 제거
+            Destroy(victim.gameObject);
+            break;
         }
 
         // 잠시 대기하여 움직임을 볼 수 있게 함
-        yield return new WaitForSeconds(1f); // 0.5초의 딜레이 추가
+        yield return new WaitForSeconds(1f);
     }
 
     // 정신력 감소
@@ -549,12 +599,24 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     // 1초 대기
     yield return new WaitForSeconds(1f);
 
-    StartCoroutine(ReturnCharacterToInitialPosition(attacker));
-    StartCoroutine(ReturnCharacterToInitialPosition(victim));
+    // 캐릭터가 null이 아닐 때만 원래 위치로 돌아가기
+    if (attacker != null && attacker.gameObject != null)
+    {
+        StartCoroutine(ReturnCharacterToInitialPosition(attacker));
+    }
+    if (victim != null && victim.gameObject != null)
+    {
+        StartCoroutine(ReturnCharacterToInitialPosition(victim));
+    }
 
     // 전투 종료 시 스킬 이펙트 제거
     attacker.DestroySkillEffect();
-    victim.DestroySkillEffect();
+    
+    // 피해자가 살아있을 때만 스킬 이펙트 제거
+    if (victim != null && victim.gameObject != null)
+    {
+        victim.DestroySkillEffect();
+    }
 
     //카메라를 초기 위치와 사이즈로 되돌리기
     CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
@@ -626,27 +688,30 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     //배틀 시작할 때 인식한 아군&적군의 총 갯수를 체력이 0이 됐다면 차감하기.
     void CheckHealth(CharacterProfile playerObject, CharacterProfile targetObject)
     {
-        if (playerObject.GetPlayer.hp <= 0)
+        if (playerObject != null && playerObject.GetPlayer.hp <= 0)
         {
             playerCheck--;
             playerObject.OnDeath();
+            CheckBattleEnd(); // 체력 확인 후 바로 전투 종료 체크
         }
-        if (targetObject.GetPlayer.hp <= 0)
+        if (targetObject != null && targetObject.GetPlayer.hp <= 0)
         {
             enemyCheck--;
             targetObject.OnDeath();
+            CheckBattleEnd(); // 체력 확인 후 바로 전투 종료 체크
         }
     }
 
     void CheckBattleEnd()
     {
-        if (enemyCheck == 0)
+        Debug.Log($"전투 종료 체크 - 플레이어: {playerCheck}, 적: {enemyCheck}");
+        if (enemyCheck <= 0)
         {
             state = GameState.win;
             Debug.Log("승리");
             EndBattle();
         }
-        else if (playerCheck == 0)
+        else if (playerCheck <= 0)
         {
             state = GameState.lose;
             Debug.Log("패배");
@@ -654,31 +719,67 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         }
     }
 
-    void EndBattle()    //전투 종료
+    void EndBattle()
     {
         Debug.Log("전투 종료");
         
         // 모든 캐릭터의 스킬 이펙트 제거
         foreach (var player in playerObjects)
         {
-            player.DestroySkillEffect();
+            if (player != null)
+            {
+                player.DestroySkillEffect();
+            }
         }
         foreach (var enemy in targetObjects)
         {
-            enemy.DestroySkillEffect();
+            if (enemy != null)
+            {
+                enemy.DestroySkillEffect();
+            }
         }
         
         // UIManager에 전투 종료 알림
         UIManager.Instance.SetBattleUI(false);
+        
+        // GameEnd UI 표시
+        UIManager.Instance.ShowGameEndUI();
     }
 
-    IEnumerator EnemyTurn() //적 공격턴
+    IEnumerator EnemyTurn()
     {
         yield return new WaitForSeconds(1f);
-        //적 공격 코드
+        
+        // 모든 플레이어 캐릭터의 상태 업데이트
+        foreach (var player in GameObject.FindGameObjectsWithTag("Player"))
+        {
+            CharacterProfile profile = player.GetComponent<CharacterProfile>();
+            if (profile != null)
+            {
+                // 코인 수 복구
+                profile.GetPlayer.coin = profile.GetPlayer.maxCoin;
+                
+                // 정신력바 업데이트
+                profile.UpdateStatus();
+            }
+        }
+
+        // 모든 적 캐릭터의 상태 업데이트
+        foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            CharacterProfile profile = enemy.GetComponent<CharacterProfile>();
+            if (profile != null)
+            {
+                // 코인 수 복구
+                profile.GetPlayer.coin = profile.GetPlayer.maxCoin;
+                
+                // 정신력바 업데이트
+                profile.UpdateStatus();
+            }
+        }
+
         Debug.Log("적 공격");
 
-        //적 공격 끝났으면 플레이어에게 턴 넘기기
         state = GameState.playerTurn;
         allTargetSelected = false;
     }
@@ -705,24 +806,30 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             // 플레이어 이동
             if (i < playerObjects.Count)
             {
-                BattleMove playerMove = playerObjects[i].GetComponent<BattleMove>();
-                if (playerMove != null)
-                {
-
-                    playerMove.MoveToPosition(playerBattlePositions[i].position);
-                }
+                StartCoroutine(MoveWithDashSound(playerObjects[i], playerBattlePositions[i].position));
             }
 
             // 적 이동
             if (i < targetObjects.Count)
             {
-                BattleMove enemyMove = targetObjects[i].GetComponent<BattleMove>();
-                if (enemyMove != null)
-                {
-
-                    enemyMove.MoveToPosition(enemyBattlePositions[i].position);
-                }
+                StartCoroutine(MoveWithDashSound(targetObjects[i], enemyBattlePositions[i].position));
             }
+        }
+    }
+
+    private IEnumerator MoveWithDashSound(CharacterProfile character, Vector3 targetPosition)
+    {
+        // 대시 사운드 재생
+        character.PlayDashSound();
+        
+        // 약간의 딜레이
+        yield return new WaitForSeconds(0.1f);
+        
+        // 이동 시작
+        BattleMove characterMove = character.GetComponent<BattleMove>();
+        if (characterMove != null)
+        {
+            characterMove.MoveToPosition(targetPosition);
         }
     }
 
@@ -776,11 +883,22 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     public IEnumerator ReturnCharacterToInitialPosition(CharacterProfile character)
     {
+        if (character == null || !character.gameObject.activeSelf) yield break;
+        
+        // 대시 사운드 재생
+        character.PlayDashSound();
+        
+        // 약간의 딜레이
+        yield return new WaitForSeconds(0.1f);
+        
         BattleMove characterMove = character.GetComponent<BattleMove>();
         if (characterMove != null)
         {
             characterMove.ReturnToInitialPosition();
-            yield return new WaitUntil(() => !characterMove.IsMoving());
+            while (characterMove != null && characterMove.IsMoving())
+            {
+                yield return null;
+            }
         }
     }
 
@@ -818,7 +936,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
                 if (profile != null)
                 {
                     profile.GetPlayer.Init();
-                    Debug.Log($"캐릭터 {profile.GetPlayer.charName} 생성 완료");
+                    Debug.Log($"캐릭 {profile.GetPlayer.charName} 생성 완료");
                 }
             }
             else

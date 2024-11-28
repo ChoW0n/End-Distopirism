@@ -60,7 +60,31 @@ public class Silhouette : MonoBehaviour
         }
     }
 
-    void Update()
+    private void FadeSilhouettes()
+    {
+        float fadeAmount = 3f / SlideEA;  // 빠른 페이드아웃 속도로 잔상 제거
+
+        // 리스트를 역순으로 순회하여 파괴된 실루엣 제거
+        for (int i = silhouetteList.Count - 1; i >= 0; i--)
+        {
+            GameObject silhouette = silhouetteList[i];
+            if (silhouette == null)
+            {
+                silhouetteList.RemoveAt(i);
+                continue;
+            }
+
+            SpriteRenderer sr = silhouette.GetComponent<SpriteRenderer>();
+            if (sr != null)
+            {
+                Color color = sr.color;
+                color.a = Mathf.Max(0, color.a - fadeAmount * Time.deltaTime);
+                sr.color = color;
+            }
+        }
+    }
+
+    private void Update()
     {
         if (errorDebug) return;
 
@@ -78,20 +102,25 @@ public class Silhouette : MonoBehaviour
         {
             delta = 0;
 
-            // 잔상 오브젝트 설정
+            // 리스트가 비어있거나 인덱스가 범위를 벗어나면 리턴
+            if (silhouetteList.Count == 0 || limit >= silhouetteList.Count) return;
+
             GameObject silhouette = silhouetteList[limit];
+            if (silhouette == null) return;
+
             SpriteRenderer sr = silhouette.GetComponent<SpriteRenderer>();
             SpriteRenderer originalSR = GetComponent<SpriteRenderer>();
+            if (sr == null || originalSR == null) return;
 
             // 현재 위치, 스프라이트, 크기 및 flip 반영
-            silhouette.transform.position = transform.position + new Vector3(0, 0, -0.1f);  // 레이어를 살짝 뒤로 조정
+            silhouette.transform.position = transform.position + new Vector3(0, 0, -0.1f);
             sr.sprite = originalSR.sprite;
             sr.flipX = originalSR.flipX;
             sr.flipY = originalSR.flipY;
             silhouette.transform.localScale = transform.localScale;
 
             // 일정한 잔상 색상 설정
-            sr.color = new Color(RedValue / 255f, GreenValue / 255f, BlueValue / 255f, 0.7f);  // 살짝 투명한 잔상
+            sr.color = new Color(RedValue / 255f, GreenValue / 255f, BlueValue / 255f, 0.7f);
 
             limit = (limit + 1) % SlideEA;
         }
@@ -100,16 +129,20 @@ public class Silhouette : MonoBehaviour
         FadeSilhouettes();
     }
 
-    private void FadeSilhouettes()
+    private void OnDestroy()
     {
-        float fadeAmount = 3f / SlideEA;  // 빠른 페이드아웃 속도로 잔상 제거
-
-        foreach (GameObject silhouette in silhouetteList)
+        // 실루엣 뱅크와 모든 실루엣 오브젝트 제거
+        if (bank != null)
         {
-            SpriteRenderer sr = silhouette.GetComponent<SpriteRenderer>();
-            Color color = sr.color;
-            color.a = Mathf.Max(0, color.a - fadeAmount * Time.deltaTime);  // 투명도 감소
-            sr.color = color;
+            foreach (var silhouette in silhouetteList)
+            {
+                if (silhouette != null)
+                {
+                    Destroy(silhouette);
+                }
+            }
+            silhouetteList.Clear();
+            Destroy(bank);
         }
     }
 }

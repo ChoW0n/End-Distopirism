@@ -47,7 +47,6 @@ GameObject:
   - component: {fileID: 7822105267240483053}
   - component: {fileID: 1546652215038099618}
   - component: {fileID: 4466466579245406002}
-  - component: {fileID: 4205960581184648870}
   m_Layer: 0
   m_Name: 00.KillWhale
   m_TagString: Player
@@ -178,6 +177,8 @@ MonoBehaviour:
   coinBonus: 0
   successCount: 0
   isSelected: 0
+  dashSound: {fileID: 8300000, guid: 3661e34dd70d4874e95cde6addbe6833, type: 3}
+  hitSound: {fileID: 8300000, guid: 22d345d6dde56cd49a8083a43b1a2a41, type: 3}
 --- !u!95 &6267676677727840330
 Animator:
   serializedVersion: 5
@@ -269,42 +270,6 @@ MonoBehaviour:
   RedValue: 200
   GreenValue: 200
   BlueValue: 200
---- !u!114 &4205960581184648870
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4649992984583118947}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2edd01768eab58642a2b28ccb258645b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player:
-    charName: 1
-    maxHp: 500
-    charSkillCost: 0
-    hp: 500
-    defLevel: 10
-    dmgLevel: 46
-    dmg: 0
-    maxDmg: 0
-    minDmg: 0
-    dmgUp: 0
-    maxCoin: 5
-    coin: 5
-    menTality: 100
-    skills:
-    - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
-    - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
-    - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
-    charSprite: {fileID: 0}
-  live: 0
-  bonusDmg: 0
-  coinBonus: 0
-  successCount: 0
-  isSelected: 0
 --- !u!1 &7489276980239309848
 GameObject:
   m_ObjectHideFlags: 0
@@ -330,7 +295,7 @@ Transform:
   m_GameObject: {fileID: 7489276980239309848}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.1378402, z: 0}
+  m_LocalPosition: {x: 0, y: -0.59, z: 0}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -361,7 +326,7 @@ Transform:
   m_GameObject: {fileID: 8266538068805134976}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -1.5858401, z: 0}
+  m_LocalPosition: {x: 0, y: -0.59, z: 0}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 0
   m_Children: []
