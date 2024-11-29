@@ -318,7 +318,7 @@ public class UIManager : MonoBehaviour
 
         GameObject damageText = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity, canvas2.transform);
         TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
-        textComponent.text = "-" + damage.ToString();
+        textComponent.text = damage < 0 ? damage.ToString() : "-" + damage.ToString();
         textComponent.color = Color.red;
         
         StartCoroutine(AnimateDamageText(damageText));

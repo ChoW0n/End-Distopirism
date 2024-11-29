@@ -11,20 +11,45 @@ public class BattleMove : MonoBehaviour
     private Vector3 initialPosition;
     private Vector3 targetPosition;
     private bool isMoving = false;
+    private bool isPlayer;
 
     public Animator animator;
+    private CharacterProfile characterProfile;
+
+    [Header("Screen Shake")]
+    private float hitShakeDuration = 0.2f;  // 타격 시 흔들림 지속 시간
+    private float hitShakeIntensity = 2f;   // 타격 시 흔들림 강도
+    private float dashShakeDuration = 0.1f;  // 대시 시 흔들림 지속 시간
+    private float dashShakeIntensity = 1f;   // 대시 시 흔들림 강도
 
     private void Start()
     {
         initialPosition = transform.position;
         animator = GetComponent<Animator>();
+        isPlayer = CompareTag("Player");
+        characterProfile = GetComponent<CharacterProfile>();
+    }
+
+    public void PlayAttackSound()
+    {
+        if (characterProfile != null)
+        {
+            characterProfile.PlayHitSound();
+        }
+    }
+
+    public void PlayDashSoundEvent()
+    {
+        if (characterProfile != null)
+        {
+            characterProfile.PlayDashSound();
+        }
     }
 
     public void MoveToPosition(Vector3 position)
     {
         targetPosition = position;
 
-        // Attack 애니메이션 재생
         if (animator != null)
         {
             animator.SetBool("Attack", true);
@@ -39,7 +64,7 @@ public class BattleMove : MonoBehaviour
 
         if (animator != null)
         {
-            animator.SetTrigger("Return"); // Idle 애니메이션 재생
+            animator.SetTrigger("Return");
         }
 
         StartCoroutine(MoveCoroutine());
@@ -47,18 +72,18 @@ public class BattleMove : MonoBehaviour
 
     public void Advance()
     {
-        Vector3 direction = (transform.position - initialPosition).normalized;
-        // Y값을 현재 위치의 Y값으로 고정
+        float direction = isPlayer ? 1f : -1f;
         float fixedY = transform.position.y;
+        
         targetPosition = new Vector3(
-            transform.position.x + direction.x * advanceDistance,
+            transform.position.x + (direction * advanceDistance),
             fixedY,
             transform.position.z
         );
 
         if (animator != null)
         {
-            animator.SetBool("Attack", true); // Attack 애니메이션 재생
+            animator.SetBool("Attack", true);
         }
 
         StartCoroutine(MoveCoroutine());
@@ -66,11 +91,11 @@ public class BattleMove : MonoBehaviour
 
     public void Retreat()
     {
-        Vector3 direction = (initialPosition - transform.position).normalized;
-        // Y값을 현재 위치의 Y값으로 고정
+        float direction = isPlayer ? -1f : 1f;
         float fixedY = transform.position.y;
+
         targetPosition = new Vector3(
-            transform.position.x + direction.x * retreatDistance,
+            transform.position.x + (direction * retreatDistance),
             fixedY,
             transform.position.z
         );
@@ -93,11 +118,10 @@ public class BattleMove : MonoBehaviour
         }
         transform.position = targetPosition;
 
-        // 이동이 완료되면 Idle 애니메이션으로 전환
         if (animator != null)
         {
-            animator.SetBool("Attack", false); // Attack 애니메이션 중지
-            animator.SetBool("Idle", true); // Idle 애니메이션 재생
+            animator.SetBool("Attack", false);
+            animator.SetBool("Idle", true);
         }
 
         isMoving = false;
@@ -107,7 +131,7 @@ public class BattleMove : MonoBehaviour
     {
         if (animator != null)
         {
-            animator.SetTrigger("Hit"); // Hit 애니메이션 재생  
+            animator.SetTrigger("Hit");
         }
     }
 
@@ -115,18 +139,36 @@ public class BattleMove : MonoBehaviour
     {
         return isMoving;
     }
+
     private IEnumerator RetreatCoroutine()
     {
-        // Return 애니메이션을 1초 동안 재생
         yield return new WaitForSeconds(0.0f);
 
-        // Return 애니메이션 중지
         if (animator != null)
         {
-            animator.SetBool("Idle", true); // Idle 애니메이션 재생
+            animator.SetBool("Idle", true);
         }
 
         StartCoroutine(MoveCoroutine());
     }
 
+    public void OnAttackHit()
+    {
+        if (characterProfile != null)
+        {
+            characterProfile.PlayHitSound();
+            // 타격 시 화면 흔들림
+            StartCoroutine(CameraShake.Instance.Shake(hitShakeDuration, hitShakeIntensity));
+        }
+    }
+
+    public void OnMoveStart()
+    {
+        if (characterProfile != null)
+        {
+            characterProfile.PlayDashSound();
+            // 대시 시 화면 흔들림
+            StartCoroutine(CameraShake.Instance.Shake(dashShakeDuration, dashShakeIntensity));
+        }
+    }
 }

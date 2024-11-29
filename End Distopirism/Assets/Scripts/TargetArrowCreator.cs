@@ -155,4 +155,31 @@ public class TargetArrowCreator : MonoBehaviour
         lineRenderer.SetPosition(originalPositionCount + 1, arrowTip);
         lineRenderer.SetPosition(originalPositionCount + 2, arrowRight);
     }
+
+    public void RemoveConnection(Transform player, Transform target)
+    {
+        for (int i = connections.Count - 1; i >= 0; i--)
+        {
+            if (connections[i].player == player && connections[i].target == target)
+            {
+                // 해당 연결의 코루틴 중지
+                if (i < activeCoroutines.Count && activeCoroutines[i] != null)
+                {
+                    StopCoroutine(activeCoroutines[i]);
+                    activeCoroutines.RemoveAt(i);
+                }
+
+                // LineRenderer 제거
+                if (i < lineRenderers.Count && lineRenderers[i] != null)
+                {
+                    Destroy(lineRenderers[i].gameObject);
+                    lineRenderers.RemoveAt(i);
+                }
+
+                // 연결 정보 제거
+                connections.RemoveAt(i);
+                break;
+            }
+        }
+    }
 }

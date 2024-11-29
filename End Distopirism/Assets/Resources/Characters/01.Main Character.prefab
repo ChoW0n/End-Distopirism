@@ -138,9 +138,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 1000
-  spacingDistance: 50
-  advanceDistance: 40
-  retreatDistance: 40
+  spacingDistance: 200
+  advanceDistance: 35
+  retreatDistance: 45
   animator: {fileID: 0}
 --- !u!114 &4325937244863638218
 MonoBehaviour:
@@ -155,7 +155,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player:
-    charName: 2
+    charName: "\uBA54\uC778"
     maxHp: 320
     charSkillCost: 0
     hp: 320

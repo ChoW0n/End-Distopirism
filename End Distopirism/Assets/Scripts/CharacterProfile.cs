@@ -76,6 +76,10 @@ public class CharacterProfile : MonoBehaviour
 
     private bool hasDrawnCards = false; // 카드를 이미 뽑았는지 체크하는 변수 추가
 
+    [Header("Battle Cards")]
+    private List<Skill> drawnCards = new List<Skill>(); // 현재 뽑은 카드들
+    private bool hasInitializedCards = false; // 카드가 초기화되었는지 확인하는 플래그
+
     void Start()
     {
         player.coin = player.maxCoin;
@@ -262,24 +266,18 @@ public class CharacterProfile : MonoBehaviour
     {
         UIManager.Instance.ShowCharacterInfo(this, selectedSkill != null);
         
-        // 플레이어 캐릭터일 때만 스킬 카드 관련 로직 실행
         if (CompareTag("Player") && isSelected && BattleManager.Instance.state != GameState.enemyTurn)
         {
-            if (skillManager != null && player.skills != null && player.skills.Count > 0)
+            if (skillManager != null)
             {
-                if (!hasDrawnCards)
-                {
-                    Debug.LogWarning($"[캐릭터 선택] {player.charName}의 스킬 카드 활성화");
-                    skillManager.AssignRandomSkillSprites(player.skills);
-                    skillManager.OnSkillSelected = (skill) => SelectSkill(skill);
-                    hasDrawnCards = true;
-                }
+                // 항상 현재 캐릭터의 카드 정보로 업데이트
+                skillManager.AssignRandomSkillSprites(this);
+                skillManager.OnSkillSelected = (skill) => SelectSkill(skill);
                 ShowSkillCards();
             }
         }
         else if (CompareTag("Enemy"))
         {
-            // 적 캐릭터 선택 시 정보 패널만 활성화
             UIManager.Instance.enemyProfilePanel.SetActive(true);
         }
     }
@@ -533,7 +531,7 @@ public class CharacterProfile : MonoBehaviour
             // 색상 변경
             dmgText.color = Color.Lerp(Color.red, originalColor, progress);
             
-            // 숫자 업데이트
+            // 숫 업데이트
             int currentDamage = (int)Mathf.Lerp(startDamage, newDamage, progress);
             dmgText.text = currentDamage.ToString();
             
@@ -816,8 +814,10 @@ public class CharacterProfile : MonoBehaviour
     // 턴이 끝날 때 호출될 메서드 추가
     public void OnTurnEnd()
     {
-        hasDrawnCards = false; // 턴이 끝나면 카드 뽑기 상태 초기화
-        selectedSkill = null;  // 선택된 스킬도 초기화
+        hasDrawnCards = false;
+        selectedSkill = null;
+        hasInitializedCards = false; // 다음 턴을 위해 초기화 플래그 리셋
+        InitializeRandomCards(); // 새로운 카드 세트 뽑기
     }
 
     // 적 캐릭터의 초기 스킬 설정
@@ -842,5 +842,31 @@ public class CharacterProfile : MonoBehaviour
             SelectSkill(player.skills[randomIndex], false);
             Debug.LogWarning($"[적 턴 스킬] {player.charName}이(가) {player.skills[randomIndex].skillName} 스킬을 선택");
         }
+    }
+
+    // 카드 초기화 및 랜덤 드로우 메서드
+    public void InitializeRandomCards()
+    {
+        if (hasInitializedCards) return; // 이미 초기화되었다면 스킵
+
+        drawnCards.Clear();
+        List<Skill> availableSkills = new List<Skill>(player.skills);
+
+        // 3장의 카드를 랜덤하게 뽑음
+        for (int i = 0; i < 3 && availableSkills.Count > 0; i++)
+        {
+            int randomIndex = UnityEngine.Random.Range(0, availableSkills.Count);
+            drawnCards.Add(availableSkills[randomIndex]);
+            availableSkills.RemoveAt(randomIndex);
+        }
+
+        hasInitializedCards = true;
+        Debug.LogWarning($"{player.charName}의 카드 초기화: {string.Join(", ", drawnCards.Select(s => s.skillName))}");
+    }
+
+    // 현재 뽑은 카드 리스트 반환
+    public List<Skill> GetDrawnCards()
+    {
+        return drawnCards;
     }
 }

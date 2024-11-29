@@ -24,23 +24,23 @@ AnimationClip:
       value: {fileID: 21300000, guid: 2fb42568a041383498a722ccc4c48d15, type: 3}
     - time: 0.1
       value: {fileID: 21300000, guid: 711d77bc722a9404a979e010f5825a0d, type: 3}
-    - time: 0.25
+    - time: 0.2
       value: {fileID: 21300000, guid: fbea8aba7fe39db4283e6a40c348fe8f, type: 3}
-    - time: 1.1166667
+    - time: 0.71666664
       value: {fileID: 21300000, guid: 4c0ae244eaaa7c445b02e61617b26ec9, type: 3}
-    - time: 1.2
+    - time: 0.76666665
       value: {fileID: 21300000, guid: da6cb00ce7510a64892219d1f86661ab, type: 3}
-    - time: 1.2833333
+    - time: 0.81666666
       value: {fileID: 21300000, guid: 4c0ae244eaaa7c445b02e61617b26ec9, type: 3}
-    - time: 1.3666667
+    - time: 0.8666667
       value: {fileID: 21300000, guid: da6cb00ce7510a64892219d1f86661ab, type: 3}
-    - time: 1.45
+    - time: 0.9
       value: {fileID: 21300000, guid: 4c0ae244eaaa7c445b02e61617b26ec9, type: 3}
-    - time: 1.5
+    - time: 0.93333334
       value: {fileID: 21300000, guid: b575a41bc668e444cac5210e6976d2af, type: 3}
-    - time: 1.7
+    - time: 1.0666667
       value: {fileID: 21300000, guid: a1b991a531c74b24bab5c2940efb7bd3, type: 3}
-    - time: 1.8666667
+    - time: 1.1666666
       value: {fileID: 21300000, guid: ef6c3471ea5454b47a582016828ea9d6, type: 3}
     attribute: m_Sprite
     path: 
@@ -80,7 +80,7 @@ AnimationClip:
     m_AdditiveReferencePoseClip: {fileID: 0}
     m_AdditiveReferencePoseTime: 0
     m_StartTime: 0
-    m_StopTime: 1.8833333
+    m_StopTime: 1.1833333
     m_OrientationOffsetY: 0
     m_Level: 0
     m_CycleOffset: 10
@@ -99,4 +99,25 @@ AnimationClip:
   m_EulerEditorCurves: []
   m_HasGenericRootTransform: 0
   m_HasMotionFloatCurves: 0
-  m_Events: []
+  m_Events:
+  - time: 0
+    functionName: OnMoveStart
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 0.1
+    functionName: OnAttackHit
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0
+  - time: 1.0666667
+    functionName: OnAttackHit
+    data: 
+    objectReferenceParameter: {fileID: 0}
+    floatParameter: 0
+    intParameter: 0
+    messageOptions: 0

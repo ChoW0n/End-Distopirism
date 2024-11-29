@@ -4123,6 +4123,7 @@ MonoBehaviour:
   - {fileID: 1196901211}
   - {fileID: 1492872816}
   stageData: {fileID: 11400000, guid: bd817df6edb6ecb49b6b41394c276e38, type: 2}
+  spacingDistance: 2
 --- !u!1 &1446315304
 GameObject:
   m_ObjectHideFlags: 0
@@ -4273,7 +4274,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 1000
-  spacingDistance: 50
+  spacingDistance: -100
   advanceDistance: 40
   retreatDistance: 40
   animator: {fileID: 0}
@@ -6672,7 +6673,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 1000
-  spacingDistance: 50
+  spacingDistance: 200
   advanceDistance: 40
   retreatDistance: 40
   animator: {fileID: 0}

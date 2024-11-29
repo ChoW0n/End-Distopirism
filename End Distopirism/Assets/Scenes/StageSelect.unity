@@ -1803,7 +1803,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "1-1\n\uC5D0\uD53C\uC18C\uB4DC 1"
+  m_text: "\uC5D0\uD53C\uC18C\uB4DC 1-1\n\uC608\uC0C1\uCE58 \uBABB\uD55C \uB9CC\uB0A8"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}
   m_sharedMaterial: {fileID: 3908604236949079421, guid: 010b2967a5bbe7c4e88e15b98b350c41, type: 2}

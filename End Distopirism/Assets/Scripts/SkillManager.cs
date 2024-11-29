@@ -9,10 +9,6 @@ using System.Linq; // LINQ 추가
 
 public class SkillManager : MonoBehaviour
 {
-    // 스킬 카드의 기본 스프라이트와 성공 시 사용할 스프라이트를 관리
-    public Sprite defaultSprite;
-    public Sprite successSprite;
-
     private Image card1Image;
     private Image card2Image;
     private Image card3Image;
@@ -22,669 +18,141 @@ public class SkillManager : MonoBehaviour
     private Button card3Button;
 
     private Skill[] currentSkills = new Skill[3];
-
-    // 스킬 선택 콜백을 public으로 선언
     public System.Action<Skill> OnSkillSelected;
-
-    [SerializeField] private float cardHoverScale = 1.2f; // 마우스 오버 시 확대 크기
-    [SerializeField] private float cardAnimationDuration = 0.3f; // 애니메이션 지속 시간
-
-    private Vector3[] originalPositions = new Vector3[3]; // 카드의 원래 위치 저장
-
-    private bool isCardCentered = false; // 카드가 중앙에 있는지 여부
-    private int centeredCardIndex = -1; // 현재 중앙에 있는 카드의 인덱스
 
     private TextMeshProUGUI card1Text;
     private TextMeshProUGUI card2Text;
     private TextMeshProUGUI card3Text;
 
+    private TextMeshProUGUI card1NameText;
+    private TextMeshProUGUI card2NameText;
+    private TextMeshProUGUI card3NameText;
+
+    [Header("Card Animation")]
+    private float cardZoomScale = 1.5f;  // 확대 시 스케일
+    private float zoomDuration = 0.3f;   // 확대/축소 애니메이션 시간
+    private Vector3 screenCenter;         // 화면 중앙 위치
+    private bool isCardZoomed = false;    // 현재 확대된 카드가 있는지
+    private int zoomedCardIndex = -1;     // 현재 확대된 카드의 인덱스
+
+    private Vector3[] originalPositions = new Vector3[3]; // 카드의 원래 위치 저장
+    private int selectedCardIndex = -1; // 현재 선택된 카드의 인덱스
+
     void Start()
     {
-        // DOTween 용량 설정을 더 크게 수정
-        DOTween.SetTweensCapacity(3000, 300);  // tweens와 sequences 모두 크게 증가
+        InitializeCardComponents();
+        screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0);
+    }
 
-        // SkillCards 찾기 (모든 가능한 경로 시도)
+    private void InitializeCardComponents()
+    {
+        // PlayerInfoPanel 찾기 시도 (여러 경로)
+        GameObject playerInfoPanel = null;
         Transform skillCardsTransform = null;
-        GameObject[] possiblePaths = {
-            GameObject.Find("Canvas/PlayerInfoPanel/SkillCards"),
-            GameObject.Find("PlayerInfoPanel/SkillCards"),
-            GameObject.Find("SkillCards")
-        };
 
-        // PlayerInfoPanel을 직접 찾아서 시도
-        GameObject playerInfoPanel = GameObject.Find("PlayerInfoPanel");
-        if (playerInfoPanel != null)
+        // 1. 직접 경로로 찾기
+        playerInfoPanel = GameObject.Find("PlayerInfoPanel");
+
+        // 2. UIManager를 통해 찾기
+        if (playerInfoPanel == null && UIManager.Instance != null)
         {
-            Transform skillCards = playerInfoPanel.transform.Find("SkillCards");
-            if (skillCards != null)
-            {
-                skillCardsTransform = skillCards;
-                Debug.Log($"PlayerInfoPanel에서 SkillCards를 찾았습니다: {GetFullPath(skillCards)}");
-            }
+            playerInfoPanel = UIManager.Instance.playerProfilePanel;
         }
 
-        // 이전 방법으로도 시도
+        // 3. 태그로 찾기
+        if (playerInfoPanel == null)
+        {
+            GameObject[] uiPanels = GameObject.FindGameObjectsWithTag("UIPanel");
+            playerInfoPanel = System.Array.Find(uiPanels, panel => panel.name == "PlayerInfoPanel");
+        }
+
+        if (playerInfoPanel == null)
+        {
+            Debug.LogError("PlayerInfoPanel을 찾을 수 없습니다!");
+            return;
+        }
+
+        // SkillCards 찾기
+        skillCardsTransform = playerInfoPanel.transform.Find("SkillCards");
         if (skillCardsTransform == null)
         {
-            foreach (var obj in possiblePaths)
+            // 하위 객체들 중에서 SkillCards 찾기
+            foreach (Transform child in playerInfoPanel.transform)
             {
-                if (obj != null)
+                if (child.name.Contains("SkillCards"))
                 {
-                    skillCardsTransform = obj.transform;
-                    Debug.Log($"경로에서 SkillCards를 찾았습니다: {GetFullPath(obj.transform)}");
+                    skillCardsTransform = child;
                     break;
                 }
             }
         }
 
-        // UIManager를 통해 시도
-        if (skillCardsTransform == null && UIManager.Instance != null && UIManager.Instance.playerProfilePanel != null)
-        {
-            Transform skillCards = UIManager.Instance.playerProfilePanel.transform.Find("SkillCards");
-            if (skillCards != null)
-            {
-                skillCardsTransform = skillCards;
-                Debug.Log($"UIManager를 통해 SkillCards를 찾았습니다: {GetFullPath(skillCards)}");
-            }
-        }
-
         if (skillCardsTransform == null)
         {
-            Debug.LogError("어떤 방법으로도 SkillCards를 찾을 수 없습니다!");
+            Debug.LogError("SkillCards를 찾을 수 없습니다!");
+            // 현재 계층 구조 출력
+            Debug.LogError("PlayerInfoPanel의 자식 오브젝트들:");
+            foreach (Transform child in playerInfoPanel.transform)
+            {
+                Debug.LogError($"- {child.name}");
+            }
             return;
         }
 
-        // 카드 이미지와 버튼 찾기
-        Transform card1Transform = skillCardsTransform.Find("Card1");
-        Transform card2Transform = skillCardsTransform.Find("Card2");
-        Transform card3Transform = skillCardsTransform.Find("Card3");
+        Debug.Log($"SkillCards를 찾았습니다: {skillCardsTransform.name}");
 
-        Debug.Log($"Card1 Transform: {(card1Transform != null ? "찾음" : "못찾음")}");
-        Debug.Log($"Card2 Transform: {(card2Transform != null ? "찾음" : "못찾음")}");
-        Debug.Log($"Card3 Transform: {(card3Transform != null ? "찾음" : "못찾음")}");
-
-        if (card1Transform != null) 
+        // 각 카드의 컴포넌트 초기화
+        for (int i = 1; i <= 3; i++)
         {
-            card1Image = card1Transform.GetComponent<Image>();
-            Debug.Log($"Card1 Image: {(card1Image != null ? "있음" : "없음")}");
-        }
-        if (card2Transform != null) 
-        {
-            card2Image = card2Transform.GetComponent<Image>();
-            Debug.Log($"Card2 Image: {(card2Image != null ? "있음" : "없음")}");
-        }
-        if (card3Transform != null) 
-        {
-            card3Image = card3Transform.GetComponent<Image>();
-            Debug.Log($"Card3 Image: {(card3Image != null ? "있음" : "없음")}");
-        }
+            Transform cardTransform = skillCardsTransform.Find($"Card{i}");
+            if (cardTransform != null)
+            {
+                // Image와 Button 컴포넌트 설정
+                Image cardImage = cardTransform.GetComponent<Image>();
+                Button cardButton = cardTransform.GetComponent<Button>();
 
-        if (card1Image != null) card1Button = card1Image.GetComponent<Button>();
-        if (card2Image != null) card2Button = card2Image.GetComponent<Button>();
-        if (card3Image != null) card3Button = card3Image.GetComponent<Button>();
+                // SkillInfo와 SkillName 텍스트 컴포넌트 찾기
+                TextMeshProUGUI skillInfoText = cardTransform.Find("SkillInfo")?.GetComponent<TextMeshProUGUI>();
+                TextMeshProUGUI skillNameText = cardTransform.Find("SkillName")?.GetComponent<TextMeshProUGUI>();
 
-        // 디버그 로그
-        Debug.Log($"Card1 상태: Image={card1Image != null}, Button={card1Button != null}");
-        Debug.Log($"Card2 상태: Image={card2Image != null}, Button={card2Button != null}");
-        Debug.Log($"Card3 상태: Image={card3Image != null}, Button={card3Button != null}");
+                // 컴포넌트 할당
+                switch (i)
+                {
+                    case 1:
+                        card1Image = cardImage;
+                        card1Button = cardButton;
+                        card1Text = skillInfoText;
+                        card1NameText = skillNameText;
+                        break;
+                    case 2:
+                        card2Image = cardImage;
+                        card2Button = cardButton;
+                        card2Text = skillInfoText;
+                        card2NameText = skillNameText;
+                        break;
+                    case 3:
+                        card3Image = cardImage;
+                        card3Button = cardButton;
+                        card3Text = skillInfoText;
+                        card3NameText = skillNameText;
+                        break;
+                }
 
-        // 버튼 리스너 설정
-        if (card1Button) card1Button.onClick.AddListener(() => OnCardClicked(0));
-        if (card2Button) card2Button.onClick.AddListener(() => OnCardClicked(1));
-        if (card3Button) card3Button.onClick.AddListener(() => OnCardClicked(2));
+                Debug.Log($"Card{i} 컴포넌트 초기화 - Image: {cardImage != null}, Button: {cardButton != null}, " +
+                         $"SkillInfo: {skillInfoText != null}, SkillName: {skillNameText != null}");
+
+                // 각 컴포넌트의 전체 경로 출력
+                if (cardImage != null) Debug.Log($"Card{i} Image 경로: {GetFullPath(cardImage.transform)}");
+                if (skillInfoText != null) Debug.Log($"Card{i} SkillInfo 경로: {GetFullPath(skillInfoText.transform)}");
+                if (skillNameText != null) Debug.Log($"Card{i} SkillName 경로: {GetFullPath(skillNameText.transform)}");
+            }
+            else
+            {
+                Debug.LogError($"Card{i}를 찾을 수 없습니다!");
+            }
+        }
 
         DeactivateCards();
-
-        // EventSystem이 없다면 추가
-        if (FindObjectOfType<EventSystem>() == null)
-        {
-            GameObject eventSystem = new GameObject("EventSystem");
-            eventSystem.AddComponent<EventSystem>();
-            eventSystem.AddComponent<StandaloneInputModule>();
-        }
-
-        // 카드 텍스트 컴포넌트 찾기
-        if (skillCardsTransform != null)
-        {
-            // Text(TMP) 컴포넌트 찾기
-            if (card1Image != null) 
-            {
-                Transform textTransform = null;
-                string childNames = "";
-                foreach (Transform child in card1Image.transform)
-                {
-                    childNames += child.name + ", ";
-                    if (child.name.Equals("SkillInfo", System.StringComparison.OrdinalIgnoreCase))
-                    {
-                        textTransform = child;
-                        break;
-                    }
-                }
-
-                if (textTransform != null)
-                {
-                    card1Text = textTransform.GetComponent<TextMeshProUGUI>();
-                    Debug.Log($"Card1 Text Transform 경로: {GetFullPath(textTransform)}");
-                }
-                else
-                {
-                    Debug.LogError($"Card1의 SkillInfo 오브젝트를 찾을 수 없습니다. 현재 자식 오브젝트들: {childNames}");
-                }
-            }
-
-            if (card2Image != null)
-            {
-                Transform textTransform = null;
-                string childNames = "";
-                foreach (Transform child in card2Image.transform)
-                {
-                    childNames += child.name + ", ";
-                    if (child.name.Equals("SkillInfo", System.StringComparison.OrdinalIgnoreCase))
-                    {
-                        textTransform = child;
-                        break;
-                    }
-                }
-
-                if (textTransform != null)
-                {
-                    card2Text = textTransform.GetComponent<TextMeshProUGUI>();
-                    Debug.Log($"Card2 Text Transform 경로: {GetFullPath(textTransform)}");
-                }
-                else
-                {
-                    Debug.LogError($"Card2의 SkillInfo 오브젝트를 찾을 수 없습니다. 현재 자식 오브젝트들: {childNames}");
-                }
-            }
-
-            if (card3Image != null)
-            {
-                Transform textTransform = null;
-                string childNames = "";
-                foreach (Transform child in card3Image.transform)
-                {
-                    childNames += child.name + ", ";
-                    if (child.name.Equals("SkillInfo", System.StringComparison.OrdinalIgnoreCase))
-                    {
-                        textTransform = child;
-                        break;
-                    }
-                }
-
-                if (textTransform != null)
-                {
-                    card3Text = textTransform.GetComponent<TextMeshProUGUI>();
-                    Debug.Log($"Card3 Text Transform 경로: {GetFullPath(textTransform)}");
-                }
-                else
-                {
-                    Debug.LogError($"Card3의 SkillInfo 오브젝트를 찾을 수 없습니다. 현재 자식 오브젝트들: {childNames}");
-                }
-            }
-
-            Debug.Log($"Card1 Text: {(card1Text != null ? "찾음" : "못찾음")}");
-            Debug.Log($"Card2 Text: {(card2Text != null ? "찾음" : "못찾음")}");
-            Debug.Log($"Card3 Text: {(card3Text != null ? "찾음" : "못찾음")}");
-        }
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-    /// <summary>
-    /// 모든 카드 이미지를 비활성화합니다.
-    /// </summary>
-    public void DeactivateCards()
-    {
-        Image[] cards = { card1Image, card2Image, card3Image };
-        float delay = 0.1f;
-
-        for (int i = 0; i < cards.Length; i++)
-        {
-            if (cards[i] == null || !cards[i].gameObject.activeSelf)
-            {
-                continue;
-            }
-
-            int index = i;
-            CanvasGroup canvasGroup = cards[i].GetComponent<CanvasGroup>();
-            if (canvasGroup == null)
-            {
-                canvasGroup = cards[i].gameObject.AddComponent<CanvasGroup>();
-            }
-
-            try
-            {
-                // 기존 Tween 제거
-                DOTween.Kill(cards[i].transform, true);
-                DOTween.Kill(canvasGroup, true);
-
-                // 새로운 시퀀스 생성
-                Sequence cardSequence = DOTween.Sequence()
-                    .SetAutoKill(true)  // 자동 정리 활성화
-                    .OnComplete(() => {
-                        if (cards[index] != null && cards[index].gameObject != null)
-                        {
-                            cards[index].gameObject.SetActive(false);
-                        }
-                    });
-
-                // 애니메이션 추가
-                cardSequence.Join(cards[i].transform
-                    .DOScale(Vector3.zero, 0.3f)
-                    .SetDelay(delay * i)
-                    .SetEase(Ease.InBack));
-
-                cardSequence.Join(cards[i].transform
-                    .DORotate(new Vector3(0, 180f, 0), 0.3f)
-                    .SetDelay(delay * i)
-                    .SetEase(Ease.InQuad));
-
-                cardSequence.Join(canvasGroup
-                    .DOFade(0f, 0.3f)
-                    .SetDelay(delay * i)
-                    .SetEase(Ease.InQuad));
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"DeactivateCards 에러 (카드 {index}): {e.Message}");
-            }
-        }
-    }
-
-    /// <summary>
-    /// 플레이어의 스킬 목록에서 랜덤하게 3개를 선택하여 카드에 스프라이트를 할당합니다.
-    /// </summary>
-    /// <param name="playerSkills">선택된 플레이어의 스킬 리스트</param>
-    public void AssignRandomSkillSprites(List<Skill> playerSkills)
-    {
-        if (playerSkills == null || playerSkills.Count == 0 || 
-            card1Image == null || card2Image == null || card3Image == null)
-        {
-            Debug.LogError("필요한 참조가 누락되었습니다.");
-            return;
-        }
-
-        // 스킬 선택 및 할당
-        currentSkills = new Skill[3];
-        Image[] cards = { card1Image, card2Image, card3Image };
-        TextMeshProUGUI[] cardTexts = { card1Text, card2Text, card3Text };
-
-        for (int i = 0; i < 3; i++)
-        {
-            int randomIndex = Random.Range(0, playerSkills.Count);
-            currentSkills[i] = playerSkills[randomIndex];
-            
-            if (currentSkills[i] == null) 
-            {
-                Debug.LogError($"Card {i+1}의 스킬이 null입니다.");
-                continue;
-            }
-
-            int index = i;
-            cards[i].gameObject.SetActive(true);
-            cards[i].sprite = currentSkills[i].nomalSprite;
-            
-            // 스킬 이펙트 텍스트 설정 및 디버그
-            if (cardTexts[i] != null)
-            {
-                // SkillInfo 텍스트 설정
-                cardTexts[i].text = currentSkills[i].skillEffect;
-                cardTexts[i].gameObject.SetActive(true);
-                
-                // SkillName 텍스트 찾기 및 설정
-                Transform skillNameTransform = cards[i].transform.Find("SkillName");
-                if (skillNameTransform != null)
-                {
-                    TextMeshProUGUI skillNameText = skillNameTransform.GetComponent<TextMeshProUGUI>();
-                    if (skillNameText != null)
-                    {
-                        skillNameText.text = currentSkills[i].skillName;
-                        skillNameText.gameObject.SetActive(true);
-                        Debug.Log($"Card {i+1} 스킬 이름 설정: {currentSkills[i].skillName}");
-                    }
-                    else
-                    {
-                        Debug.LogError($"Card {i+1}의 SkillName TMP 컴포넌트를 찾을 수 없습니다.");
-                    }
-                }
-                else
-                {
-                    Debug.LogError($"Card {i+1}의 SkillName 오브젝트를 찾을 수 없습니다.");
-                }
-                
-                Debug.Log($"Card {i+1} 스킬 효과 설정: {currentSkills[i].skillEffect}");
-            }
-            else
-            {
-                Debug.LogError($"Card {i+1}의 SkillInfo Text 컴포넌트를 찾을 수 없습니다.");
-            }
-            
-            // 초기 위치 저장
-            originalPositions[i] = cards[i].transform.position;
-            
-            // 초기 설정
-            cards[i].transform.localScale = Vector3.zero;
-
-            // 카드 생성 애니메이션
-            float delay = 0.2f * i;
-            try
-            {
-                cards[i].transform.DOScale(Vector3.one, cardAnimationDuration)
-                    .SetDelay(delay)
-                    .SetEase(Ease.OutBack);
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"카드 {i+1} 생성 애니메이션 에러: {e.Message}");
-            }
-
-            // 마우스 이벤트 설정
-            EventTrigger trigger = cards[i].gameObject.GetComponent<EventTrigger>();
-            if (trigger == null)
-            {
-                trigger = cards[i].gameObject.AddComponent<EventTrigger>();
-            }
-            trigger.triggers.Clear();
-
-            // 마우스 진입 벤트 (마우스 오버 시 확대만)
-            EventTrigger.Entry enterEntry = new EventTrigger.Entry();
-            enterEntry.eventID = EventTriggerType.PointerEnter;
-            enterEntry.callback.AddListener((data) => {
-                if (!isCardCentered) // 카드가 중앙에 없을 때만 확대
-                {
-                    try
-                    {
-                        DOTween.Kill(cards[index].transform);
-                        cards[index].transform.DOScale(cardHoverScale, 0.3f).SetEase(Ease.OutQuad);
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogError($"카드 {index+1} 마우스 오버 에러: {e.Message}");
-                    }
-                }
-            });
-            trigger.triggers.Add(enterEntry);
-
-            // 마우스 퇴장 이벤트
-            EventTrigger.Entry exitEntry = new EventTrigger.Entry();
-            exitEntry.eventID = EventTriggerType.PointerExit;
-            exitEntry.callback.AddListener((data) => {
-                if (!isCardCentered) // 카드가 중앙에 없을 때만 축소
-                {
-                    try
-                    {
-                        DOTween.Kill(cards[index].transform);
-                        cards[index].transform.DOScale(1f, 0.3f).SetEase(Ease.OutQuad);
-                    }
-                    catch (System.Exception e)
-                    {
-                        Debug.LogError($"카드 {index+1} 마우스 아웃 에러: {e.Message}");
-                    }
-                }
-            });
-            trigger.triggers.Add(exitEntry);
-
-            // 우클릭 이벤트
-            EventTrigger.Entry rightClickEntry = new EventTrigger.Entry();
-            rightClickEntry.eventID = EventTriggerType.PointerClick;
-            rightClickEntry.callback.AddListener((data) => {
-                PointerEventData pData = (PointerEventData)data;
-                if (pData.button == PointerEventData.InputButton.Right)
-                {
-                    HandleRightClick(index, cards[index]);
-                }
-            });
-            trigger.triggers.Add(rightClickEntry);
-
-            // 좌클릭 이벤트 (카드 선택)
-            Button button = cards[i].GetComponent<Button>();
-            if (button != null)
-            {
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => {
-                    // 중앙에 있거나 기본 상태일 때 선택 가능
-                    if (!isCardCentered || (isCardCentered && centeredCardIndex == index))
-                    {
-                        SelectCard(index);
-                    }
-                });
-            }
-        }
-    }
-
-    /// <summary>
-    /// 시전 성공 시 스프라이트를 변경하는 메서드
-    /// </summary>
-    /// <param name="skill">변경할 스킬</param>
-    /// <param name="isSuccess">시전 성공 여부</param>
-    public void UpdateSkillSprite(Skill skill, bool isSuccess)
-    {
-        // 예시: 스킬 카드 UI 요소의 Image 컴포넌트를 가져와서 스프라이트를 변경
-        // Image skillImage = /* 스킬 카드의 Image 컴포넌트 참조 */;
-        // skillImage.sprite = isSuccess ? skill.successSprite : skill.nomalSprite;
-    }
-
-    private void OnCardClicked(int index)
-    {
-        if (index < 0 || index >= currentSkills.Length || currentSkills[index] == null) return;
-
-        Skill selectedSkill = currentSkills[index];
-        OnSkillSelected?.Invoke(selectedSkill);
-        
-        Image[] cards = { card1Image, card2Image, card3Image };
-        
-        // 선택되지 않은 카드들 페이드 아웃
-        for (int i = 0; i < cards.Length; i++)
-        {
-            if (cards[i] == null) continue;
-            
-            if (i != index)
-            {
-                try
-                {
-                    cards[i].transform.DOScale(0f, 0.3f)
-                        .SetEase(Ease.InBack)
-                        .OnComplete(() => {
-                            if (cards[i] != null && cards[i].gameObject != null)
-                            {
-                                cards[i].gameObject.SetActive(false);
-                            }
-                        });
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"카드 {i+1} 페이드 아웃 에러: {e.Message}");
-                }
-            }
-            else
-            {
-                try
-                {
-                    // 선택된 카드도 페이드 아웃
-                    cards[i].transform.DOScale(0f, 0.3f)
-                        .SetEase(Ease.InBack)
-                        .SetDelay(0.2f) // 약간의 딜레이 후 페이드 아웃
-                        .OnComplete(() => {
-                            if (cards[i] != null && cards[i].gameObject != null)
-                            {
-                                cards[i].gameObject.SetActive(false);
-                            }
-                        });
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogError($"선택된 카드 {i+1} 페이드 아웃 에러: {e.Message}");
-                }
-            }
-        }
-
-        // BattleManager에 스킬 선택 완료 알림
-        BattleManager.Instance.OnSkillSelected();
-    }
-
-    private void HandleRightClick(int index, Image card)
-    {
-        if (!isCardCentered || (isCardCentered && centeredCardIndex != index))
-        {
-            // 다른 카드가 중앙에 있다면 원위치로
-            if (isCardCentered && centeredCardIndex != index)
-            {
-                Image[] cards = { card1Image, card2Image, card3Image };
-                ReturnCardToOriginalPosition(centeredCardIndex, cards[centeredCardIndex]);
-            }
-
-            // 선택한 카드를 중앙으로
-            MoveCardToCenter(index, card);
-            isCardCentered = true;
-            centeredCardIndex = index;
-        }
-        else
-        {
-            // 이미 중앙에 있는 카드를 다시 우클릭하면 원위치로
-            ReturnCardToOriginalPosition(index, card);
-            isCardCentered = false;
-            centeredCardIndex = -1;
-        }
-    }
-
-    private void MoveCardToCenter(int index, Image card)
-    {
-        Vector3 screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0);
-        Vector3 centerPosition = Camera.main.ScreenToWorldPoint(screenCenter);
-        centerPosition.z = card.transform.position.z;
-
-        DOTween.Kill(card.transform);
-        
-        Sequence cardSequence = DOTween.Sequence();
-        cardSequence.Join(card.transform.DOMove(centerPosition, 0.5f).SetEase(Ease.OutCubic));
-        cardSequence.Join(card.transform.DOScale(cardHoverScale * 1.2f, 0.5f).SetEase(Ease.OutCubic));
-
-        Canvas cardCanvas = card.GetComponent<Canvas>();
-        if (cardCanvas != null)
-        {
-            cardCanvas.sortingOrder = 10;
-        }
-    }
-
-    private void ReturnCardToOriginalPosition(int index, Image card)
-    {
-        if (index >= 0 && index < originalPositions.Length)
-        {
-            DOTween.Kill(card.transform);
-            
-            Sequence returnSequence = DOTween.Sequence();
-            returnSequence.Join(card.transform.DOMove(originalPositions[index], 0.5f).SetEase(Ease.OutCubic));
-            returnSequence.Join(card.transform.DOScale(1f, 0.5f).SetEase(Ease.OutCubic));
-
-            Canvas cardCanvas = card.GetComponent<Canvas>();
-            if (cardCanvas != null)
-            {
-                cardCanvas.sortingOrder = 1;
-            }
-        }
-    }
-
-    private void SelectCard(int index)
-    {
-        if (index < 0 || index >= currentSkills.Length || currentSkills[index] == null) return;
-
-        Skill selectedSkill = currentSkills[index];
-        OnSkillSelected?.Invoke(selectedSkill);
-        
-        Image[] cards = { card1Image, card2Image, card3Image };
-        
-        // 선택되지 않은 카드들 페이드 아웃
-        for (int i = 0; i < cards.Length; i++)
-        {
-            if (cards[i] == null) continue;
-            
-            if (i != index)
-            {
-                cards[i].transform.DOScale(0f, 0.3f)
-                    .SetEase(Ease.InBack)
-                    .OnComplete(() => cards[i].gameObject.SetActive(false));
-            }
-            else
-            {
-                // 선택된 카드도 페이드 아웃
-                cards[i].transform.DOScale(0f, 0.3f)
-                    .SetEase(Ease.InBack)
-                    .SetDelay(0.2f) // 약간의 딜레이 후 페이드 아웃
-                    .OnComplete(() => cards[i].gameObject.SetActive(false));
-            }
-        }
-
-        // BattleManager에 스킬 선택 완료 알림
-        BattleManager.Instance.OnSkillSelected();
-    }
-
-    private void OnDestroy()
-    {
-        try
-        {
-            // 모든 Tween 정리
-            DOTween.KillAll();
-
-            // 각 카드별 Tween 정리
-            CleanupCardTweens(card1Image);
-            CleanupCardTweens(card2Image);
-            CleanupCardTweens(card3Image);
-
-            // 이벤트 리스너 제거
-            RemoveAllCardListeners();
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"OnDestroy 에러: {e.Message}");
-        }
-    }
-
-    private void CleanupCardTweens(Image cardImage)
-    {
-        if (cardImage != null && cardImage.gameObject != null)
-        {
-            try
-            {
-                // Transform Tween 정리
-                DOTween.Kill(cardImage.transform, true);
-
-                // CanvasGroup Tween 정리
-                var canvasGroup = cardImage.GetComponent<CanvasGroup>();
-                if (canvasGroup != null)
-                {
-                    DOTween.Kill(canvasGroup, true);
-                }
-
-                // EventTrigger 제거
-                var trigger = cardImage.GetComponent<EventTrigger>();
-                if (trigger != null)
-                {
-                    trigger.triggers.Clear();
-                }
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"CleanupCardTweens 에러: {e.Message}");
-            }
-        }
-    }
-
-    private void RemoveAllCardListeners()
-    {
-        try
-        {
-            if (card1Button != null) card1Button.onClick.RemoveAllListeners();
-            if (card2Button != null) card2Button.onClick.RemoveAllListeners();
-            if (card3Button != null) card3Button.onClick.RemoveAllListeners();
-        }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"RemoveAllCardListeners 에러: {e.Message}");
-        }
     }
 
     // 전체 경로를 가져오는 헬퍼 메서드
@@ -697,5 +165,421 @@ public class SkillManager : MonoBehaviour
             path = transform.name + "/" + path;
         }
         return path;
+    }
+
+    public void DeactivateCards()
+    {
+        if (card1Image != null) card1Image.gameObject.SetActive(false);
+        if (card2Image != null) card2Image.gameObject.SetActive(false);
+        if (card3Image != null) card3Image.gameObject.SetActive(false);
+    }
+
+    public void AssignRandomSkillSprites(CharacterProfile character)
+    {
+        if (character == null)
+        {
+            Debug.LogError("캐릭터가 없습니다.");
+            return;
+        }
+
+        List<Skill> characterCards = character.GetDrawnCards();
+        if (characterCards == null || characterCards.Count == 0)
+        {
+            Debug.LogError($"{character.GetPlayer.charName}의 카드가 없습니다.");
+            return;
+        }
+
+        // 카드 UI 컴포넌트 배열
+        Image[] cardImages = { card1Image, card2Image, card3Image };
+        TextMeshProUGUI[] skillInfoTexts = { card1Text, card2Text, card3Text };
+        TextMeshProUGUI[] skillNameTexts = { card1NameText, card2NameText, card3NameText };
+
+        // 모든 상태 초기화
+        isCardZoomed = false;
+        zoomedCardIndex = -1;
+        selectedCardIndex = -1;
+
+        // 각 카드 업데이트
+        for (int i = 0; i < cardImages.Length; i++)
+        {
+            if (cardImages[i] != null && i < characterCards.Count)
+            {
+                // 카드 활성화 및 초기 상태 설정
+                cardImages[i].gameObject.SetActive(true);
+                cardImages[i].transform.localScale = Vector3.one;
+                
+                // 투명도 초기화
+                Color color = cardImages[i].color;
+                color.a = 1f;
+                cardImages[i].color = color;
+
+                // 현재 스킬 설정
+                currentSkills[i] = characterCards[i];
+
+                // 스프라이트 및 텍스트 업데이트
+                cardImages[i].sprite = characterCards[i].nomalSprite;
+
+                if (skillInfoTexts[i] != null)
+                {
+                    skillInfoTexts[i].text = characterCards[i].skillEffect;
+                    skillInfoTexts[i].gameObject.SetActive(true);
+                }
+
+                if (skillNameTexts[i] != null)
+                {
+                    skillNameTexts[i].text = characterCards[i].skillName;
+                    skillNameTexts[i].gameObject.SetActive(true);
+                }
+
+                // 원래 위치 저장
+                originalPositions[i] = cardImages[i].transform.position;
+            }
+        }
+
+        SetupCardInteractions();
+        Debug.LogWarning($"{character.GetPlayer.charName}의 카드 UI 업데이트 완료");
+    }
+
+    private void SetupCardInteractions()
+    {
+        Image[] cardImages = { card1Image, card2Image, card3Image };
+        Button[] buttons = { card1Button, card2Button, card3Button };
+        
+        for (int i = 0; i < cardImages.Length; i++)
+        {
+            if (cardImages[i] != null)
+            {
+                int index = i;
+                
+                // 버튼 컴포넌트 확인 및 추가
+                Button button = buttons[i];
+                if (button == null)
+                {
+                    button = cardImages[i].gameObject.AddComponent<Button>();
+                    buttons[i] = button;
+                }
+
+                // 클릭 이벤트 설정
+                button.onClick.RemoveAllListeners();
+                button.onClick.AddListener(() => OnCardClicked(index));
+
+                // EventTrigger 설정
+                EventTrigger trigger = cardImages[i].gameObject.GetComponent<EventTrigger>();
+                if (trigger == null)
+                {
+                    trigger = cardImages[i].gameObject.AddComponent<EventTrigger>();
+                }
+                trigger.triggers.Clear();
+
+                // 우클릭 이벤트 추가
+                EventTrigger.Entry rightClickEntry = new EventTrigger.Entry();
+                rightClickEntry.eventID = EventTriggerType.PointerClick;
+                rightClickEntry.callback.AddListener((data) => {
+                    PointerEventData pData = (PointerEventData)data;
+                    if (pData.button == PointerEventData.InputButton.Right)
+                    {
+                        Debug.Log($"Card {index} 우클릭됨");
+                        OnCardRightClick(index, cardImages[index]);
+                    }
+                });
+                trigger.triggers.Add(rightClickEntry);
+
+                // 마우스 진입 이벤트 추가
+                EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+                enterEntry.eventID = EventTriggerType.PointerEnter;
+                enterEntry.callback.AddListener((data) => {
+                    Debug.Log($"Card {index} 마우스 진입");
+                    if (!isCardZoomed)
+                    {
+                        cardImages[index].transform.DOScale(1.1f, 0.2f);
+                    }
+                });
+                trigger.triggers.Add(enterEntry);
+
+                // 마우스 퇴장 이벤트 추가
+                EventTrigger.Entry exitEntry = new EventTrigger.Entry();
+                exitEntry.eventID = EventTriggerType.PointerExit;
+                exitEntry.callback.AddListener((data) => {
+                    Debug.Log($"Card {index} 마우스 퇴장");
+                    if (!isCardZoomed)
+                    {
+                        cardImages[index].transform.DOScale(1f, 0.2f);
+                    }
+                });
+                trigger.triggers.Add(exitEntry);
+
+                // 레이캐스트 타겟 설정
+                Image cardImage = cardImages[i];
+                cardImage.raycastTarget = true;
+
+                // Canvas와 GraphicRaycaster 확인
+                Canvas canvas = cardImage.GetComponent<Canvas>();
+                if (canvas == null)
+                {
+                    canvas = cardImage.gameObject.AddComponent<Canvas>();
+                    canvas.overrideSorting = true;
+                    cardImage.gameObject.AddComponent<GraphicRaycaster>();
+                }
+
+                Debug.Log($"Card {index} 상호작용 설정 완료");
+            }
+        }
+    }
+
+    private void OnCardClicked(int index)
+    {
+        if (index < 0 || index >= currentSkills.Length || currentSkills[index] == null) return;
+
+        // 확대된 상태라면 먼저 축소
+        if (isCardZoomed)
+        {
+            UnzoomCard(index, GetCardImage(index));
+            return; // 확대 상태에서는 선택하지 않음
+        }
+
+        // 이미 선택된 카드가 있고 적이 선택되지 않은 경우
+        if (selectedCardIndex != -1 && BattleManager.Instance.targetObjects.Count == 0)
+        {
+            // 이전 선택 카드 투명도 복구
+            Image previousCard = GetCardImage(selectedCardIndex);
+            if (previousCard != null)
+            {
+                previousCard.DOFade(1f, 0.3f);
+            }
+        }
+
+        selectedCardIndex = index;
+        Skill selectedSkill = currentSkills[index];
+        OnSkillSelected?.Invoke(selectedSkill);
+
+        // 선택된 카드 제외하고 나머지 카드 반투명하게
+        UpdateCardOpacity();
+
+        BattleManager.Instance.OnSkillSelected();
+    }
+
+    private void OnCardRightClick(int index, Image cardImage)
+    {
+        if (!isCardZoomed)
+        {
+            // 카드가 확대되어 있지 않은 경우 확대
+            ZoomCard(index, cardImage);
+        }
+        else if (zoomedCardIndex == index)
+        {
+            // 현재 확대된 카드를 다시 우클릭한 경우 축소
+            UnzoomCard(index, cardImage);
+        }
+        // 다른 카드가 확대되어 있는 경우는 무시
+    }
+
+    private void ZoomCard(int index, Image cardImage)
+    {
+        // 원래 위치 저장
+        Vector3 originalPosition = cardImage.transform.position;
+        Vector3 originalScale = cardImage.transform.localScale;
+
+        // 화면 중앙 위치 계산
+        Vector3 centerPosition = Camera.main.ScreenToWorldPoint(screenCenter);
+        centerPosition.z = cardImage.transform.position.z;
+
+        // 다른 카드들 페이드 아웃 및 상호작용 비활성화
+        Image[] cards = { card1Image, card2Image, card3Image };
+        Button[] buttons = { card1Button, card2Button, card3Button };
+        
+        for (int i = 0; i < cards.Length; i++)
+        {
+            if (i != index && cards[i] != null)
+            {
+                cards[i].DOFade(0.3f, zoomDuration);
+                if (buttons[i] != null)
+                {
+                    buttons[i].interactable = false;
+                }
+            }
+        }
+
+        // 선택된 카드 확대 및 이동
+        Sequence zoomSequence = DOTween.Sequence();
+        zoomSequence.Join(cardImage.transform.DOMove(centerPosition, zoomDuration).SetEase(Ease.OutQuad));
+        zoomSequence.Join(cardImage.transform.DOScale(cardZoomScale, zoomDuration).SetEase(Ease.OutQuad));
+
+        isCardZoomed = true;
+        zoomedCardIndex = index;
+
+        // 정렬 순서 조정
+        Canvas cardCanvas = cardImage.GetComponent<Canvas>();
+        if (cardCanvas == null)
+        {
+            cardCanvas = cardImage.gameObject.AddComponent<Canvas>();
+        }
+        cardCanvas.overrideSorting = true;
+        cardCanvas.sortingOrder = 100;
+
+        // 선택된 카드의 버튼은 계속 활성화 상태 유지
+        if (buttons[index] != null)
+        {
+            buttons[index].interactable = true;
+        }
+    }
+
+    private void UnzoomCard(int index, Image cardImage)
+    {
+        if (!isCardZoomed) return;
+
+        // 원래 위치로 되돌리기
+        Vector3 originalPosition = originalPositions[index];
+        
+        // 모든 카드 페이드 인 및 상호작용 활성화
+        Image[] cards = { card1Image, card2Image, card3Image };
+        Button[] buttons = { card1Button, card2Button, card3Button };
+        
+        for (int i = 0; i < cards.Length; i++)
+        {
+            if (cards[i] != null)
+            {
+                // 선택된 카드가 있는 경우 해당 투명도 유지
+                float targetAlpha = (selectedCardIndex != -1 && i != selectedCardIndex) ? 0.5f : 1f;
+                cards[i].DOFade(targetAlpha, zoomDuration);
+                if (buttons[i] != null)
+                {
+                    buttons[i].interactable = true;
+                }
+            }
+        }
+
+        // 선택된 카드 축소 및 원래 위치로 이동
+        Sequence unzoomSequence = DOTween.Sequence();
+        unzoomSequence.Join(cardImage.transform.DOMove(originalPosition, zoomDuration)
+            .SetEase(Ease.OutQuad));
+        unzoomSequence.Join(cardImage.transform.DOScale(Vector3.one, zoomDuration)
+            .SetEase(Ease.OutQuad));
+
+        // 정렬 순서 복구
+        Canvas cardCanvas = cardImage.GetComponent<Canvas>();
+        if (cardCanvas != null)
+        {
+            cardCanvas.sortingOrder = 0;
+        }
+
+        isCardZoomed = false;
+        zoomedCardIndex = -1;
+    }
+
+    private Vector3 GetOriginalPosition(int index)
+    {
+        // 각 카드의 원래 위치 반환
+        Transform skillCardsTransform = GameObject.Find("PlayerInfoPanel")?.transform.Find("SkillCards");
+        if (skillCardsTransform != null)
+        {
+            Transform cardTransform = skillCardsTransform.Find($"Card{index + 1}");
+            if (cardTransform != null)
+            {
+                return cardTransform.position;
+            }
+        }
+        return Vector3.zero;
+    }
+
+    private void OnDestroy()
+    {
+        if (card1Button != null) card1Button.onClick.RemoveAllListeners();
+        if (card2Button != null) card2Button.onClick.RemoveAllListeners();
+        if (card3Button != null) card3Button.onClick.RemoveAllListeners();
+    }
+
+    // RefreshCards 메서드 수정
+    public void RefreshCards(CharacterProfile character)
+    {
+        if (character == null)
+        {
+            Debug.LogError("캐릭터가 없습니다.");
+            return;
+        }
+
+        // 기존 카드들 비활성화
+        DeactivateCards();
+
+        // 모든 상태 초기화
+        isCardZoomed = false;
+        zoomedCardIndex = -1;
+        selectedCardIndex = -1;
+
+        // 모든 카드의 투명도를 즉시 1로 설정
+        Image[] cards = { card1Image, card2Image, card3Image };
+        foreach (var card in cards)
+        {
+            if (card != null)
+            {
+                Color color = card.color;
+                color.a = 1f;
+                card.color = color;
+            }
+        }
+
+        // 새로운 카드 할당
+        AssignRandomSkillSprites(character);
+    }
+
+    // 헬퍼 메서드 추가
+    private Image GetCardImage(int index)
+    {
+        switch (index)
+        {
+            case 0: return card1Image;
+            case 1: return card2Image;
+            case 2: return card3Image;
+            default: return null;
+        }
+    }
+
+    private void UpdateCardOpacity()
+    {
+        Image[] cards = { card1Image, card2Image, card3Image };
+        for (int i = 0; i < cards.Length; i++)
+        {
+            if (cards[i] != null)
+            {
+                // 확대된 카드가 있는 경우는 투명도 변경하지 않음
+                if (!isCardZoomed)
+                {
+                    float targetAlpha = (i == selectedCardIndex) ? 1f : 0.5f;
+                    cards[i].DOFade(targetAlpha, 0.3f);
+                }
+            }
+        }
+    }
+
+    private void ResetCardOpacity()
+    {
+        Image[] cards = { card1Image, card2Image, card3Image };
+        foreach (var card in cards)
+        {
+            if (card != null)
+            {
+                // 투명도를 즉시 1로 설정
+                Color color = card.color;
+                color.a = 1f;
+                card.color = color;
+            }
+        }
+        selectedCardIndex = -1;
+    }
+
+    // 캐릭터 선택 시 호출될 메서드
+    public void OnCharacterSelected()
+    {
+        // 확대된 카드가 있다면 먼저 축소
+        if (isCardZoomed && zoomedCardIndex >= 0)
+        {
+            Image zoomedCard = GetCardImage(zoomedCardIndex);
+            if (zoomedCard != null)
+            {
+                UnzoomCard(zoomedCardIndex, zoomedCard);
+            }
+        }
+
+        selectedCardIndex = -1;
+        ResetCardOpacity();
     }
 }
