@@ -393,6 +393,8 @@ public class CharacterProfile : MonoBehaviour
 
             // 상태바 값 업데이트
             UpdateStatusBars();
+
+            CheckStatusEffectsRealtime();
         }
 
         // 스킬 이펙트 위치와 회전 업데이트
@@ -782,33 +784,37 @@ public class CharacterProfile : MonoBehaviour
     // 상태이상 효과 체크 메서드 수정
     public void CheckStatusEffects()
     {
-        foreach (var effect in player.statusEffects.ToList())
+        Player player = GetPlayer;
+
+        // 출혈 상태 체크
+        if (player.isBleedingEffect)
         {
-            Debug.LogWarning($"[상태이상 체크] {player.charName}의 {effect.effectName} 효과 (남은 지속시간: {effect.duration}턴)");
-            
-            // 각 상태이상 효과의 현재 영향 출력
-            switch (effect.effectName)
-            {
-                case "출혈":
-                    Debug.LogWarning($"- 출혈 효과: 매 전투 시작 시 체력의 {effect.healthPercentDamage * 100}% 피해");
-                    break;
-                case "혼란":
-                    Debug.LogWarning($"- 혼란 효과: 정신력 {effect.mentalityModifier} 감소");
-                    break;
-                case "독":
-                    Debug.LogWarning($"- 독 효과: 받는 피해 {effect.incomingDamageModifier * 100}% 증가, 주는 피해 {effect.outgoingDamageModifier * 100}% 감소");
-                    break;
-                case "방어력감소":
-                    Debug.LogWarning($"- 방어력 감소 효과: 방어력 {(1 - effect.defenseModifier) * 100}% 감소");
-                    break;
-            }
-            
-            if (effect.duration <= 0)
-            {
-                Debug.LogWarning($"[상태이상 종료] {player.charName}의 {effect.effectName} 효과가 종료되었습니다.");
-                player.statusEffects.Remove(effect);
-            }
+            Debug.LogWarning($"[상태이상 체크] {player.charName}의 출혈 효과 (남은 지속시간: {player.bleedingTurns}턴)");
         }
+
+        // 혼란 상태 체크
+        if (player.isConfusionEffect)
+        {
+            Debug.LogWarning($"[상태이상 체크] {player.charName}의 혼란 효과 (남은 지속시간: {player.confusionTurns}턴)");
+        }
+
+        // 독 상태 체크
+        if (player.isPoisonEffect)
+        {
+            Debug.LogWarning($"[상태이상 체크] {player.charName}의 독 효과 (남은 지속시간: {player.poisonTurns}턴)");
+        }
+
+        // 방어력감소 상태 체크
+        if (player.isDefenseDownEffect)
+        {
+            Debug.LogWarning($"[상태이상 체크] {player.charName}의 방어력감소 효과 (남은 지속시간: {player.defenseDownTurns}턴)");
+        }
+
+        // 상태이상 업데이트
+        player.UpdateStatusEffects();
+        
+        // 아이콘 업데이트
+        UIManager.Instance.UpdateStatusEffectIcons(this);
     }
 
     // 턴이 끝날 때 호출될 메서드 추가
@@ -868,5 +874,60 @@ public class CharacterProfile : MonoBehaviour
     public List<Skill> GetDrawnCards()
     {
         return drawnCards;
+    }
+
+    private void CheckStatusEffectsRealtime()
+    {
+        Player player = GetPlayer;
+        Transform statusIconsParent = transform.Find("StatusIcons");
+        if (statusIconsParent == null) return;
+
+        // 출혈 상태 체크 및 아이콘 업데이트
+        SpriteRenderer bleedingIcon = statusIconsParent.Find("BleedingIcon")?.GetComponent<SpriteRenderer>();
+        if (bleedingIcon != null)
+        {
+            bleedingIcon.gameObject.SetActive(player.isBleedingEffect);
+            if (player.isBleedingEffect)
+            {
+                TextMeshPro durationText = bleedingIcon.GetComponentInChildren<TextMeshPro>();
+                if (durationText != null) durationText.text = player.bleedingTurns.ToString();
+            }
+        }
+
+        // 혼란 상태 체크 및 아이콘 업데이트
+        SpriteRenderer confusionIcon = statusIconsParent.Find("ConfusionIcon")?.GetComponent<SpriteRenderer>();
+        if (confusionIcon != null)
+        {
+            confusionIcon.gameObject.SetActive(player.isConfusionEffect);
+            if (player.isConfusionEffect)
+            {
+                TextMeshPro durationText = confusionIcon.GetComponentInChildren<TextMeshPro>();
+                if (durationText != null) durationText.text = player.confusionTurns.ToString();
+            }
+        }
+
+        // 독 상태 체크 및 아이콘 업데이트
+        SpriteRenderer poisonIcon = statusIconsParent.Find("PoisonIcon")?.GetComponent<SpriteRenderer>();
+        if (poisonIcon != null)
+        {
+            poisonIcon.gameObject.SetActive(player.isPoisonEffect);
+            if (player.isPoisonEffect)
+            {
+                TextMeshPro durationText = poisonIcon.GetComponentInChildren<TextMeshPro>();
+                if (durationText != null) durationText.text = player.poisonTurns.ToString();
+            }
+        }
+
+        // 방어력감소 상태 체크 및 아이콘 업데이트
+        SpriteRenderer defenseDownIcon = statusIconsParent.Find("DefenseDownIcon")?.GetComponent<SpriteRenderer>();
+        if (defenseDownIcon != null)
+        {
+            defenseDownIcon.gameObject.SetActive(player.isDefenseDownEffect);
+            if (player.isDefenseDownEffect)
+            {
+                TextMeshPro durationText = defenseDownIcon.GetComponentInChildren<TextMeshPro>();
+                if (durationText != null) durationText.text = player.defenseDownTurns.ToString();
+            }
+        }
     }
 }

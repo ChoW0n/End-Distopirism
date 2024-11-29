@@ -76,7 +76,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // 선택된 캐릭터들이 있는지 확인
+        // 선택된 캐릭터들이 는지 확인
         if (DeckData.selectedCharacterPrefabs == null || DeckData.selectedCharacterPrefabs.Count == 0)
         {
             Debug.LogError("선택된 캐릭터가 없습니다.");
@@ -112,7 +112,7 @@ public class BattleManager : MonoBehaviour
         // TargetArrowCreator 초기화
         arrowCreator = gameObject.AddComponent<TargetArrowCreator>();
 
-        // 적 캐릭터들의 초기 스킬 설정
+        // 적 캐릭터들 초기 스킬 설정
         foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
         {
             CharacterProfile profile = enemy.GetComponent<CharacterProfile>();
@@ -219,7 +219,7 @@ public class BattleManager : MonoBehaviour
                 .DOScale(targetScale, 0.5f) // Vector3.one 대신 targetScale 사용
                 .SetDelay(delay * i)
                 .SetEase(Ease.OutBack)
-                .OnStart(() => Debug.Log($"적 캐릭터 {i} 등장 시작"))
+                .OnStart(() => Debug.Log($"적 캐릭터 {i} 등장 "))
                 .OnComplete(() => Debug.Log($"적 캐릭터 {i} 등장 완료"));
         }
 
@@ -381,48 +381,49 @@ public class BattleManager : MonoBehaviour
     void CoinRoll(CharacterProfile Object, ref int successCount)
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
-        for (int i = 1; i < matchCount; i++)
+        
+        float maxMenTality = 100f;
+        float maxProbability = 0.6f;
+
+        // 정신력 계산 시 혼란 효과 특별 처리
+        float effectiveMentality = Object.GetPlayer.menTality;
+        bool isConfused = Object.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
+        
+        if (isConfused)
         {
-            float maxMenTality = 100f;
-            float maxProbability = 0.6f;
+            effectiveMentality -= 20f;
+            Debug.LogWarning($"[혼란 효과] {Object.GetPlayer.charName}의 코인 굴림 시 정신력 {Object.GetPlayer.menTality} -> {effectiveMentality}");
+        }
 
-            // 정신력 계산 시 혼란 효과 특별 처리
-            float effectiveMentality = Object.GetPlayer.menTality;
-            bool isConfused = Object.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
-            
-            if (isConfused)
+        float currentProbability = Mathf.Max(0f, maxProbability * (effectiveMentality / maxMenTality));
+        Debug.LogWarning($"[코인 확률] {Object.GetPlayer.charName}의 현재 성공 확률: {currentProbability * 100:F1}%");
+
+        Object.successCount = 0; // 코인 성공 횟수 초기화
+        
+        // 전체 코인 수만큼 반복 (1부터 시작하는 대신 0부터 시작)
+        for (int j = 0; j < Object.GetPlayer.coin; j++)
+        {
+            if (Random.value < currentProbability)
             {
-                effectiveMentality -= 20f;
-                Debug.LogWarning($"[혼란 효과] {Object.GetPlayer.charName}의 코인 굴림 시 정신력 {Object.GetPlayer.menTality} -> {effectiveMentality}");
-            }
-
-            float currentProbability = Mathf.Max(0f, maxProbability * (effectiveMentality / maxMenTality));
-            Debug.LogWarning($"[코인 확률] {Object.GetPlayer.charName}의 현재 성공 확률: {currentProbability * 100:F1}%");
-
-            Object.successCount = 0; // 코인 성공 횟수 초기화
-            for (int j = 1; j < Object.GetPlayer.coin - 1; j++)
-            {
-                if (Random.value < currentProbability)
+                Object.successCount++;
+                // 코인 성공 시마다 UI 업데이트
+                Object.UpdateCoinCount(Object.successCount);
+                
+                // "화염 공격" 스킬의 코인 성공 보너스
+                if (Object.GetPlayer.skills[0].skillName == "화염 공격")
                 {
-                    Object.successCount++;
-                    // 코인 성공 시마다 UI 업데이트
-                    Object.UpdateCoinCount(Object.successCount);
-                    
-                    // "화염 공격" 스킬의 ��인 성공 보너스
-                    if (Object.GetPlayer.skills[0].skillName == "화염 공격")
-                    {
-                        Object.GetPlayer.dmgUp += 2;
-                        Debug.LogWarning($"{Object.GetPlayer.charName}의 화염 공격으로 공격력 2 증가");
-                    }
+                    Object.GetPlayer.dmgUp += 2;
+                    Debug.LogWarning($"{Object.GetPlayer.charName}의 화염 공격으로 공격력 2 증가");
                 }
             }
-            Object.coinBonus = Object.successCount * Object.GetPlayer.dmgUp;
-            Debug.LogWarning($"{Object.GetPlayer.charName}의 코인 던지기 성공 횟수: {Object.successCount} / {Object.GetPlayer.coin}");
-            Debug.LogWarning($"{Object.GetPlayer.charName}의 남은 코인: {Object.GetPlayer.coin} / {Object.GetPlayer.maxCoin}");
         }
+        
+        Object.coinBonus = Object.successCount * Object.GetPlayer.dmgUp;
+        Debug.LogWarning($"{Object.GetPlayer.charName}의 코인 던지기 성공 횟수: {Object.successCount} / {Object.GetPlayer.coin}");
+        Debug.LogWarning($"{Object.GetPlayer.charName}의 남은 코인: {Object.GetPlayer.coin} / {Object.GetPlayer.maxCoin}");
     }
 
-    void DiffCheck()// 공격 레벨과 방어 레벨을 비교하여 보너스 및 패널티 적용
+    void DiffCheck()// 공격 레벨과 방 레벨을 비교하 보너스 및 널티 적용
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
@@ -477,10 +478,10 @@ public class BattleManager : MonoBehaviour
             CharacterProfile targetObject = targetObjects[i];
 
             //카메라를 공격자에게 줌 인
-            CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
-            if (cameraFollow != null)
+            var battleCamera = FindObjectOfType<CameraFollow>();
+            if (battleCamera != null)
             {
-                cameraFollow.ZoomInOnTarget(playerObject.transform);
+                battleCamera.ZoomInOnTarget(playerObject.transform);
             }
 
             playerObject.successCount = targetObject.successCount = 0;
@@ -494,7 +495,8 @@ public class BattleManager : MonoBehaviour
 
             if (!(playerObject.GetPlayer.coin > 0 || targetObject.GetPlayer.coin > 0))
             {
-                yield return StartCoroutine(ApplyDamageAndMoveCoroutine(playerObject, targetObject));
+                bool isLastBattle = (i == matchCount - 1);
+                yield return StartCoroutine(ApplyDamageAndMoveCoroutine(playerObject, targetObject, isLastBattle));
             }
             else
             {
@@ -511,10 +513,15 @@ public class BattleManager : MonoBehaviour
             yield return new WaitForSeconds(0.3f);
         }
 
-        isAttacking = false;
+        // 모든 전투가 끝난 후 8초 대기 후 카메라 리셋
+        yield return new WaitForSeconds(8f);
+        var mainCamera = FindObjectOfType<CameraFollow>();
+        if (mainCamera != null)
+        {
+            mainCamera.ResetCamera();
+        }
 
-        // 모든 전투 끝난 후에 캐릭터들을 원래 위치로 돌려보내는 부분을 주석 처리
-        // ReturnCombatantsToInitialPositions();
+        isAttacking = false;
 
         yield return new WaitUntil(() => AllCombatantsStoppedMoving());
 
@@ -568,7 +575,7 @@ public class BattleManager : MonoBehaviour
         //StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
     //}
 
-IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProfile victim)
+IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProfile victim, bool isLastBattle)
 {
     BattleMove attackerMove = attacker.GetComponent<BattleMove>();
     BattleMove victimMove = victim.GetComponent<BattleMove>();
@@ -606,7 +613,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             victimMove.Retreat();
         }
 
-        // 전진과 후퇴가 끝날 때까지 기
+        // 전진과 후퇴가 끝날 때까 기
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
         // 피해를 적용하기 전에 스킬 효과 확인
@@ -713,13 +720,10 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         Debug.LogWarning($"- 방어력: {modifiedDefense} (원래: {originalDefense}, 감소: {originalDefense - modifiedDefense})");
         Debug.LogWarning($"- 최종 피해: {finalDamageInt}");
 
-        // 피해를 입을 때 50% 확률로 정신력 감소
-        if (Random.value < 0.5f)
-        {
-            victim.GetPlayer.menTality = Mathf.Max(0, victim.GetPlayer.menTality - 2);
-            victim.UpdateStatus();
-            Debug.LogWarning($"[정신력 감소] {victim.GetPlayer.charName}의 정신력 2 감소 (피해로 인한 감소)");
-        }
+        // 피해를 입을 때 100% 확률로 정신력 감소 (기존 50% 확률에서 변경)
+        victim.GetPlayer.menTality = Mathf.Max(0, victim.GetPlayer.menTality - 2);
+        victim.UpdateStatus();
+        Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력 2 감소 (피해로 인한 감소)");
 
         StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
 
@@ -817,13 +821,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         victim.DestroySkillEffect();
     }
 
-    //카메라를 초기 위치와 사이즈로 되돌리기
-    CameraFollow cameraFollow = FindObjectOfType<CameraFollow>();
-    if (cameraFollow != null)
-    {
-        cameraFollow.ResetCamera();
-    }
-
     // "연속 찌르기" 스킬 처리
     if (attacker.GetPlayer.skills[0].skillName == "연속 찌르기")
     {
@@ -875,7 +872,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             // 상대에게 방어력 감소 효과 부여
             victim.GetPlayer.AddStatusEffect("방어력감소");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니.");
         }
         else // 합 패배 시
         {
@@ -1021,7 +1018,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 시간 슬로우 모션
         Time.timeScale = 0.5f;
 
-        // 마지막 캐릭터가 원위치로 돌아올 때까지 대기
+        // 마지 캐릭터가 원위치로 돌아올 때까지 대기
         foreach (var player in playerObjects)
         {
             if (player != null)
@@ -1051,12 +1048,19 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     {
         yield return new WaitForSeconds(1f);
         
-        // 모든 적 캐릭터의 새로운 스킬 선택
+        // 모든 적 캐릭터의 새로운 스킬 선택과 코인 초기화
         foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
         {
             CharacterProfile profile = enemy.GetComponent<CharacterProfile>();
             if (profile != null)
             {
+                // 적 캐릭터의 코인 초기화
+                profile.GetPlayer.coin = profile.GetPlayer.maxCoin + profile.GetPlayer.nextTurnCoinModifier;
+                profile.GetPlayer.nextTurnCoinModifier = 0;
+                profile.UpdateStatus();
+                Debug.LogWarning($"{profile.GetPlayer.charName}의 코인이 {profile.GetPlayer.coin}개로 설정");
+                
+                // 새로운 스킬 선택
                 profile.SelectRandomEnemySkill();
             }
         }
@@ -1093,10 +1097,10 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     private void MoveCombatants()
     {
-        // 각 전투 쌍마다 위치 오브젝트의 X값을 랜덤으로 설정
+        // 각 전투 쌍마다 위치 오브젝트의 X값을 덤으로 설정
         for (int i = 0; i < Mathf.Min(playerBattlePositions.Length, enemyBattlePositions.Length); i++)
         {
-            float randomOffsetX = Random.Range(-300f, 300f);
+            float randomOffsetX = Random.Range(-200f, 200f);
 
             // 위치 오브젝트의 X값 수정
             Vector3 playerPos = playerBattlePositions[i].position;
@@ -1179,7 +1183,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     // ApplyRemainingDamage 메서드를 코루틴으로 변경
     IEnumerator ApplyRemainingDamageCoroutine(CharacterProfile attacker, CharacterProfile victim)
     {
-        yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
+        // false를 전달하여 마지막 전투가 아님을 표시
+        yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim, false));
         
         // 든 데미지 적용과 움직임이 끝난 후에 체력 확인 및 전투 종료 처리
         CheckHealth(attacker, victim);

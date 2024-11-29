@@ -1,0 +1,35 @@
+{ "cat":"", "pid":12345, "tid":0, "ts":0, "ph":"M", "name":"process_name", "args": { "name":"bee_backend" } }
+,{ "pid":12345, "tid":0, "ts":1732910853927178, "dur":18103, "ph":"X", "name": "DriverInitData",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":0, "ts":1732910853945310, "dur":358, "ph":"X", "name": "BuildQueueInit",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":0, "ts":1732910853945693, "dur":56, "ph":"X", "name": "EnqueueRequestedNodes",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":0, "ts":1732910853945749, "dur":497764, "ph":"X", "name": "WaitForBuildFinished", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":0, "ts":1732910854443514, "dur":347, "ph":"X", "name": "JoinBuildThread",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":0, "ts":1732910854443942, "dur":721, "ph":"X", "name": "Tundra",  "args": { "detail":"Write AllBuiltNodes" }}
+,{ "pid":12345, "tid":1, "ts":1732910853945890, "dur":943, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"C:\\Program Files\\Unity\\Hub\\Editor\\2022.3.18f1\\Editor\\Data\\Tools\\netcorerun\\netcorerun.exe" }}
+,{ "pid":12345, "tid":1, "ts":1732910853946834, "dur":108965, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"C:\\Program Files\\Unity\\Hub\\Editor\\2022.3.18f1\\Editor\\Data\\Tools\\BuildPlayerDataGenerator\\BuildPlayerDataGenerator.exe" }}
+,{ "pid":12345, "tid":1, "ts":1732910854055803, "dur":389, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.burst@1.8.12\\Unity.Burst.CodeGen\\Unity.Burst.Cecil.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910854056193, "dur":151, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.burst@1.8.12\\Unity.Burst.CodeGen\\Unity.Burst.Cecil.Mdb.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910854056345, "dur":171, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.burst@1.8.12\\Unity.Burst.CodeGen\\Unity.Burst.Cecil.Pdb.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910854056517, "dur":133, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.burst@1.8.12\\Unity.Burst.CodeGen\\Unity.Burst.Cecil.Rocks.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910854056651, "dur":124, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.burst@1.8.12\\Unity.Burst.Unsafe.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910854056777, "dur":127, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.collections@1.2.4\\Unity.Collections.LowLevel.ILSupport\\Unity.Collections.LowLevel.ILSupport.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910854056905, "dur":302, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.ext.nunit@1.0.6\\net35\\unity-custom\\nunit.framework.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910854057209, "dur":156, "ph":"X", "name": "ComputeFileSignatureSha1",  "args": { "detail":"End Distopirism\\Library\\PackageCache\\com.unity.visualscripting@1.9.1\\Runtime\\VisualScripting.Flow\\Dependencies\\NCalc\\Unity.VisualScripting.Antlr3.Runtime.dll" }}
+,{ "pid":12345, "tid":1, "ts":1732910853945882, "dur":111484, "ph":"X", "name": "CheckInputSignature",  "args": { "detail":"BuildPlayerDataGenerator Library/BuildPlayerData/Editor/TypeDb-All.json" }}
+,{ "pid":12345, "tid":1, "ts":1732910854057970, "dur":385114, "ph":"X", "name": "BuildPlayerDataGenerator",  "args": { "detail":"Library/BuildPlayerData/Editor/TypeDb-All.json" }}
+,{ "pid":12345, "tid":2, "ts":1732910853946308, "dur":497214, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":3, "ts":1732910853945994, "dur":428, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":3, "ts":1732910853946423, "dur":2373, "ph":"X", "name": "CheckDagSignatures",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":3, "ts":1732910853948797, "dur":494718, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":4, "ts":1732910853946053, "dur":497460, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":5, "ts":1732910853946024, "dur":2802, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":5, "ts":1732910853948827, "dur":494700, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":6, "ts":1732910853946073, "dur":497441, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":7, "ts":1732910853946133, "dur":497409, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":8, "ts":1732910853946109, "dur":497418, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":9, "ts":1732910853946160, "dur":497351, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":10, "ts":1732910853946187, "dur":497332, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":11, "ts":1732910853946246, "dur":497264, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":12, "ts":1732910853946319, "dur":497222, "ph":"X", "name": "WaitingForWork", "cname":"thread_state_sleeping",  "args": { "detail":"" }}
+,{ "pid":12345, "tid":0, "ts":1732910854445438, "dur":307, "ph":"X", "name": "ProfilerWriteOutput" }
+,

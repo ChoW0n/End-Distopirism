@@ -56,6 +56,17 @@ public class Player
     // 다음 턴 코인 수정치 추가
     public int nextTurnCoinModifier = 0;
 
+    public bool isBleedingEffect = false;    // 출혈
+    public bool isConfusionEffect = false;   // 혼란
+    public bool isPoisonEffect = false;      // 독
+    public bool isDefenseDownEffect = false; // 방어력감소
+
+    // 각 상태이상의 남은 턴 수
+    public int bleedingTurns = 0;
+    public int confusionTurns = 0;
+    public int poisonTurns = 0;
+    public int defenseDownTurns = 0;
+
     public void Init()
     {
         hp = maxHp;
@@ -75,23 +86,27 @@ public class Player
         }
         else
         {
-            // 새로운 효과 추가
             switch (effectName)
             {
                 case "출혈":
-                    statusEffects.Add(new StatusEffect("출혈", 3, 0, 0.01f));
+                    isBleedingEffect = true;
+                    bleedingTurns = 3;
                     break;
                 case "혼란":
-                    statusEffects.Add(new StatusEffect("혼란", 1, -20f, 0));
+                    isConfusionEffect = true;
+                    confusionTurns = 1;
                     break;
                 case "독":
-                    statusEffects.Add(new StatusEffect("독", 3, 0, 0, 0.05f, -0.10f));
+                    isPoisonEffect = true;
+                    poisonTurns = 3;
                     break;
                 case "방어력감소":
-                    statusEffects.Add(new StatusEffect("방어력감소", 1, 0, 0, 0, 0, 0.5f));
+                    isDefenseDownEffect = true;
+                    defenseDownTurns = 1;
                     break;
                 case "출혈2턴":
-                    statusEffects.Add(new StatusEffect("출혈", 2, 0, 0.01f));
+                    isBleedingEffect = true;
+                    bleedingTurns = 2;
                     break;
             }
         }
@@ -112,8 +127,19 @@ public class Player
 
     public void UpdateStatusEffects()
     {
-        statusEffects.RemoveAll(effect => effect.duration <= 0);
+        // 턴 감소 및 상태이상 해제
+        if (bleedingTurns > 0) bleedingTurns--;
+        if (confusionTurns > 0) confusionTurns--;
+        if (poisonTurns > 0) poisonTurns--;
+        if (defenseDownTurns > 0) defenseDownTurns--;
+
+        // 턴이 0이 되면 상태이상 해제
+        if (bleedingTurns <= 0) isBleedingEffect = false;
+        if (confusionTurns <= 0) isConfusionEffect = false;
+        if (poisonTurns <= 0) isPoisonEffect = false;
+        if (defenseDownTurns <= 0) isDefenseDownEffect = false;
     }
+
 
     public float GetTotalMentalityModifier()
     {

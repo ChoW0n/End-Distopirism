@@ -1,0 +1,11 @@
+{"msg":"init","dagFile":"Library/Bee/1900b0aESkipCompile.dag","targets":["ScriptAssembliesAndTypeDB"]}
+{"msg":"enqueueNode","enqueuedNodeAnnotation":"ScriptAssembliesAndTypeDB","enqueuedNodeIndex":3}
+{"msg":"enqueueNode","enqueuedNodeAnnotation":"ScriptAssemblies","enqueuedNodeIndex":1,"enqueueingNodeAnnotation":"ScriptAssembliesAndTypeDB","enqueueingNodeIndex":3}
+{"msg":"enqueueNode","enqueuedNodeAnnotation":"BuildPlayerDataGenerator Library/BuildPlayerData/Editor/TypeDb-All.json","enqueuedNodeIndex":2,"enqueueingNodeAnnotation":"ScriptAssembliesAndTypeDB","enqueueingNodeIndex":3}
+{"msg":"newNode","annotation":"ScriptAssemblies","index":1}
+{"msg":"runNodeAction","annotation":"ScriptAssemblies","index":1}
+{"msg":"newNode","annotation":"BuildPlayerDataGenerator Library/BuildPlayerData/Editor/TypeDb-All.json","index":2}
+{"msg":"runNodeAction","annotation":"BuildPlayerDataGenerator Library/BuildPlayerData/Editor/TypeDb-All.json","displayName":"BuildPlayerDataGenerator TypeDb-All","index":2}
+{"msg":"noderesult","processed_node_count":1,"number_of_nodes_ever_queued":3,"annotation":"BuildPlayerDataGenerator Library/BuildPlayerData/Editor/TypeDb-All.json","index":2,"exitcode":0,"outputfile":"Library\\BuildPlayerData\\Editor\\TypeDb-All.json"}
+{"msg":"newNode","annotation":"ScriptAssembliesAndTypeDB","index":3}
+{"msg":"runNodeAction","annotation":"ScriptAssembliesAndTypeDB","index":3}
