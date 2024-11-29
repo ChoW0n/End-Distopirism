@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: 1007
   m_EditorClassIdentifier: 
   skillName: "\uC0AC\uAE30 \uC9C4\uC791"
-  sprite: {fileID: 21300000, guid: 638a8aab847484e4ca66985a28ddc6fd, type: 3}
+  sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   maxDmg: 10
   minDmg: 1
-  dmgUp: 5
+  dmgUp: 2
   skillEffect: "\uC774 \uCE74\uB4DC\uB97C \uC0AC\uC6A9\uD55C \uCE90\uB9AD\uD130\uAC00
     \uD569\uC5D0\uC11C \uC2B9\uB9AC \uD560 \uC2DC\n\uC544\uAD70\uC758 \uB2E4\uC74C
     \uD134 \uCF54\uC778\uC774 1 \uC99D\uAC00\uD55C\uB2E4.\n\uD569\uC5D0\uC11C \uD328\uBC30
@@ -24,4 +24,4 @@ MonoBehaviour:
   animationClip: {fileID: 0}
   successSprite: {fileID: 21300000, guid: 638a8aab847484e4ca66985a28ddc6fd, type: 3}
   nomalSprite: {fileID: 21300000, guid: 638a8aab847484e4ca66985a28ddc6fd, type: 3}
-  maxCardCount: 2
+  maxCardCount: 3

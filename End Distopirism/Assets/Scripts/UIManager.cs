@@ -43,6 +43,19 @@ public class UIManager : MonoBehaviour
     public GameObject loadingScreen;
     public Image fadeImage;
 
+    [Header("Blood Effect")]
+    public GameObject bloodEffectPrefab;
+    public Sprite[] bloodSprites;      // 혈흔/출혈 효과 스프라이트
+    public Sprite[] poisonSprites;     // 독 효과 스프라이트 (현재 미사용)
+    public Sprite[] defenseSprites;    // 방어 효과 스프라이트 (현재 미사용)
+
+    [Header("Effect Settings")]
+    public float effectFadeInDuration = 0.3f;
+    public float effectStayDuration = 0.5f;
+    public float effectFadeOutDuration = 0.7f;
+    public float effectScaleMin = 0.8f;
+    public float effectScaleMax = 1.2f;
+
     public static UIManager Instance
     {
         get
@@ -54,13 +67,20 @@ public class UIManager : MonoBehaviour
                 {
                     Debug.LogError("UIManager 인스턴스를 찾을 수 없습니다.");
                 }
-                else
-                {
-                    DontDestroyOnLoad(uimInstance.gameObject);
-                }
             }
             return uimInstance;
         }
+    }
+
+    private void Awake()
+    {
+        if (uimInstance != null && uimInstance != this)
+        {
+            Destroy(gameObject);
+            return;
+        }
+        
+        uimInstance = this;
     }
 
     public void Start()
@@ -192,110 +212,69 @@ public class UIManager : MonoBehaviour
         UpdateTurnText();
     }
 
-    public void ShowCharacterInfo(CharacterProfile character)
+    public void ShowCharacterInfo(CharacterProfile character, bool showSkill = false)
     {
-        if (BattleManager.Instance.state == GameState.playerTurn || BattleManager.Instance.state == GameState.enemyTurn)
+        if (character.CompareTag("Player"))
         {
-            if (character.CompareTag("Player"))
-            {
-                playerProfilePanel.SetActive(true);
-                UpdatePlayerInfoPanel(character);
-                HideSkillCards(playerProfilePanel);
-            }
-            else if (character.CompareTag("Enemy"))
-            {
-                enemyProfilePanel.SetActive(true);
-                UpdateEnemyInfoPanel(character);
-                HideSkillCards(enemyProfilePanel);
-            }
+            playerProfilePanel.SetActive(true);
+            UpdateCharacterInfoPanel(playerProfilePanel, character, showSkill, true);
+        }
+        else if (character.CompareTag("Enemy"))
+        {
+            enemyProfilePanel.SetActive(true);
+            UpdateCharacterInfoPanel(enemyProfilePanel, character, showSkill, false);
+        }
+    }
+
+    private void UpdateCharacterInfoPanel(GameObject panel, CharacterProfile character, bool showSkill, bool isPlayer)
+    {
+        // 기본 정보 업데이트
+        TextMeshProUGUI dmgLevelText = panel.transform.Find("DmgLevelText").GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI defLevelText = panel.transform.Find("DefLevelText").GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI maxDmgText = panel.transform.Find("MaxDmgText").GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI minDmgText = panel.transform.Find("MinDmgText").GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI dmgUpText = panel.transform.Find("DmgUpText").GetComponent<TextMeshProUGUI>();
+        TextMeshProUGUI coinText = panel.transform.Find("CoinText").GetComponent<TextMeshProUGUI>();
+
+        // 스킬 관련 UI 요소
+        Image skillIcon = panel.transform.Find("SkillIcon").GetComponent<Image>();
+        TextMeshProUGUI skillName = panel.transform.Find("SkillName").GetComponent<TextMeshProUGUI>();
+        Transform skillCards = panel.transform.Find("SkillCards");
+
+        // 기본 정보 설정
+        dmgLevelText.text = character.GetPlayer.dmgLevel.ToString();
+        defLevelText.text = character.GetPlayer.defLevel.ToString();
+        maxDmgText.text = character.GetPlayer.maxDmg.ToString();
+        minDmgText.text = character.GetPlayer.minDmg.ToString();
+        dmgUpText.text = "+" + character.GetPlayer.dmgUp.ToString();
+        coinText.text = character.GetPlayer.coin.ToString();
+
+        // 스킬 정보 표시
+        if (showSkill && character.GetPlayer.skills != null && character.GetPlayer.skills.Count > 0)
+        {
+            skillIcon.gameObject.SetActive(true);
+            skillName.gameObject.SetActive(true);
+            skillIcon.sprite = character.GetPlayer.skills[0].sprite;
+            skillName.text = character.GetPlayer.skills[0].skillName;
         }
         else
         {
-            if (character.CompareTag("Player"))
-            {
-                playerProfilePanel.SetActive(true);
-                UpdatePlayerInfoPanel(character);
-                ShowSkillCards(playerProfilePanel);
-            }
-            else if (character.CompareTag("Enemy"))
-            {
-                enemyProfilePanel.SetActive(true);
-                UpdateEnemyInfoPanel(character);
-                //ShowSkillCards(enemyProfilePanel);
-            }
+            skillIcon.gameObject.SetActive(false);
+            skillName.gameObject.SetActive(false);
         }
-    }
 
-    public void HideSkillCards(GameObject profilePanel)
-    {
-        Transform skillCards = profilePanel.transform.Find("SkillCards");
+        // SkillCards는 플레이어 패널에서만 사용
         if (skillCards != null)
         {
-            foreach (Transform card in skillCards)
-            {
-                card.gameObject.SetActive(false);
-            }
+            skillCards.gameObject.SetActive(isPlayer);
         }
-    }
 
-    public void ShowSkillCards(GameObject profilePanel)
-    {
-        Transform skillCards = profilePanel.transform.Find("SkillCards");
-        if (skillCards != null)
-        {
-            foreach (Transform card in skillCards)
-            {
-                card.gameObject.SetActive(true);
-            }
-        }
-    }
-
-    private void UpdatePlayerInfoPanel(CharacterProfile player)
-    {
-        TextMeshProUGUI playerDmgLevelText = playerProfilePanel.transform.Find("DmgLevelText").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI playerDefLevelText = playerProfilePanel.transform.Find("DefLevelText").GetComponent<TextMeshProUGUI>();
-        
-        TextMeshProUGUI playerMaxDmgText = playerProfilePanel.transform.Find("MaxDmgText").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI playerMinDmgText = playerProfilePanel.transform.Find("MinDmgText").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI playerDmgUpText = playerProfilePanel.transform.Find("DmgUpText").GetComponent<TextMeshProUGUI>();
-
-        Image playerSkillIcon = playerProfilePanel.transform.Find("SkillIcon").GetComponent<Image>();
-        TextMeshProUGUI playerSkillName = playerProfilePanel.transform.Find("SkillName").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI playerCoinText = playerProfilePanel.transform.Find("CoinText").GetComponent<TextMeshProUGUI>();
-
-        playerDmgLevelText.text = player.GetPlayer.dmgLevel.ToString();
-        playerDefLevelText.text = player.GetPlayer.defLevel.ToString();
-        playerMaxDmgText.text = player.GetPlayer.maxDmg.ToString();
-        playerMinDmgText.text = player.GetPlayer.minDmg.ToString();
-        playerDmgUpText.text = "+" + player.GetPlayer.dmgUp.ToString();
-
-        playerSkillIcon.sprite = player.GetPlayer.skills[0].sprite;
-        playerSkillName.text = player.GetPlayer.skills[0].skillName;
-        playerCoinText.text = player.GetPlayer.coin.ToString();
-    }
-
-    private void UpdateEnemyInfoPanel(CharacterProfile enemy)
-    {
-        TextMeshProUGUI enemyDmgLevelText = enemyProfilePanel.transform.Find("DmgLevelText").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI enemyDefLevelText = enemyProfilePanel.transform.Find("DefLevelText").GetComponent<TextMeshProUGUI>();
-
-        TextMeshProUGUI enemyMaxDmgText = enemyProfilePanel.transform.Find("MaxDmgText").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI enemyMinDmgText = enemyProfilePanel.transform.Find("MinDmgText").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI enemyDmgUpText = enemyProfilePanel.transform.Find("DmgUpText").GetComponent<TextMeshProUGUI>();
-
-        Image enemySkillIcon = enemyProfilePanel.transform.Find("SkillIcon").GetComponent<Image>();
-        TextMeshProUGUI enemySkillName = enemyProfilePanel.transform.Find("SkillName").GetComponent<TextMeshProUGUI>();
-        TextMeshProUGUI enemyCoinText = enemyProfilePanel.transform.Find("CoinText").GetComponent<TextMeshProUGUI>();
-
-        enemyDmgLevelText.text = enemy.GetPlayer.dmgLevel.ToString();
-        enemyDefLevelText.text = enemy.GetPlayer.defLevel.ToString();
-        enemyMaxDmgText.text = enemy.GetPlayer.maxDmg.ToString();
-        enemyMinDmgText.text = enemy.GetPlayer.minDmg.ToString();
-        enemyDmgUpText.text = "+" + enemy.GetPlayer.dmgUp.ToString();
-
-        enemySkillIcon.sprite = enemy.GetPlayer.skills[0].sprite;
-        enemySkillName.text = enemy.GetPlayer.skills[0].skillName;
-        enemyCoinText.text = enemy.GetPlayer.coin.ToString();
+        Debug.LogWarning($"[캐릭터 정보 업데이트] {character.GetPlayer.charName} ({(isPlayer ? "플레이어" : "적")})" +
+            $"\n- 공격력: {character.GetPlayer.dmgLevel}" +
+            $"\n- 방어력: {character.GetPlayer.defLevel}" +
+            $"\n- 데미지: {character.GetPlayer.minDmg}-{character.GetPlayer.maxDmg} (+{character.GetPlayer.dmgUp})" +
+            $"\n- 코인: {character.GetPlayer.coin}" +
+            (showSkill ? $"\n- 선택된 스킬: {character.GetPlayer.skills[0].skillName}" : ""));
     }
 
     public void ShowBattleResultText(string message, Vector3 position)
@@ -369,38 +348,63 @@ public class UIManager : MonoBehaviour
     {
         if (isBattle)
         {
-            HideSkillCards(playerProfilePanel);
-            HideSkillCards(enemyProfilePanel);
+            if (playerProfilePanel != null)
+                HideSkillCards(playerProfilePanel);
+            if (enemyProfilePanel != null)
+                HideSkillCards(enemyProfilePanel);
         }
         else
         {
-            ShowSkillCards(playerProfilePanel);
-            ShowSkillCards(enemyProfilePanel);
+            if (playerProfilePanel != null)
+                ShowSkillCards(playerProfilePanel);
+            if (enemyProfilePanel != null)
+                ShowSkillCards(enemyProfilePanel);
         }
     }
 
     public void ShowGameEndUI()
     {
-        if (gameEndPanel == null) return;
+        if (gameEndPanel == null)
+        {
+            Debug.LogError("gameEndPanel이 할당되지 않았습니다.");
+            return;
+        }
 
         gameEndPanel.SetActive(true);
         gameEndPanel.transform.SetAsLastSibling();
 
-        // Menu 버튼 이벤트 수정
+        // Menu 버튼 이벤트 재설정
         if (menuButton != null)
         {
+            Debug.Log("Menu 버튼 이벤트 설정");
             menuButton.onClick.RemoveAllListeners();
-            menuButton.onClick.AddListener(LoadMainScene);
+            menuButton.onClick.AddListener(() => {
+                Debug.Log("Menu 버튼 클릭됨");
+                LoadMainScene();
+            });
+        }
+        else
+        {
+            Debug.LogError("menuButton이 할당되지 않았습니다.");
         }
     }
 
     // 씬 전환 메서드 추가
     public void LoadMainScene()
     {
-        StartCoroutine(LoadSceneWithFakeLoading("MainScene"));
+        Debug.Log("LoadMainScene 호출됨");
+        
+        // 게임 속도 초기화
+        Time.timeScale = 1f;
+        
+        // SceneButtonManager를 통해 다음 씬 이름 설정
+        SceneButtonManager.nextSceneName = "MainScene";
+        
+        // 페이드 아웃 후 FakeLoading 씬으로 전환
+        StartCoroutine(LoadMainSceneCoroutine());
     }
 
-    private IEnumerator LoadSceneWithFakeLoading(string sceneName)
+    private IEnumerator LoadMainSceneCoroutine()
     {
         // 로딩 화면 활성화
         if (loadingScreen != null)
@@ -412,13 +416,153 @@ public class UIManager : MonoBehaviour
             if (fadeImage != null)
             {
                 fadeImage.DOFade(1f, 0.5f);
+                yield return new WaitForSeconds(0.5f);
             }
         }
 
-        // 페이크 로딩 시간
-        yield return new WaitForSeconds(1f);
+        // UIManager 인스턴스 제거
+        if (uimInstance != null)
+        {
+            Destroy(uimInstance.gameObject);
+            uimInstance = null;
+        }
 
-        // 씬 로드
-        SceneManager.LoadScene(sceneName);
+        // FakeLoading 씬으로 전환
+        SceneManager.LoadScene("Loading");
+    }
+
+    // 혈흔 이펙트 생성 메서드
+    public void CreateBloodEffect(Vector3 position)
+    {
+        if (bloodEffectPrefab == null || bloodSprites.Length == 0) return;
+
+        GameObject bloodEffect = Instantiate(bloodEffectPrefab, position, Quaternion.identity);
+        SpriteRenderer spriteRenderer = bloodEffect.GetComponent<SpriteRenderer>();
+        
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = bloodSprites[Random.Range(0, bloodSprites.Length)];
+            bloodEffect.transform.rotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
+            float randomScale = Random.Range(effectScaleMin, effectScaleMax);
+            bloodEffect.transform.localScale = Vector3.zero;
+
+            Sequence bloodSequence = DOTween.Sequence();
+
+            Color startColor = spriteRenderer.color;
+            startColor.a = 0;
+            spriteRenderer.color = startColor;
+
+            bloodSequence.Append(bloodEffect.transform.DOScale(randomScale, effectFadeInDuration)
+                .SetEase(Ease.OutQuart));
+            bloodSequence.Join(spriteRenderer.DOFade(1f, effectFadeInDuration)
+                .SetEase(Ease.OutQuart));
+
+            bloodSequence.AppendInterval(effectStayDuration);
+
+            bloodSequence.Append(bloodEffect.transform.DOScale(randomScale * 1.3f, effectFadeOutDuration)
+                .SetEase(Ease.InQuart));
+            bloodSequence.Join(spriteRenderer.DOFade(0f, effectFadeOutDuration)
+                .SetEase(Ease.InQuart));
+
+            bloodSequence.OnComplete(() => Destroy(bloodEffect));
+        }
+    }
+
+    // 독 효과 생성 메서드
+    public void CreatePoisonEffect(Vector3 position)
+    {
+        // 현재는 혈흔 이펙트를 녹색으로 변경하여 사용
+        if (bloodEffectPrefab == null || bloodSprites.Length == 0) return;
+
+        GameObject poisonEffect = Instantiate(bloodEffectPrefab, position, Quaternion.identity);
+        SpriteRenderer spriteRenderer = poisonEffect.GetComponent<SpriteRenderer>();
+        
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = bloodSprites[Random.Range(0, bloodSprites.Length)];
+            // 녹색으로 색상 변경
+            spriteRenderer.color = new Color(0.2f, 1f, 0.2f, 0f);
+            
+            poisonEffect.transform.rotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
+            float randomScale = Random.Range(effectScaleMin, effectScaleMax);
+            poisonEffect.transform.localScale = Vector3.zero;
+
+            Sequence poisonSequence = DOTween.Sequence();
+
+            poisonSequence.Append(poisonEffect.transform.DOScale(randomScale, effectFadeInDuration)
+                .SetEase(Ease.OutQuart));
+            poisonSequence.Join(spriteRenderer.DOFade(0.7f, effectFadeInDuration)
+                .SetEase(Ease.OutQuart));
+
+            poisonSequence.AppendInterval(effectStayDuration);
+
+            poisonSequence.Append(poisonEffect.transform.DOScale(randomScale * 1.3f, effectFadeOutDuration)
+                .SetEase(Ease.InQuart));
+            poisonSequence.Join(spriteRenderer.DOFade(0f, effectFadeOutDuration)
+                .SetEase(Ease.InQuart));
+
+            poisonSequence.OnComplete(() => Destroy(poisonEffect));
+        }
+    }
+
+    // 방어 효과 생성 메서드
+    public void CreateDefenseEffect(Vector3 position)
+    {
+        // 현재는 혈흔 이펙트를 파란색으로 변경하여 사용
+        if (bloodEffectPrefab == null || bloodSprites.Length == 0) return;
+
+        GameObject defenseEffect = Instantiate(bloodEffectPrefab, position, Quaternion.identity);
+        SpriteRenderer spriteRenderer = defenseEffect.GetComponent<SpriteRenderer>();
+        
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sprite = bloodSprites[Random.Range(0, bloodSprites.Length)];
+            // 파란색으로 색상 변경
+            spriteRenderer.color = new Color(0.2f, 0.2f, 1f, 0f);
+            
+            defenseEffect.transform.rotation = Quaternion.Euler(0, 0, Random.Range(0f, 360f));
+            float randomScale = Random.Range(effectScaleMin * 1.5f, effectScaleMax * 1.5f);
+            defenseEffect.transform.localScale = Vector3.zero;
+
+            Sequence defenseSequence = DOTween.Sequence();
+
+            defenseSequence.Append(defenseEffect.transform.DOScale(randomScale, effectFadeInDuration * 0.5f)
+                .SetEase(Ease.OutBack));
+            defenseSequence.Join(spriteRenderer.DOFade(0.7f, effectFadeInDuration * 0.5f)
+                .SetEase(Ease.OutQuart));
+
+            defenseSequence.AppendInterval(effectStayDuration * 0.5f);
+
+            defenseSequence.Append(defenseEffect.transform.DOScale(randomScale * 1.2f, effectFadeOutDuration)
+                .SetEase(Ease.InBack));
+            defenseSequence.Join(spriteRenderer.DOFade(0f, effectFadeOutDuration)
+                .SetEase(Ease.InQuart));
+
+            defenseSequence.OnComplete(() => Destroy(defenseEffect));
+        }
+    }
+
+    public void HideSkillCards(GameObject profilePanel)
+    {
+        Transform skillCards = profilePanel.transform.Find("SkillCards");
+        if (skillCards != null)
+        {
+            foreach (Transform card in skillCards)
+            {
+                card.gameObject.SetActive(false);
+            }
+        }
+    }
+
+    public void ShowSkillCards(GameObject profilePanel)
+    {
+        Transform skillCards = profilePanel.transform.Find("SkillCards");
+        if (skillCards != null)
+        {
+            foreach (Transform card in skillCards)
+            {
+                card.gameObject.SetActive(true);
+            }
+        }
     }
 }

@@ -77,7 +77,7 @@ public class BattleMove : MonoBehaviour
 
         if (animator != null)
         {
-            animator.SetTrigger("Return");      //Return 애니메이션 재생
+            animator.SetTrigger("Return");
         }
 
         StartCoroutine(RetreatCoroutine());

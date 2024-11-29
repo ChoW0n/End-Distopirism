@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 1006
   m_EditorClassIdentifier: 
   skillName: "\uBC29\uC5B4 \uD0DC\uC138"
-  sprite: {fileID: 21300000, guid: 48f82160233089645b648daee9f589bc, type: 3}
+  sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   maxDmg: 0
   minDmg: 0
   dmgUp: 0

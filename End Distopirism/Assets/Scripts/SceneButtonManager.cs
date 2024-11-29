@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 
 public class SceneButtonManager : MonoBehaviour
 {
-    private static string nextSceneName; // 다음에 로드할 씬 이름을 저장
+    public static string nextSceneName; // 다음에 로드할 씬 이름을 저장
 
     public void OnGameStartButtonClick()
     {

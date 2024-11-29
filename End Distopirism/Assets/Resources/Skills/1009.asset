@@ -13,12 +13,13 @@ MonoBehaviour:
   m_Name: 1009
   m_EditorClassIdentifier: 
   skillName: "\uD654\uC5FC \uACF5\uACA9"
-  sprite: {fileID: 21300000, guid: 53a514f313eb69c4e8a96764dd50068e, type: 3}
+  sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
   maxDmg: 10
   minDmg: 1
   dmgUp: 5
   skillEffect: "\uCF54\uC778 \uC131\uACF5 \uC2DC \uACF5\uACA9\uB825\uC744 \uCD94\uAC00\uB85C
-    2x\uCF54\uC778 \uC131\uACF5 \uB9CC\uD07C \uC99D\uAC00 \uC2DC\uD0A8\uB2E4."
+    2 \uB9CC\uD07C \uC99D\uAC00 \uC2DC\uCF1C\uC11C \uACC4\uC0B0\uD55C\uB2E4.\n\uD53C\uD574\uB97C
+    \uC785\uD790 \uB54C \uC131\uACF5\uD55C \uCF54\uC778 \uC218x2 \uB9CC\uD07C \uCD94\uAC00\uB41C\uB2E4."
   animationClip: {fileID: 0}
   successSprite: {fileID: 21300000, guid: 53a514f313eb69c4e8a96764dd50068e, type: 3}
   nomalSprite: {fileID: 21300000, guid: 53a514f313eb69c4e8a96764dd50068e, type: 3}

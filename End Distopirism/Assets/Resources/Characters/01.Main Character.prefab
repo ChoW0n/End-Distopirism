@@ -156,11 +156,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player:
     charName: 2
-    maxHp: 500
+    maxHp: 320
     charSkillCost: 0
-    hp: 500
-    defLevel: 10
-    dmgLevel: 46
+    hp: 320
+    defLevel: 5
+    dmgLevel: 29
     dmg: 0
     maxDmg: 0
     minDmg: 0
@@ -172,7 +172,14 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
     - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
+    - {fileID: 11400000, guid: 2538a751088a3da44a11f56da2283aaa, type: 2}
+    - {fileID: 11400000, guid: 7c74f96862837314e9a54e91bfcdb657, type: 2}
+    - {fileID: 11400000, guid: 0aac1188631607640ac688a9a7e448af, type: 2}
+    - {fileID: 11400000, guid: 202be729fb35f6744b6ec9ae9c014e0f, type: 2}
+    - {fileID: 11400000, guid: 7bf5ba6f4a8b1a9489cc7b880851ed76, type: 2}
+    - {fileID: 11400000, guid: 1adb3973bef31524187bc2c436ed4807, type: 2}
     charSprite: {fileID: 21300000, guid: 862b99b52f75909459e2ee9f6650d435, type: 3}
+    nextTurnCoinModifier: 0
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -180,6 +187,8 @@ MonoBehaviour:
   isSelected: 0
   dashSound: {fileID: 8300000, guid: 3661e34dd70d4874e95cde6addbe6833, type: 3}
   hitSound: {fileID: 8300000, guid: 0fc901fc5e8d72e4d940520309581052, type: 3}
+  skillHistories: []
+  effectHistories: []
 --- !u!95 &6267676677727840330
 Animator:
   serializedVersion: 5
@@ -302,6 +311,7 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
     - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
     charSprite: {fileID: 0}
+    nextTurnCoinModifier: 0
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -309,6 +319,8 @@ MonoBehaviour:
   isSelected: 0
   dashSound: {fileID: 0}
   hitSound: {fileID: 0}
+  skillHistories: []
+  effectHistories: []
 --- !u!1 &7489276980239309848
 GameObject:
   m_ObjectHideFlags: 0

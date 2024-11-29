@@ -76,7 +76,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // 선택된 캐릭터들이  인
+        // 선택된 캐릭터들이 있는지 확인
         if (DeckData.selectedCharacterPrefabs == null || DeckData.selectedCharacterPrefabs.Count == 0)
         {
             Debug.LogError("선택된 캐릭터가 없습니다.");
@@ -98,13 +98,29 @@ public class BattleManager : MonoBehaviour
         playerCheck = players.Length;
         enemyCheck = enemys.Length;
 
-        Debug.Log($"생성된 플레이어 수: {players.Length}, 적 수: {enemys.Length}");
+        Debug.LogWarning($"생성된 플레이어 수: {players.Length}, 적 수: {enemys.Length}");
+
+        // 적 정보 패널 비활성화
+        if (UIManager.Instance != null && UIManager.Instance.enemyProfilePanel != null)
+        {
+            UIManager.Instance.enemyProfilePanel.SetActive(false);
+        }
 
         // 게임 시작시 전투 시작
         BattleStart();
 
         // TargetArrowCreator 초기화
         arrowCreator = gameObject.AddComponent<TargetArrowCreator>();
+
+        // 적 캐릭터들의 초기 스킬 설정
+        foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            CharacterProfile profile = enemy.GetComponent<CharacterProfile>();
+            if (profile != null)
+            {
+                profile.InitializeEnemySkill();
+            }
+        }
     }
 
     public void Update()
@@ -118,6 +134,13 @@ public class BattleManager : MonoBehaviour
 
     void BattleStart()
     {
+        // UIManager가 없으면 생성되도록 수정
+        if (UIManager.Instance == null)
+        {
+            Debug.LogError("UIManager를 찾을 수 없습니다.");
+            return;
+        }
+        
         // 전투 시작 시 캐릭터 등장 애니메이션
         StartCoroutine(CharacterEntryAnimation());
         
@@ -202,6 +225,7 @@ public class BattleManager : MonoBehaviour
     {
         if (state != GameState.playerTurn || !allTargetSelected || isAttacking)
         {
+            Debug.Log($"전투 버튼 비활성화 상태 - state: {state}, allTargetSelected: {allTargetSelected}, isAttacking: {isAttacking}");
             return;
         }
 
@@ -214,7 +238,7 @@ public class BattleManager : MonoBehaviour
             player.HideSkillCards();
         }
 
-        // 캐릭터들을 중앙으로 이동시킴
+        // 캐릭터들을  시킴
         MoveCombatants();
         StartCoroutine(WaitForMovementAndAttack());
 
@@ -266,7 +290,7 @@ public class BattleManager : MonoBehaviour
             {
                 CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
                 
-                // 이미 다른 캐릭터가 택되 있고, 스킬-적 선택이 완료되지 않은 경우
+                // 이미 다른 캐릭터가 선택되어 있고, 스킬-적 선택이 완료되지 않은 경우
                 if (playerObjects.Count > 0 && targetObjects.Count == 0)
                 {
                     // 이전 선택된 캐릭터의 선택 해제
@@ -291,7 +315,7 @@ public class BattleManager : MonoBehaviour
         }
         else if (skillSelected && selecting)
         {
-            // 적 선택 로직
+            // 적 선택 로
             GameObject clickObject = UIManager.Instance.MouseGetObject();
             if (clickObject != null && clickObject.CompareTag("Enemy"))
             {
@@ -300,9 +324,9 @@ public class BattleManager : MonoBehaviour
                 {
                     targetObjects.Add(selectedEnemy);
                     selectedEnemy.isSelected = true;
+                    selectedEnemy.ShowCharacterInfo();
                     selecting = false;
                     skillSelected = false;
-                    //selectedEnemy.ShowCharacterInfo();
                     
                     // 화살표 연결
                     if (playerObjects.Count > 0)
@@ -316,7 +340,10 @@ public class BattleManager : MonoBehaviour
         // 선택 상태 업데이트
         playerSelect = playerObjects.Count > 0;
         enemySelect = targetObjects.Count > 0;
-        allTargetSelected = (playerObjects.Count == playerCheck && targetObjects.Count == enemyCheck);
+        
+        // allTargetSelected 조건 정
+        int availableEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+        allTargetSelected = (playerObjects.Count == playerCheck || playerObjects.Count == availableEnemies);
     }
 
     private void RedrawAllConnections()
@@ -328,28 +355,47 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    void CoinRoll(CharacterProfile Object, ref int successCount)// 정신력에 비례하여 코인 결과 조정
+    void CoinRoll(CharacterProfile Object, ref int successCount)
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 1; i < matchCount; i++)
         {
-            float maxMenTality = 100f; // 최대 정신력
-            float maxProbability = 0.6f; // 최대 확률 (60%)
+            float maxMenTality = 100f;
+            float maxProbability = 0.6f;
 
-            // 정신에 른 확률 계산
-            float currentProbability = Mathf.Max(0f, maxProbability * (Object.GetPlayer.menTality / maxMenTality));
+            // 정신력 계산 시 혼란 효과 특별 처리
+            float effectiveMentality = Object.GetPlayer.menTality;
+            bool isConfused = Object.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
+            
+            if (isConfused)
+            {
+                effectiveMentality -= 20f;
+                Debug.LogWarning($"[혼란 효과] {Object.GetPlayer.charName}의 코인 굴림 시 정신력 {Object.GetPlayer.menTality} -> {effectiveMentality}");
+            }
 
+            float currentProbability = Mathf.Max(0f, maxProbability * (effectiveMentality / maxMenTality));
+            Debug.LogWarning($"[코인 확률] {Object.GetPlayer.charName}의 현재 성공 확률: {currentProbability * 100:F1}%");
+
+            Object.successCount = 0; // 코인 성공 횟수 초기화
             for (int j = 1; j < Object.GetPlayer.coin - 1; j++)
             {
-                // 코인 던지기: 현재 확률에 따라 성공 여부 결정
                 if (Random.value < currentProbability)
                 {
                     Object.successCount++;
+                    // 코인 성공 시마다 UI 업데이트
+                    Object.UpdateCoinCount(Object.successCount);
+                    
+                    // "화염 공격" 스킬의 코인 성공 보너스
+                    if (Object.GetPlayer.skills[0].skillName == "화염 공격")
+                    {
+                        Object.GetPlayer.dmgUp += 2;
+                        Debug.LogWarning($"{Object.GetPlayer.charName}의 화염 공격으로 공격력 2 증가");
+                    }
                 }
             }
             Object.coinBonus = Object.successCount * Object.GetPlayer.dmgUp;
-            Debug.Log($"{Object.GetPlayer.charName}의 코인 던지기 성공 횟수: {Object.successCount} / {Object.GetPlayer.coin} ");
-            Debug.Log($"{Object.GetPlayer.charName}의 남은 코인: {Object.GetPlayer.coin} / {Object.GetPlayer.maxCoin}");
+            Debug.LogWarning($"{Object.GetPlayer.charName}의 코인 던지기 성공 횟수: {Object.successCount} / {Object.GetPlayer.coin}");
+            Debug.LogWarning($"{Object.GetPlayer.charName}의 남은 코인: {Object.GetPlayer.coin} / {Object.GetPlayer.maxCoin}");
         }
     }
 
@@ -378,6 +424,25 @@ public class BattleManager : MonoBehaviour
         isAttacking = true;
         yield return new WaitForSeconds(1f);
 
+        // 출혈 효과 적용
+        foreach (var player in playerObjects.Where(p => p != null))
+        {
+            foreach (var effect in player.GetPlayer.statusEffects.ToList())
+            {
+                if (effect.effectName == "출혈")
+                {
+                    int bleedDamage = Mathf.RoundToInt(player.GetPlayer.maxHp * effect.healthPercentDamage);
+                    player.GetPlayer.hp -= bleedDamage;
+                    player.UpdateStatus();
+                    UIManager.Instance.ShowDamageTextNearCharacter(bleedDamage, player.transform);
+                    UIManager.Instance.CreateBloodEffect(player.transform.position);
+                    Debug.LogWarning($"[출혈 피해] {player.GetPlayer.charName}이(가) 출혈로 {bleedDamage}의 피해를 입음");
+                }
+                effect.duration--;
+                Debug.LogWarning($"[상태이상 지속시간] {player.GetPlayer.charName}의 {effect.effectName} 효과 남은 지속시간: {effect.duration}턴");
+            }
+            player.CheckStatusEffects();
+        }
 
         Debug.Log("플레이어 격");
         DiffCheck();
@@ -461,7 +526,7 @@ public class BattleManager : MonoBehaviour
         {
             UIManager.Instance.ShowBattleResultText("승리", playerObjectPosition + Vector3.up * 250f);
             UIManager.Instance.ShowBattleResultText("패배", targetObjectPosition + Vector3.up * 250f);
-            playerObject.PlayHitSound(); // 합 승리 시 히트 사운드
+            playerObject.PlayHitSound(); // 합 승리 시 히트 사드
         }
         else
         {
@@ -500,6 +565,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             CoinRoll(attacker, ref attacker.successCount);
             attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
             attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
+            // 코인 성공 횟수 UI 업데이트
+            attacker.UpdateCoinCount(attacker.successCount);
         }
 
         // 공격자 전진, 피해자 후퇴 시작
@@ -511,24 +578,129 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         }
         if (victimMove != null)
         {
-            victim.PlayDashSound(); // 대시 사운드 먼저 재생
+            victim.PlayDashSound(); // 대시 사운드 먼저 생
             yield return new WaitForSeconds(0.1f); // 약간의 딜레이
             victimMove.Retreat();
         }
 
-        // 전진과 후퇴가 끝날 때까지 대기
+        // 전진과 후퇴가 끝날 때까지 기
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
-        // 피해를 적용하고 데미지 텍스트 표시
-        victim.GetPlayer.hp -= attacker.GetPlayer.dmg - victim.GetPlayer.defLevel;
+        // 피해를 적용하기 전에 스킬 효과 확인
+        if (attacker.GetPlayer.skills[0].skillName == "무모한 일격" && attacker.GetPlayer.dmg > victim.GetPlayer.dmg)
+        {
+            // 공격자의 체력 감소
+            attacker.GetPlayer.hp -= 10;
+            attacker.UpdateStatus();
+            UIManager.Instance.ShowDamageTextNearCharacter(10, attacker.transform);
+            Debug.LogWarning($"{attacker.GetPlayer.charName}이(가) 무모한 일격으로 10의 자해 피해");
+
+            // 코인 성공 횟수에 따른 추가 피해
+            int additionalDamage = attacker.successCount * 2;
+            attacker.GetPlayer.dmg += additionalDamage;
+            Debug.LogWarning($"{attacker.GetPlayer.charName}의 무모한 일격 추가 피해: {additionalDamage}");
+        }
+
+        // "강력한 한 방" 스킬 처리
+        if (attacker.GetPlayer.skills[0].skillName == "강력한 한 방")
+        {
+            if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
+            {
+                // 공격자의 피해량 8 증가
+                attacker.GetPlayer.dmg += 8;
+                Debug.LogWarning($"{attacker.GetPlayer.charName}의 강력한 한 방으로 피해량 8 증가");
+                attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
+            }
+            else // 합 패배 시
+            {
+                // 상대의 피해량 12 증가
+                victim.GetPlayer.dmg += 12;
+                Debug.LogWarning($"{attacker.GetPlayer.charName}의 강력한 한 방 실패로 {victim.GetPlayer.charName}의 피해량 12 증가");
+                victim.UpdateSkillEffectDamage(victim.GetPlayer.dmg);
+            }
+        }
+
+        // "독바르기" 스킬 처리
+        if (attacker.GetPlayer.skills[0].skillName == "독바르기")
+        {
+            if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
+            {
+                victim.GetPlayer.AddStatusEffect("독");
+                Debug.LogWarning($"{victim.GetPlayer.charName}에게 독 효과가 부여되었습니다.");
+                // 독 효과 시각화 (예: 초록색 파티클 등)
+                UIManager.Instance.CreatePoisonEffect(victim.transform.position);
+            }
+        }
+
+        // 피해량 계산 시 독 효과와 방어력 감소 효과 적용
+        float finalDamage = attacker.GetPlayer.dmg;
+        float originalDamage = finalDamage;
+
+        // 공격자의 독 효과로 인한 피해량 감소
+        foreach (var effect in attacker.GetPlayer.statusEffects)
+        {
+            if (effect.effectName == "독")
+            {
+                float beforePoison = finalDamage;
+                finalDamage *= (1f + effect.outgoingDamageModifier);
+                float poisonReduction = beforePoison - finalDamage;
+                Debug.LogWarning($"[독 효과 - 공격자] {attacker.GetPlayer.charName}의 독으로 인한 피해량 감소: {poisonReduction:F1} ({effect.outgoingDamageModifier * 100}%)");
+            }
+        }
+
+        // 피해자의 독 효과로 인한 피해량 증가
+        foreach (var effect in victim.GetPlayer.statusEffects)
+        {
+            if (effect.effectName == "독")
+            {
+                float beforePoison = finalDamage;
+                finalDamage *= (1f + effect.incomingDamageModifier);
+                float poisonIncrease = finalDamage - beforePoison;
+                Debug.LogWarning($"[독 효과 - 피해자] {victim.GetPlayer.charName}가 받는 추가 피해: {poisonIncrease:F1} ({effect.incomingDamageModifier * 100}%)");
+            }
+        }
+
+        // 방어력 수정치 계산
+        float defenseModifier = 1f;
+        int originalDefense = victim.GetPlayer.defLevel;
+        foreach (var effect in victim.GetPlayer.statusEffects)
+        {
+            if (effect.effectName == "방어력감소")
+            {
+                defenseModifier = effect.defenseModifier;
+                Debug.LogWarning($"[방어력 감소] {victim.GetPlayer.charName}의 방어력이 {defenseModifier * 100}%로 감소됨");
+                Debug.LogWarning($"[방어력 감소] 원래 방어력: {originalDefense} -> 감소된 방어력: {Mathf.RoundToInt(originalDefense * defenseModifier)}");
+            }
+        }
+
+        // 최종 피해 적용
+        int modifiedDefense = Mathf.RoundToInt(victim.GetPlayer.defLevel * defenseModifier);
+        int finalDamageInt = Mathf.RoundToInt(finalDamage) - modifiedDefense;
+
+        victim.GetPlayer.hp -= finalDamageInt;
         victim.UpdateStatus();
-        UIManager.Instance.ShowDamageTextNearCharacter(attacker.GetPlayer.dmg, victim.transform);
-        attacker.PlayHitSound(); // 데미지를 입힐 때 히트 사운드 재생
-        Debug.Log($"{attacker.GetPlayer.charName}이(가) 가한 피해: {attacker.GetPlayer.dmg}");
+        UIManager.Instance.ShowDamageTextNearCharacter(finalDamageInt, victim.transform);
+        UIManager.Instance.CreateBloodEffect(victim.transform.position);
+        attacker.PlayHitSound();
+
+        // 피해 상세 로그
+        Debug.LogWarning($"[피해 상세 - {victim.GetPlayer.charName}]");
+        Debug.LogWarning($"- 기본 피해량: {originalDamage}");
+        Debug.LogWarning($"- 상태이상 적용 후 피해량: {finalDamage:F1} (차이: {finalDamage - originalDamage:+0.0;-0.0;0.0})");
+        Debug.LogWarning($"- 방어력: {modifiedDefense} (원래: {originalDefense}, 감소: {originalDefense - modifiedDefense})");
+        Debug.LogWarning($"- 최종 피해: {finalDamageInt}");
+
+        // 피해를 입을 때 50% 확률로 정신력 감소
+        if (Random.value < 0.5f)
+        {
+            victim.GetPlayer.menTality = Mathf.Max(0, victim.GetPlayer.menTality - 2);
+            victim.UpdateStatus();
+            Debug.LogWarning($"[정신력 감소] {victim.GetPlayer.charName}의 정신력 2 감소 (피해로 인한 감소)");
+        }
 
         StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
 
-        // 피해자가 사망했는지 확인
+        // 피해자가 사망는지 확인
         if (victim != null && 0 >= victim.GetPlayer.hp)
         {
             // OnDeath 메서드 호출 전에 필요한 정리 작업 수행
@@ -539,7 +711,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             if (silhouette != null)
             {
                 silhouette.Active = false;
-                // 실루엣 ���크 찾아서 제거
+                // 실루엣 크 찾아서 제거
                 Transform bank = GameObject.Find($"{victim.gameObject.name}_SilhouetteBank")?.transform;
                 if (bank != null)
                 {
@@ -583,14 +755,18 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         yield return new WaitForSeconds(1f);
     }
 
-    // 정신력 감소
-    victim.GetPlayer.menTality -= 2;  // 패배 시 정신력 -2
-    victim.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
+    // 정신력 변경
+    // 합 패배 시 정신력 -10
+    victim.GetPlayer.menTality = Mathf.Max(0, victim.GetPlayer.menTality - 10);
+    victim.UpdateStatus();
+    Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력 10 감소 (합 패배)");
     
+    // 합 승리 시 정신력 +5 (최대 100)
     if (attacker.GetPlayer.menTality < 100)
     {
-        attacker.GetPlayer.menTality += 1;    // 승리 시 정신력 +1
-        attacker.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
+        attacker.GetPlayer.menTality = Mathf.Min(100, attacker.GetPlayer.menTality + 5);
+        attacker.UpdateStatus();
+        Debug.LogWarning($"{attacker.GetPlayer.charName}의 정신력 5 증가 (합 승리)");
     }
 
     // 캐릭터들의 움직임이 끝난 후 대기
@@ -599,7 +775,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     // 1초 대기
     yield return new WaitForSeconds(1f);
 
-    // 캐릭터가 null이 아닐 때만 원래 위치로 돌아가기
+    // 캐릭터 null이 아닐 때만 원래 위치로 돌아가기
     if (attacker != null && attacker.gameObject != null)
     {
         StartCoroutine(ReturnCharacterToInitialPosition(attacker));
@@ -624,6 +800,92 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     {
         cameraFollow.ResetCamera();
     }
+
+    // "연속 찌르기" 스킬 처리
+    if (attacker.GetPlayer.skills[0].skillName == "연속 찌르기")
+    {
+        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
+        {
+            victim.GetPlayer.AddStatusEffect("출혈");
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 출혈 효과가 부여되었습니다.");
+            // 출혈 이펙트 표시
+            UIManager.Instance.CreateBloodEffect(victim.transform.position);
+        }
+        else // 합 패배 시
+        {
+            attacker.GetPlayer.AddStatusEffect("혼란");
+            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 혼란 효과가 부여되었습니다.");
+        }
+    }
+
+    // "사기 진작" 스킬 처리
+    if (attacker.GetPlayer.skills[0].skillName == "사기 진작")
+    {
+        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
+        {
+            // 상대에게 방어력 감소 효과 부여
+            victim.GetPlayer.AddStatusEffect("방어력감소");
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
+        }
+        else // 합 패배 시
+        {
+            // 공격자에게 2턴 출혈 효과 부여
+            attacker.GetPlayer.AddStatusEffect("출혈2턴");
+            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
+            UIManager.Instance.CreateBloodEffect(attacker.transform.position);
+        }
+    }
+
+    // "화염 공격" 스킬의 가 피해 계산
+    if (attacker.GetPlayer.skills[0].skillName == "화염 공격")
+    {
+        int additionalDamage = attacker.successCount * 2;
+        attacker.GetPlayer.dmg += additionalDamage;
+        Debug.LogWarning($"{attacker.GetPlayer.charName}의 화염 공격 추가 피해: {additionalDamage} (성공한 코인 수: {attacker.successCount})");
+        attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
+    }
+
+    // "파열" 스킬 처리
+    if (attacker.GetPlayer.skills[0].skillName == "파열")
+    {
+        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
+        {
+            // 상대에게 방어력 감소 효과 부여
+            victim.GetPlayer.AddStatusEffect("방어력감소");
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
+        }
+        else // 합 패배 시
+        {
+            // 공격자에게 2턴 출혈 효과 부여
+            attacker.GetPlayer.AddStatusEffect("출혈2턴");
+            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
+            UIManager.Instance.CreateBloodEffect(attacker.transform.position);
+        }
+    }
+
+    // 피해 적용 후 정신력 20 미만 체크 (혼란 자연 발생)
+    if (victim.GetPlayer.menTality < 20 && !victim.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란"))
+    {
+        victim.GetPlayer.AddStatusEffect("혼란");
+        Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력이 20 미만으로 떨어져 혼란 상태가 되었습니다.");
+    }
+
+    // 혼란 상태에서의 자해 체크 (정신력 20 미만에서 자연 발생한 경우)
+    bool isNaturalConfusion = attacker.GetPlayer.menTality < 20 && 
+                             attacker.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
+    
+    if (isNaturalConfusion && attacker.GetPlayer.dmg > victim.GetPlayer.dmg)
+    {
+        if (Random.value < 0.1f) // 10% 확률로 자해
+        {
+            int selfDamage = Mathf.RoundToInt(attacker.GetPlayer.dmg * 0.5f); // 자신의 피해량의 50%
+            attacker.GetPlayer.hp -= selfDamage;
+            attacker.UpdateStatus();
+            UIManager.Instance.ShowDamageTextNearCharacter(selfDamage, attacker.transform);
+            UIManager.Instance.CreateBloodEffect(attacker.transform.position);
+            Debug.LogWarning($"[혼란 자해] {attacker.GetPlayer.charName}이(가) 혼란으로 인해 {selfDamage}의 자해 피해를 입음");
+        }
+    }
 }
 
     IEnumerator WaitForMovement(params BattleMove[] moves)
@@ -638,7 +900,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     void HandleDraw(ref int i, CharacterProfile playerObject, CharacterProfile targetObject)
     {
         draw++;
-        Debug.Log($"교착 상태 발생 {draw} 회");
+        Debug.LogWarning($"교착 상태 발생 {draw} 회");
         
         if (draw < 3)
         {
@@ -650,7 +912,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             targetObject.GetPlayer.menTality -= 10;
             playerObject.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
             targetObject.UpdateStatus(); // 정신력 변경 후 상태바 업데이트
-            Debug.Log($"{playerObject.GetPlayer.charName}과 {targetObject.GetPlayer.charName} 의 정신력 감소");
+            Debug.LogWarning($"{playerObject.GetPlayer.charName}과 {targetObject.GetPlayer.charName} 의 정신력 감소");
             draw = 0;
             StartCoroutine(ReturnCharacterToInitialPosition(playerObject));
             StartCoroutine(ReturnCharacterToInitialPosition(targetObject));
@@ -666,13 +928,29 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             winner = playerObject;
             loser = targetObject;
+            
+            // 일힐 시 정신력 2 회복 (최대 100)
+            if (winner.GetPlayer.menTality < 100)
+            {
+                winner.GetPlayer.menTality = Mathf.Min(100, winner.GetPlayer.menTality + 2);
+                winner.UpdateStatus();
+                Debug.LogWarning($"{winner.GetPlayer.charName}의 정신력 2 회복 (일힐)");
+            }
         }
         else
         {
             winner = targetObject;
             loser = playerObject;
+            
+            // 일힐 시 정신력 2 회복 (최대 100)
+            if (winner.GetPlayer.menTality < 100)
+            {
+                winner.GetPlayer.menTality = Mathf.Min(100, winner.GetPlayer.menTality + 2);
+                winner.UpdateStatus();
+                Debug.LogWarning($"{winner.GetPlayer.charName}의 정신력 2 회복 (일힐)");
+            }
         }
-        
+
         if (loser.GetPlayer.coin > 0)
         {
             loser.GetPlayer.coin--;
@@ -704,45 +982,45 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     void CheckBattleEnd()
     {
-        Debug.Log($"전투 종료 체크 - 플레이어: {playerCheck}, 적: {enemyCheck}");
+        Debug.LogWarning($"전투 종료 체크 - 플레이어: {playerCheck}, 적: {enemyCheck}");
         if (enemyCheck <= 0)
         {
-            state = GameState.win;
-            Debug.Log("승리");
-            EndBattle();
+            StartCoroutine(EndBattleSequence(true));
         }
         else if (playerCheck <= 0)
         {
-            state = GameState.lose;
-            Debug.Log("패배");
-            EndBattle();
+            StartCoroutine(EndBattleSequence(false));
         }
     }
 
-    void EndBattle()
+    private IEnumerator EndBattleSequence(bool isVictory)
     {
-        Debug.Log("전투 종료");
-        
-        // 모든 캐릭터의 스킬 이펙트 제거
+        // 시간 슬로우 모션
+        Time.timeScale = 0.5f;
+
+        // 마지막 캐릭터가 원위치로 돌아올 때까지 대기
         foreach (var player in playerObjects)
         {
             if (player != null)
             {
-                player.DestroySkillEffect();
+                yield return StartCoroutine(ReturnCharacterToInitialPosition(player));
             }
         }
         foreach (var enemy in targetObjects)
         {
             if (enemy != null)
             {
-                enemy.DestroySkillEffect();
+                yield return StartCoroutine(ReturnCharacterToInitialPosition(enemy));
             }
         }
+
+        // 시간 원래대로
+        Time.timeScale = 1f;
+
+        // 게임 상태 설정
+        state = isVictory ? GameState.win : GameState.lose;
         
-        // UIManager에 전투 종료 알림
-        UIManager.Instance.SetBattleUI(false);
-        
-        // GameEnd UI 표시
+        // UI 표시
         UIManager.Instance.ShowGameEndUI();
     }
 
@@ -750,35 +1028,30 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     {
         yield return new WaitForSeconds(1f);
         
+        // 모든 적 캐릭터의 새로운 스킬 선택
+        foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
+        {
+            CharacterProfile profile = enemy.GetComponent<CharacterProfile>();
+            if (profile != null)
+            {
+                profile.SelectRandomEnemySkill();
+            }
+        }
+
         // 모든 플레이어 캐릭터의 상태 업데이트
         foreach (var player in GameObject.FindGameObjectsWithTag("Player"))
         {
             CharacterProfile profile = player.GetComponent<CharacterProfile>();
             if (profile != null)
             {
-                // 코인 수 복구
-                profile.GetPlayer.coin = profile.GetPlayer.maxCoin;
-                
-                // 정신력바 업데이트
+                profile.GetPlayer.coin = profile.GetPlayer.maxCoin + profile.GetPlayer.nextTurnCoinModifier;
+                profile.GetPlayer.nextTurnCoinModifier = 0;
                 profile.UpdateStatus();
+                Debug.LogWarning($"{profile.GetPlayer.charName}의 코인이 {profile.GetPlayer.coin}개로 설정");
             }
         }
 
-        // 모든 적 캐릭터의 상태 업데이트
-        foreach (var enemy in GameObject.FindGameObjectsWithTag("Enemy"))
-        {
-            CharacterProfile profile = enemy.GetComponent<CharacterProfile>();
-            if (profile != null)
-            {
-                // 코인 수 복구
-                profile.GetPlayer.coin = profile.GetPlayer.maxCoin;
-                
-                // 정신력바 업데이트
-                profile.UpdateStatus();
-            }
-        }
-
-        Debug.Log("적 공격");
+        Debug.LogWarning("적 공격");
 
         state = GameState.playerTurn;
         allTargetSelected = false;
@@ -906,12 +1179,12 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     {
         skillSelected = true;
         selecting = true; // 적 선택 모드 활성화
-        Debug.Log("스킬 선택 완료, 적 선택 모드로 전환");
+        Debug.LogWarning("스킬 선택 완료, 적 선택 모드로 전환");
     }
 
     private void SpawnSelectedCharacters()
     {
-        Debug.Log($"캐릭터 생성 시작: {DeckData.selectedCharacterPrefabs.Count}개의 캐릭터");
+        Debug.LogWarning($"캐릭터 생성 시작: {DeckData.selectedCharacterPrefabs.Count}개의 캐릭");
         
         for (int i = 0; i < DeckData.selectedCharacterPrefabs.Count; i++)
         {
@@ -920,7 +1193,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
                 Vector3 spawnPosition = stageData.characterPositions[i];
                 GameObject characterPrefab = DeckData.selectedCharacterPrefabs[i];
                 
-                Debug.Log($"캐릭터 {i + 1} 생성 위치: {spawnPosition}");
+                Debug.LogWarning($"캐릭터 {i + 1} 생성 위치: {spawnPosition}");
                 
                 GameObject character = Instantiate(
                     characterPrefab,
@@ -936,7 +1209,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
                 if (profile != null)
                 {
                     profile.GetPlayer.Init();
-                    Debug.Log($"캐릭 {profile.GetPlayer.charName} 생성 완료");
+                    Debug.LogWarning($"캐릭 {profile.GetPlayer.charName} 생성 완료");
                 }
             }
             else

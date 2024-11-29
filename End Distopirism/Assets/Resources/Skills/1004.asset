@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: 1004
   m_EditorClassIdentifier: 
   skillName: "\uAC15\uB825\uD55C \uD55C \uBC29"
-  sprite: {fileID: 21300000, guid: 48f82160233089645b648daee9f589bc, type: 3}
-  maxDmg: 10
+  sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
+  maxDmg: 5
   minDmg: 1
-  dmgUp: 5
+  dmgUp: 6
   skillEffect: "\uD569 \uC2B9\uB9AC \uC2DC \uD53C\uD574\uB7C9\uC744 8\uB9CC\uD07C
     \uC0C1\uC2B9 \uC2DC\uD0A8\uB2E4.\n\uD328\uBC30 \uC2DC \uC0C1\uB300\uC758 \uD53C\uD574\uB7C9\uC744
     12\uB9CC\uD07C \uC0C1\uC2B9 \uC2DC\uD0A8\uB2E4."
