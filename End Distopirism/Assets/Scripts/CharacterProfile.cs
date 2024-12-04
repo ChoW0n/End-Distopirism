@@ -80,6 +80,11 @@ public class CharacterProfile : MonoBehaviour
     private List<Skill> drawnCards = new List<Skill>(); // 현재 뽑은 카드들
     private bool hasInitializedCards = false; // 카드가 초기화되었는지 확인하는 플래그
 
+    private TextMeshProUGUI playerHPText;
+    private TextMeshProUGUI playerMTText;
+    private TextMeshProUGUI enemyHPText;
+    private TextMeshProUGUI enemyMTText;
+
     void Start()
     {
         player.coin = player.maxCoin;
@@ -217,6 +222,29 @@ public class CharacterProfile : MonoBehaviour
             mentalityFill.fillMethod = Image.FillMethod.Horizontal;
             mentalityFill.fillAmount = player.menTality / 100f;
         }
+
+        // 체력바 생성 후 텍스트 컴포넌트 찾기
+        playerHPText = healthBar.transform.Find("PlayerHP")?.GetComponent<TextMeshProUGUI>();
+        enemyHPText = healthBar.transform.Find("EnemyHP")?.GetComponent<TextMeshProUGUI>();
+
+        // 정신력바 생성 후 텍스트 컴포넌트 찾기
+        playerMTText = mentalityBar.transform.Find("PlayerMT")?.GetComponent<TextMeshProUGUI>();
+        enemyMTText = mentalityBar.transform.Find("EnemyMT")?.GetComponent<TextMeshProUGUI>();
+
+        // 태그에 따라 적절한 텍스트 활성화/비활성화
+        if (CompareTag("Player"))
+        {
+            if (enemyHPText) enemyHPText.gameObject.SetActive(false);
+            if (enemyMTText) enemyMTText.gameObject.SetActive(false);
+        }
+        else if (CompareTag("Enemy"))
+        {
+            if (playerHPText) playerHPText.gameObject.SetActive(false);
+            if (playerMTText) playerMTText.gameObject.SetActive(false);
+        }
+
+        // 초기 텍스트 업데이트
+        UpdateStatusTexts();
     }
 
     private void UpdateStatusBars()
@@ -260,6 +288,9 @@ public class CharacterProfile : MonoBehaviour
             float mentalityPercentage = GetPlayer.menTality / 100f;
             mentalityBarFill.color = Color.Lerp(Color.red, Color.blue, mentalityPercentage);
         }
+
+        // 텍스트 업데이트 추가
+        UpdateStatusTexts();
     }
 
     public void ShowCharacterInfo()
@@ -395,6 +426,9 @@ public class CharacterProfile : MonoBehaviour
             UpdateStatusBars();
 
             CheckStatusEffectsRealtime();
+
+            // 텍스트 업데이트 추가
+            UpdateStatusTexts();
         }
 
         // 스킬 이펙트 위치와 회전 업데이트
@@ -928,6 +962,21 @@ public class CharacterProfile : MonoBehaviour
                 TextMeshPro durationText = defenseDownIcon.GetComponentInChildren<TextMeshPro>();
                 if (durationText != null) durationText.text = player.defenseDownTurns.ToString();
             }
+        }
+    }
+
+    // 새로운 메서드 추가: 상태 텍스트 업데이트
+    private void UpdateStatusTexts()
+    {
+        if (CompareTag("Player"))
+        {
+            if (playerHPText) playerHPText.text = player.hp.ToString();
+            if (playerMTText) playerMTText.text = $"{Mathf.RoundToInt(player.menTality)}%";
+        }
+        else if (CompareTag("Enemy"))
+        {
+            if (enemyHPText) enemyHPText.text = player.hp.ToString();
+            if (enemyMTText) enemyMTText.text = $"{Mathf.RoundToInt(player.menTality)}%";
         }
     }
 }
