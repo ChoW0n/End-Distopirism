@@ -1858,7 +1858,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &242346533
@@ -1942,7 +1942,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &374858208
@@ -2504,7 +2504,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &433674288
@@ -3170,7 +3170,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &775029015
@@ -3254,7 +3254,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &789837366
@@ -3338,7 +3338,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &823781581
@@ -3709,7 +3709,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &939258372
@@ -5129,10 +5129,10 @@ MonoBehaviour:
   effectScaleMin: 1.4
   effectScaleMax: 2.01
   statusEffectIconPrefab: {fileID: 5292691513511370727, guid: a73dc9da0d4a62b47aa82c168a16abb4, type: 3}
-  bleedingSprite: {fileID: 21300000, guid: a5dd87be15ba96447846d9f7b2a4bbae, type: 3}
-  confusionSprite: {fileID: 21300000, guid: 67278170cc5c0154e933148833a8a263, type: 3}
-  poisonSprite: {fileID: 21300000, guid: 012b601f132407a4494c9e80e3fe57cb, type: 3}
-  defenseDownSprite: {fileID: 21300000, guid: b9b66a636b49a4645a8b4ea4e5d0244b, type: 3}
+  bleedingSprite: {fileID: 21300000, guid: 6d46e42aeb5c4af48a2e4a6625852795, type: 3}
+  confusionSprite: {fileID: 21300000, guid: 68bb6c19fe83ab14eaf83f4bb3a653c8, type: 3}
+  poisonSprite: {fileID: 21300000, guid: 1656e27d6e517f14296e0c073aac3280, type: 3}
+  defenseDownSprite: {fileID: 21300000, guid: 968cdda19482c694eae21eee10f26615, type: 3}
 --- !u!4 &1448075423
 Transform:
   m_ObjectHideFlags: 0
@@ -5682,7 +5682,7 @@ SpriteRenderer:
   m_Size: {x: 8.5, y: 8.5}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1747130737
