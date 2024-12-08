@@ -142,11 +142,11 @@ public class UIManager : MonoBehaviour
 
     public GameObject MouseGetObject()
     {
-        Vector3 pos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-        RaycastHit2D hit = Physics2D.Raycast(pos, Vector3.zero);
+        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
+        RaycastHit hit;
         GameObject clickObject = null;
 
-        if (hit.collider != null)
+        if (Physics.Raycast(ray, out hit))
         {
             clickObject = hit.transform.gameObject;
             Debug.Log("클릭한 오브젝트: " + clickObject.name);
@@ -281,7 +281,7 @@ public class UIManager : MonoBehaviour
         TextMeshProUGUI skillName = panel.transform.Find("SkillName").GetComponent<TextMeshProUGUI>();
         Transform skillCards = panel.transform.Find("SkillCards");
 
-        // 기본 정보 설정
+        // 기본 정보 설���
         dmgLevelText.text = character.GetPlayer.dmgLevel.ToString();
         defLevelText.text = character.GetPlayer.defLevel.ToString();
         maxDmgText.text = character.GetPlayer.maxDmg.ToString();
@@ -425,7 +425,7 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("menuButton이 할당되지 않았습니다.");
+            Debug.LogError("menuButton이 할당���지 않았습니다.");
         }
     }
 

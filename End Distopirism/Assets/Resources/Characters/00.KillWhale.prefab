@@ -380,9 +380,9 @@ GameObject:
   - component: {fileID: 229317708698545234}
   - component: {fileID: 4325937244863638218}
   - component: {fileID: 6267676677727840330}
-  - component: {fileID: 7822105267240483053}
   - component: {fileID: 1546652215038099618}
   - component: {fileID: 4466466579245406002}
+  - component: {fileID: 2806355582251513828}
   m_Layer: 0
   m_Name: 00.KillWhale
   m_TagString: Player
@@ -572,41 +572,6 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
---- !u!70 &7822105267240483053
-CapsuleCollider2D:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4649992984583118947}
-  m_Enabled: 1
-  m_Density: 1
-  m_Material: {fileID: 0}
-  m_IncludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_ExcludeLayers:
-    serializedVersion: 2
-    m_Bits: 0
-  m_LayerOverridePriority: 0
-  m_ForceSendLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ForceReceiveLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_ContactCaptureLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_CallbackLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  m_IsTrigger: 0
-  m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0}
-  m_Size: {x: 1.89, y: 2.56}
-  m_Direction: 0
 --- !u!114 &1546652215038099618
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -642,6 +607,29 @@ MonoBehaviour:
   RedValue: 200
   GreenValue: 200
   BlueValue: 200
+--- !u!136 &2806355582251513828
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4649992984583118947}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 0
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.92
+  m_Height: 2.56
+  m_Direction: 1
+  m_Center: {x: 0, y: -0.01, z: 0}
 --- !u!1 &4700237753442775207
 GameObject:
   m_ObjectHideFlags: 0

@@ -5,14 +5,14 @@ using UnityEngine;
 public class CameraFollow : MonoBehaviour
 {
     public Transform target; // 카메라가 따라갈 타겟
-    public float smoothSpeed = 0.125f; // 카메라 이동 속도
+    public float smoothSpeed = 0.02f; // 더 부드러운 움직임을 위해 값 조정
     public GameObject floorBackground;  //전투 시 깔아둘 바닥 오브젝트
-    public Vector3 offset; // 카메라와 타겟 간의 오프셋
+    public Vector3 offset = new Vector3(0, 150, -300); // 초기 오프셋 값 수정
     public Camera mainCamera; // 메인 카메라
     public float zoomedSize = 460f; // 공격 시 카메라 사이즈
-    private float initialSize; // 초기 카메라 사이즈
-    private Vector3 initialPosition; // 초기 카메라 위치
-    private Quaternion initialRotation; // 초기 카메라 회전
+    private float initialSize = 700f; // 초기 카메라 사이즈
+    private Vector3 initialPosition = new Vector3(0, 150, -900); // 초기 위치
+    private Quaternion initialRotation = Quaternion.Euler(15, 0, 0); // 초기 회전값
 
     private void Start()
     {
@@ -39,9 +39,9 @@ public class CameraFollow : MonoBehaviour
     // 공격 시 카메라를 타겟으로 이동하고 사이즈를 줄이는 메서드
     public void ZoomInOnTarget(Transform attacker)
     {
-        target = attacker; // 카메라가 따라갈 타겟 설정
-        StartCoroutine(SmoothZoom(zoomedSize)); // 부드럽게 줌 인
-        ChangeCameraAngle(); // 카메라 각도 변경
+        target = attacker;
+        StartCoroutine(SmoothZoom(420f)); // 줌 사이즈 조정
+        StartCoroutine(SmoothRotate(new Vector3(25f, 0f, 0f), 1f)); // 카메라 각도 미세 조정
     }
 
     // 카메라 각도를 공격 시 변경하는 메서드

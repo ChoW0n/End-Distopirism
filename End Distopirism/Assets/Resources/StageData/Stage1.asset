@@ -16,5 +16,5 @@ MonoBehaviour:
   sceneName: Battle
   requiredCharacterCount: 2
   characterPositions:
-  - {x: -372, y: 50, z: 100}
-  - {x: -570, y: -249, z: 100}
+  - {x: -772, y: -150, z: 100}
+  - {x: -970, y: -449, z: 100}
