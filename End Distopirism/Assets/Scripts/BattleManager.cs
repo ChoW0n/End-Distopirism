@@ -220,7 +220,7 @@ public class BattleManager : MonoBehaviour
                 .SetDelay(delay * i)
                 .SetEase(Ease.OutBack)
                 .OnStart(() => Debug.Log($"적 캐릭터 {i} 등장 "))
-                .OnComplete(() => Debug.Log($"적 캐릭터 {i} 등장 완료"));
+                .OnComplete(() => Debug.Log($"적 캐릭터 {i} 등�� 완료"));
         }
 
         // 모든 애니메이션이 끝나고 잠시 대기
@@ -333,7 +333,7 @@ public class BattleManager : MonoBehaviour
                 CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
                 CharacterProfile currentPlayer = playerObjects[playerObjects.Count - 1];
 
-                // 이미 이 플레이어의 타겟이 있는 경우, 기존 타겟과 화살표 제거
+                // 이미 이 플레이어의 타겟이 있는 ���우, 기존 타겟과 화살표 제거
                 int playerIndex = playerObjects.IndexOf(currentPlayer);
                 if (playerIndex < targetObjects.Count)
                 {
@@ -451,31 +451,57 @@ public class BattleManager : MonoBehaviour
         // 출혈 효과 적용
         foreach (var player in playerObjects.Where(p => p != null))
         {
-            foreach (var effect in player.GetPlayer.statusEffects.ToList())
+            // 플레이어가 가진 스킬이 있는지 확인
+            if (player.GetPlayer.skills != null && player.GetPlayer.skills.Count > 0)
             {
-                if (effect.effectName == "출혈")
+                foreach (var effect in player.GetPlayer.statusEffects.ToList())
                 {
-                    int bleedDamage = Mathf.RoundToInt(player.GetPlayer.maxHp * effect.healthPercentDamage);
-                    player.GetPlayer.hp -= bleedDamage;
-                    player.UpdateStatus();
-                    UIManager.Instance.ShowDamageTextNearCharacter(bleedDamage, player.transform);
-                    UIManager.Instance.CreateBloodEffect(player.transform.position);
-                    Debug.LogWarning($"[출혈 피해] {player.GetPlayer.charName}이(가) 출혈로 {bleedDamage}의 피해를 입음");
+                    if (effect.effectName == "출혈")
+                    {
+                        int bleedDamage = Mathf.RoundToInt(player.GetPlayer.maxHp * effect.healthPercentDamage);
+                        player.GetPlayer.hp -= bleedDamage;
+                        player.UpdateStatus();
+                        UIManager.Instance.ShowDamageTextNearCharacter(bleedDamage, player.transform);
+                        UIManager.Instance.CreateBloodEffect(player.transform.position);
+                        Debug.LogWarning($"[출혈 피해] {player.GetPlayer.charName}이(가) 출혈로 {bleedDamage}의 피해를 입음");
+                    }
+                    effect.duration--;
+                    Debug.LogWarning($"[상태이상 지속시간] {player.GetPlayer.charName}의 {effect.effectName} 효과 남은 지속시간: {effect.duration}턴");
                 }
-                effect.duration--;
-                Debug.LogWarning($"[상태이상 지속시간] {player.GetPlayer.charName}의 {effect.effectName} 효과 남은 지속시간: {effect.duration}턴");
+                player.CheckStatusEffects();
             }
-            player.CheckStatusEffects();
         }
 
-        Debug.Log("플레이어 격");
+        Debug.Log("플레이어 공격");
         DiffCheck();
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
 
         for (int i = 0; i < matchCount; i++)
         {
+            // null 체크 추가
+            if (i >= playerObjects.Count || i >= targetObjects.Count)
+            {
+                Debug.LogWarning("전투 참가자 수가 일치하지 않습니다.");
+                break;
+            }
+
             CharacterProfile playerObject = playerObjects[i];
             CharacterProfile targetObject = targetObjects[i];
+
+            // null 체크
+            if (playerObject == null || targetObject == null)
+            {
+                Debug.LogWarning("전투 참가자가 null입니다.");
+                continue;
+            }
+
+            // 스킬 배열이 null이거나 비어있는지 확인
+            if (playerObject.GetPlayer.skills == null || playerObject.GetPlayer.skills.Count == 0 ||
+                targetObject.GetPlayer.skills == null || targetObject.GetPlayer.skills.Count == 0)
+            {
+                Debug.LogWarning("스킬이 설정되지 않은 캐릭터가 있습니다.");
+                continue;
+            }
 
             //카메라를 공격자에게 줌 인
             var battleCamera = FindObjectOfType<CameraFollow>();
@@ -757,7 +783,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             }
             CheckBattleEnd(); // 즉시 전투 종료 체크
             
-            // OnDeath 메서드 호출 (페이드 아웃 애니메이션 실행)
+            // OnDeath 메서드 호출 (페이드 아웃 ���니메이션 실행)
             victim.OnDeath();
             
             // 페이드 아웃 애니메이션이 완료될 때까지 대기
@@ -890,7 +916,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력이 20 미만으로 떨어져 혼란 상태가 되었습니다.");
     }
 
-    // 혼란 상태에서의 자해 체크 (정신력 20 미만에서 자연 발생한 경우)
+    // 혼�� 상태에서의 자해 체크 (정신력 20 미만에서 자연 발생한 경우)
     bool isNaturalConfusion = attacker.GetPlayer.menTality < 20 && 
                              attacker.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
     
@@ -1186,7 +1212,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // false를 전달하여 마지막 전투가 아님을 표시
         yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim, false));
         
-        // 든 데미지 적용과 움직임이 끝난 후에 체력 확인 및 전투 종료 처리
+        // 든 데미지 적용과 움직임이 끝�� 후에 체력 확인 및 전투 종료 처리
         CheckHealth(attacker, victim);
         CheckBattleEnd();
     }

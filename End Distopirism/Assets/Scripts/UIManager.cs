@@ -11,6 +11,7 @@ public class UIManager : MonoBehaviour
 {
     public GameObject damageTextPrefab; 
     public Canvas canvas;
+    public Canvas canvas2;
     private static UIManager uimInstance;
 
     public GameObject playerProfilePanel;
@@ -281,7 +282,7 @@ public class UIManager : MonoBehaviour
         TextMeshProUGUI skillName = panel.transform.Find("SkillName").GetComponent<TextMeshProUGUI>();
         Transform skillCards = panel.transform.Find("SkillCards");
 
-        // 기본 정보 설���
+        // 기본 정보 설정
         dmgLevelText.text = character.GetPlayer.dmgLevel.ToString();
         defLevelText.text = character.GetPlayer.defLevel.ToString();
         maxDmgText.text = character.GetPlayer.maxDmg.ToString();
@@ -319,7 +320,6 @@ public class UIManager : MonoBehaviour
 
     public void ShowBattleResultText(string message, Vector3 position)
     {
-        // Canvas2 찾기
         GameObject canvas2 = GameObject.Find("Canvas2");
         if (canvas2 == null)
         {
@@ -327,7 +327,10 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        GameObject damageText = Instantiate(damageTextPrefab, position, Quaternion.identity, canvas2.transform);
+        // 월드 위치를 스크린 좌표로 변환
+        Vector3 screenPoint = Camera.main.WorldToScreenPoint(position);
+
+        GameObject damageText = Instantiate(damageTextPrefab, screenPoint, Quaternion.identity, canvas2.transform);
         TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
         textComponent.text = message;
 
@@ -345,7 +348,6 @@ public class UIManager : MonoBehaviour
 
     public void ShowDamageTextNearCharacter(int damage, Transform characterTransform)
     {
-        // Canvas2 찾기
         GameObject canvas2 = GameObject.Find("Canvas2");
         if (canvas2 == null)
         {
@@ -353,10 +355,20 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        Vector3 randomOffset = Random.insideUnitCircle * 50f;
-        Vector3 spawnPosition = characterTransform.position + new Vector3(randomOffset.x, 100f + randomOffset.y, 0);
+        // 캐릭터의 월드 위치를 스크린 좌표로 변환
+        Vector3 screenPoint = Camera.main.WorldToScreenPoint(characterTransform.position);
+        
+        // 랜덤 오프셋을 스크린 좌표에 적용 (값을 줄임)
+        Vector2 randomOffset = Random.insideUnitCircle * 25f;
+        screenPoint += new Vector3(randomOffset.x, randomOffset.y + 25f, 0);
 
-        GameObject damageText = Instantiate(damageTextPrefab, spawnPosition, Quaternion.identity, canvas2.transform);
+        GameObject damageText = Instantiate(damageTextPrefab, screenPoint, Quaternion.identity, canvas2.transform);
+        RectTransform rectTransform = damageText.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            rectTransform.anchoredPosition = screenPoint;
+        }
+
         TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
         textComponent.text = damage < 0 ? damage.ToString() : "-" + damage.ToString();
         textComponent.color = Color.red;
@@ -369,14 +381,20 @@ public class UIManager : MonoBehaviour
         float duration = 1f;
         float elapsedTime = 0f;
         Vector3 startPosition = damageText.transform.position;
-        Vector3 endPosition = startPosition + Vector3.up * 50f;
+        Vector3 endPosition = startPosition + new Vector3(0f, 50f, 0f); // 상승 높이를 줄임
         TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
 
         while (elapsedTime < duration)
         {
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / duration;
-            damageText.transform.position = Vector3.Lerp(startPosition, endPosition, t);
+            
+            // 화면 밖으로 나가지 않도록 위치 제한
+            Vector3 newPosition = Vector3.Lerp(startPosition, endPosition, t);
+            newPosition.x = Mathf.Clamp(newPosition.x, 0, Screen.width);
+            newPosition.y = Mathf.Clamp(newPosition.y, 0, Screen.height);
+            
+            damageText.transform.position = newPosition;
             textComponent.color = new Color(textComponent.color.r, textComponent.color.g, textComponent.color.b, 1 - t);
             yield return null;
         }
@@ -425,7 +443,7 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("menuButton이 할당���지 않았습니다.");
+            Debug.LogError("menuButton이 할당되지 않았습니다.");
         }
     }
 
@@ -666,5 +684,83 @@ public class UIManager : MonoBehaviour
                 if (durationText != null) durationText.text = player.defenseDownTurns.ToString();
             }
         }
+    }
+
+    // CreateSkillEffect 메서드 수정
+    public void CreateSkillEffect(Transform characterTransform, bool isPlayer)
+    {
+        if (canvas2 == null)
+        {
+            Debug.LogError("Canvas2가 할당되지 않았습니다. UIManager의 Inspector에서 Canvas2를 할당해주세요.");
+            return;
+        }
+
+        GameObject prefabToUse = isPlayer ? playerSkillEffectPrefab : enemySkillEffectPrefab;
+        if (prefabToUse == null)
+        {
+            Debug.LogError($"{(isPlayer ? "Player" : "Enemy")} 스킬 이펙트 프리팹이 할당되지 않았습니다.");
+            return;
+        }
+
+        // 캐릭터��� 약간 앞쪽에 생성
+        Vector3 effectPosition = characterTransform.position + new Vector3(0, 1f, -0.1f);
+        GameObject effect = Instantiate(prefabToUse, effectPosition, Quaternion.identity);
+        effect.transform.SetParent(canvas2.transform, true);
+
+        // 스케일 설정
+        effect.transform.localScale = new Vector3(100f, 100f, 100f);
+        
+        // 카메라를 향하도록 회전
+        effect.transform.LookAt(Camera.main.transform.position);
+        effect.transform.Rotate(0, 180, 0);
+    }
+
+    // HP, MT 바 생성 메서드 수정
+    public void CreateStatusBars(Transform characterTransform, bool isPlayer)
+    {
+        GameObject canvas2 = GameObject.Find("Canvas2");
+        if (canvas2 == null)
+        {
+            Debug.LogError("Canvas2를 찾을 수 없습니다!");
+            return;
+        }
+
+        // HP 바 생성
+        Vector3 hpBarPosition = characterTransform.position + new Vector3(0, 2f, -0.1f);
+        GameObject hpBar = Instantiate(healthBarPrefab, hpBarPosition, Quaternion.identity);
+        hpBar.transform.SetParent(canvas2.transform, false);
+        
+        // MT 바 생성
+        Vector3 mtBarPosition = characterTransform.position + new Vector3(0, 1.8f, -0.1f);
+        GameObject mtBar = Instantiate(mentalityBarPrefab, mtBarPosition, Quaternion.identity);
+        mtBar.transform.SetParent(canvas2.transform, false);
+
+        // 스케일 설정
+        Vector3 barScale = new Vector3(0.5f, 0.5f, 0.5f);
+        hpBar.transform.localScale = barScale;
+        mtBar.transform.localScale = barScale;
+
+        // 캐릭터를 따라다니도록 설정
+        StartCoroutine(UpdateBarsPosition(hpBar, mtBar, characterTransform));
+    }
+
+    private IEnumerator UpdateBarsPosition(GameObject hpBar, GameObject mtBar, Transform character)
+    {
+        while (hpBar != null && mtBar != null && character != null)
+        {
+            // HP 바 위치 업데이트
+            Vector3 hpPos = character.position + new Vector3(0, 2f, -0.1f);
+            hpBar.transform.position = hpPos;
+
+            // MT 바 위치 업데이트
+            Vector3 mtPos = character.position + new Vector3(0, 1.8f, -0.1f);
+            mtBar.transform.position = mtPos;
+
+            yield return null;
+        }
+
+        // 캐릭터가 파괴되면 바도 제거
+        if (hpBar != null) Destroy(hpBar);
+        if (mtBar != null) Destroy(mtBar);
     }
 }

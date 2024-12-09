@@ -47,7 +47,7 @@ public class CameraFollow : MonoBehaviour
     // 카메라 각도를 공격 시 변경하는 메서드
     private void ChangeCameraAngle()
     {
-        StartCoroutine(SmoothRotate(new Vector3(22f, 0f, 0f), 1f)); // X 40으로 부드럽게 회전
+        StartCoroutine(SmoothRotate(new Vector3(35f, 0f, 0f), 1f)); // X 40으로 부드럽게 회전
         //StartCoroutine(SmoothPosition(new Vector3(0f, 0f, 0f), 1f)); // Z -10으로 부드럽게 이동
     }
 
@@ -92,7 +92,7 @@ public class CameraFollow : MonoBehaviour
         float startSize = mainCamera.orthographicSize; // 현재 카메라 사이즈
         float duration = 1f; // 줌 인에 걸리는 시간
         float elapsedTime = 0f;
-        floorBackground.SetActive(true);
+        //floorBackground.SetActive(true);
         while (elapsedTime < duration)
         {
             mainCamera.orthographicSize = Mathf.Lerp(startSize, targetSize, elapsedTime / duration); // 사이즈 보간
@@ -111,7 +111,7 @@ public class CameraFollow : MonoBehaviour
         StartCoroutine(MoveToInitialPosition()); // 초기 위치로 부드럽게 이동
         StartCoroutine(SmoothRotate(initialRotation.eulerAngles, 1f)); // 초기 회전으로 부드럽게 돌아가기
 
-        floorBackground.SetActive(false);
+        //floorBackground.SetActive(false);
     }
 
     // 카메라를 초기 위치로 부드럽게 이동하는 코루틴

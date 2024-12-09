@@ -19,9 +19,13 @@ public class Silhouette : MonoBehaviour
     private int limit = 0;
     private float delta = 0;
     private bool errorDebug = false;
+    private Camera mainCamera;  // 메인 카메라 참조 추가
 
     private void Awake()
     {
+        // 메인 카메라 참조 가져오기
+        mainCamera = Camera.main;
+
         // SpriteRenderer가 없으면 작동 중지
         if (!GetComponent<SpriteRenderer>())
         {
@@ -93,6 +97,19 @@ public class Silhouette : MonoBehaviour
         {
             ResetSilhouettes();
             SlideEA = silhouetteList.Count;
+        }
+
+        // 모든 실루엣을 카메라 방향으로 회전
+        if (mainCamera != null)
+        {
+            Quaternion targetRotation = mainCamera.transform.rotation;
+            foreach (GameObject silhouette in silhouetteList)
+            {
+                if (silhouette != null)
+                {
+                    silhouette.transform.rotation = targetRotation;
+                }
+            }
         }
 
         delta += Time.deltaTime;

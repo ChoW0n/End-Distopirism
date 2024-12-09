@@ -490,7 +490,15 @@ public class CharacterProfile : MonoBehaviour
             UIManager.Instance.playerSkillEffectPrefab : 
             UIManager.Instance.enemySkillEffectPrefab;
 
-        currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, UIManager.Instance.canvas.transform);
+        // Canvas2 참조 가져오기
+        Canvas canvas2 = UIManager.Instance.canvas2;
+        if (canvas2 == null)
+        {
+            Debug.LogError("Canvas2가 할당되지 않았습니다. UIManager의 Inspector에서 Canvas2를 할당해주세요.");
+            return;
+        }
+
+        currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, canvas2.transform);
         
         Canvas skillCanvas = currentSkillEffect.GetComponent<Canvas>();
         if (skillCanvas != null)
@@ -829,7 +837,7 @@ public class CharacterProfile : MonoBehaviour
         // 혼란 상태 체크
         if (player.isConfusionEffect)
         {
-            Debug.LogWarning($"[상태이상 체크] {player.charName}의 혼란 효과 (남은 지속시간: {player.confusionTurns}턴)");
+            Debug.LogWarning($"[상태이상 체크] {player.charName}의 혼란 효과 (남은 지속��간: {player.confusionTurns}턴)");
         }
 
         // 독 상태 체크
