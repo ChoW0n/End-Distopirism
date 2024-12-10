@@ -189,8 +189,8 @@ public class TestDeckManager : MonoBehaviour
         {
             characterSizeFitter = characterScrollContent.gameObject.AddComponent<ContentSizeFitter>();
         }
-        characterSizeFitter.horizontalFit = ContentSizeFitter.FitMode.Unconstrained;
-        characterSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+        characterSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        characterSizeFitter.verticalFit = ContentSizeFitter.FitMode.Unconstrained;
 
         // Resources/Characters 폴더에서 모든 캐릭터 프리팹 로드
         GameObject[] characterPrefabs = Resources.LoadAll<GameObject>("Characters");
