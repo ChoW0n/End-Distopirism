@@ -47,6 +47,8 @@ public class BattleManager : MonoBehaviour
     [Header("스테이지 설정")]
     [SerializeField] private StageData stageData;
 
+    private BattleLine battleLine; // BattleLine 참조 추가
+
     void Awake()
     {
         DOTween.Init(false, true, LogBehaviour.Verbose);
@@ -130,6 +132,13 @@ public class BattleManager : MonoBehaviour
             {
                 profile.InitializeRandomCards();
             }
+        }
+
+        // BattleLine 컴포넌트 찾기
+        battleLine = FindObjectOfType<BattleLine>();
+        if (battleLine == null)
+        {
+            Debug.LogWarning("BattleLine 컴포넌트를 찾을 수 없습니다.");
         }
     }
 
@@ -220,7 +229,7 @@ public class BattleManager : MonoBehaviour
                 .SetDelay(delay * i)
                 .SetEase(Ease.OutBack)
                 .OnStart(() => Debug.Log($"적 캐릭터 {i} 등장 "))
-                .OnComplete(() => Debug.Log($"적 캐릭터 {i} 등�� 완료"));
+                .OnComplete(() => Debug.Log($"적 캐릭터 {i} 등장 완료"));
         }
 
         // 모든 애니메이션이 끝나고 잠시 대기
@@ -237,6 +246,25 @@ public class BattleManager : MonoBehaviour
         {
             Debug.Log($"전투 버튼 비활성화 상태 - state: {state}, allTargetSelected: {allTargetSelected}, isAttacking: {isAttacking}");
             return;
+        }
+
+        isAttacking = true;
+
+        // 공격 시작 시 라인 활성화
+        if (battleLine != null)
+        {
+            Debug.Log("전투 시작: 라인 활성화");
+            battleLine.SetLinesActive(true);
+        }
+        else
+        {
+            Debug.LogWarning("BattleLine 컴포넌트를 찾을 수 없습니다!");
+            // BattleLine 컴포넌트 다시 찾기 시도
+            battleLine = FindObjectOfType<BattleLine>();
+            if (battleLine != null)
+            {
+                battleLine.SetLinesActive(true);
+            }
         }
 
         // 공격 시작 시 화살표 제거
@@ -257,6 +285,13 @@ public class BattleManager : MonoBehaviour
         UIManager.Instance.enemyProfilePanel.SetActive(false);
 
         UIManager.Instance.TurnCount();
+
+        // 전투 시작 시 카메라 설정
+        var battleCamera = FindObjectOfType<CameraFollow>();
+        if (battleCamera != null)
+        {
+            battleCamera.SetupCombatView();
+        }
     }
 
     private IEnumerator WaitForMovementAndAttack()
@@ -333,7 +368,7 @@ public class BattleManager : MonoBehaviour
                 CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
                 CharacterProfile currentPlayer = playerObjects[playerObjects.Count - 1];
 
-                // 이미 이 플레이어의 타겟이 있는 ���우, 기존 타겟과 화살표 제거
+                // 이미 이 플레이어의 타겟이 있는 경우, 기존 타겟과 화살표 제거
                 int playerIndex = playerObjects.IndexOf(currentPlayer);
                 if (playerIndex < targetObjects.Count)
                 {
@@ -481,7 +516,7 @@ public class BattleManager : MonoBehaviour
             // null 체크 추가
             if (i >= playerObjects.Count || i >= targetObjects.Count)
             {
-                Debug.LogWarning("전투 참가자 수가 일치하지 않습니다.");
+                Debug.LogWarning("전 참가자 수가 일치하지 않습니다.");
                 break;
             }
 
@@ -503,7 +538,7 @@ public class BattleManager : MonoBehaviour
                 continue;
             }
 
-            //카메라를 공격자에게 줌 인
+            //카메라 공격자에게 줌 인
             var battleCamera = FindObjectOfType<CameraFollow>();
             if (battleCamera != null)
             {
@@ -536,7 +571,7 @@ public class BattleManager : MonoBehaviour
                 }
             }
 
-            yield return new WaitForSeconds(0.3f);
+            yield return new WaitForSeconds(0.5f);
         }
 
         // 모든 전투가 끝난 후 8초 대기 후 카메라 리셋
@@ -592,14 +627,6 @@ public class BattleManager : MonoBehaviour
         }
     }
 
-    //코인들이 남아있지 않다면
-    //void ApplyDamageNoCoins(CharacterProfile playerObject, CharacterProfile targetObject)
-    //{
-      //  CharacterProfile attacker = playerObject.GetPlayer.coin > 0 ? playerObject : targetObject;
-        //CharacterProfile victim = attacker == playerObject ? targetObject : playerObject;
-
-        //StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim));
-    //}
 
 IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProfile victim, bool isLastBattle)
 {
@@ -608,7 +635,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     if (attackerMove != null)
     {
-        attackerMove.Attack(); // Hit 애니메이션 재생
+        attackerMove.Attack(); // Hit 애니메이션 재��
         attacker.ShowSkillEffect(attacker.GetPlayer.dmg);
     }
 
@@ -651,7 +678,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             UIManager.Instance.ShowDamageTextNearCharacter(10, attacker.transform);
             Debug.LogWarning($"{attacker.GetPlayer.charName}이(가) 무모한 일격으로 10의 자해 피해");
 
-            // 코인 성공 횟수에 따른 추가 피해
+            // 코인 성공 횟수에 른 추가 피해
             int additionalDamage = attacker.successCount * 2;
             attacker.GetPlayer.dmg += additionalDamage;
             Debug.LogWarning($"{attacker.GetPlayer.charName}의 무모한 일격 추가 피해: {additionalDamage}");
@@ -669,7 +696,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             }
             else // 합 패배 시
             {
-                // 상대의 피해량 12 증가
+                // 상태이상의 피해량 12 증가
                 victim.GetPlayer.dmg += 12;
                 Debug.LogWarning($"{attacker.GetPlayer.charName}의 강한 한 방 실패로 {victim.GetPlayer.charName}의 피해량 12 증가");
                 victim.UpdateSkillEffectDamage(victim.GetPlayer.dmg);
@@ -783,7 +810,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             }
             CheckBattleEnd(); // 즉시 전투 종료 체크
             
-            // OnDeath 메서드 호출 (페이드 아웃 ���니메이션 실행)
+            // OnDeath 메서드 호출 (페이드 아웃 애니메이션 실행)
             victim.OnDeath();
             
             // 페이드 아웃 애니메이션이 완료될 때까지 대기
@@ -804,7 +831,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             break;
         }
 
-        // 잠시 대기하여 움직임을 볼 수 있게 함
+        // 잠시 대기하여 움직을 볼 수 있게 함
         yield return new WaitForSeconds(1f);
     }
 
@@ -841,7 +868,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     // 전투 종료 시 스킬 이펙트 제거
     attacker.DestroySkillEffect();
     
-    // 피해자가 살아있을 때만 스킬 이펙트 제거
+    // 해자가 살아있을 때만 스킬 이펙트 거
     if (victim != null && victim.gameObject != null)
     {
         victim.DestroySkillEffect();
@@ -867,7 +894,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     // "사기 진작" 스킬 처리
     if (attacker.GetPlayer.skills[0].skillName == "사기 진작")
     {
-        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
+        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승 시
         {
             // 상대에게 방어력 감소 효과 부여
             victim.GetPlayer.AddStatusEffect("방어력감소");
@@ -896,7 +923,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     {
         if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
         {
-            // 상대에게 방어력 감소 효과 부여
+            // 상대에게 방어력 감 효과 부여
             victim.GetPlayer.AddStatusEffect("방어력감소");
             Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니.");
         }
@@ -904,7 +931,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             // 공격자에게 2턴 출혈 효과 부여
             attacker.GetPlayer.AddStatusEffect("출혈2턴");
-            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
+            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 ��여되었습니다.");
             UIManager.Instance.CreateBloodEffect(attacker.transform.position);
         }
     }
@@ -916,7 +943,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력이 20 미만으로 떨어져 혼란 상태가 되었습니다.");
     }
 
-    // 혼�� 상태에서의 자해 체크 (정신력 20 미만에서 자연 발생한 경우)
+    // 혼 상태에서의 자해 체크 (정신력 20 미만에서 자연 발생한 경우)
     bool isNaturalConfusion = attacker.GetPlayer.menTality < 20 && 
                              attacker.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
     
@@ -932,6 +959,15 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             Debug.LogWarning($"[혼란 자해] {attacker.GetPlayer.charName}이(가) 혼란으로 인해 {selfDamage}의 자해 피해를 입음");
         }
     }
+
+    // 공격 시작 시 두 캐릭터를 모두 보여주는 카메라 앵글
+    var battleCamera = FindObjectOfType<CameraFollow>();
+    if (battleCamera != null && attacker != null && victim != null)
+    {
+        battleCamera.FocusOnDuel(attacker.transform, victim.transform);
+    }
+
+
 }
 
     IEnumerator WaitForMovement(params BattleMove[] moves)
@@ -1009,7 +1045,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         MoveCharacters(winner, loser);
     }
 
-    //배틀 시작할 때 인식한 아군&적군의 총 갯수를 체력이 0이 됐다면 차감하기.
+    //틀 시작할 때 인식한 아군&적군의 총 갯수를 체력이 0이 됐다면 차감하기.
     void CheckHealth(CharacterProfile playerObject, CharacterProfile targetObject)
     {
         if (playerObject != null && playerObject.GetPlayer.hp <= 0)
@@ -1044,7 +1080,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 시간 슬로우 모션
         Time.timeScale = 0.5f;
 
-        // 마지 캐릭터가 원위치로 돌아올 때까지 대기
+        // 마지막 캐릭터가 원위치로 돌아올 때까지 대기
         foreach (var player in playerObjects)
         {
             if (player != null)
@@ -1060,6 +1096,15 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             }
         }
 
+        // 모든 캐릭터가 원위치로 돌아온 후 라인 비활성화
+        if (battleLine != null)
+        {
+            battleLine.SetLinesActive(false);
+        }
+
+        // 대기 시간
+        yield return new WaitForSeconds(1f);
+
         // 시간 원래대로
         Time.timeScale = 1f;
 
@@ -1068,6 +1113,13 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         
         // UI 표시
         UIManager.Instance.ShowGameEndUI();
+
+        // 카메라 리셋 (BattleLine 비활성화 포함)
+        var battleCamera = FindObjectOfType<CameraFollow>();
+        if (battleCamera != null)
+        {
+            battleCamera.ResetCamera();
+        }
     }
 
     IEnumerator EnemyTurn()
@@ -1097,7 +1149,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             CharacterProfile profile = player.GetComponent<CharacterProfile>();
             if (profile != null)
             {
-                // 코인 초기화
+                // 코인 초화
                 profile.GetPlayer.coin = profile.GetPlayer.maxCoin + profile.GetPlayer.nextTurnCoinModifier;
                 profile.GetPlayer.nextTurnCoinModifier = 0;
                 profile.UpdateStatus();
@@ -1132,7 +1184,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             Vector3 playerPos = playerBattlePositions[i].position;
             Vector3 enemyPos = enemyBattlePositions[i].position;
             
-            // 플레이어 위치 설정
+            // 플레이어 위치 설
             playerBattlePositions[i].position = new Vector3(playerPos.x + randomOffsetX, playerPos.y, playerPos.z);
             
             // 적 위치는 플레이어보다 200 오른쪽에 설정
@@ -1212,7 +1264,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // false를 전달하여 마지막 전투가 아님을 표시
         yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim, false));
         
-        // 든 데미지 적용과 움직임이 끝�� 후에 체력 확인 및 전투 종료 처리
+        // 든 데미지 적용�� 움직임이 끝 후에 체력 확인 및 전투 종료 처리
         CheckHealth(attacker, victim);
         CheckBattleEnd();
     }
@@ -1236,6 +1288,25 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
                 yield return null;
             }
         }
+
+        yield return new WaitForSeconds(0.5f);
+    }
+
+    // 캐릭터 이동 중인지 확인하는 퍼 메서드
+    private bool IsAnyCharacterMoving()
+    {
+        var allCharacters = GameObject.FindGameObjectsWithTag("Player")
+            .Concat(GameObject.FindGameObjectsWithTag("Enemy"));
+            
+        foreach (var character in allCharacters)
+        {
+            BattleMove move = character.GetComponent<BattleMove>();
+            if (move != null && move.IsMoving())
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void OnSkillSelected()
@@ -1260,7 +1331,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             }
         }
         
-        Debug.LogWarning("스킬 선택 완료, 적 선택 모드로 전환");
+        Debug.LogWarning("킬 선택 완료, 적 선택 모드로 전환");
     }
 
     private void SpawnSelectedCharacters()

@@ -32,16 +32,34 @@ public class SkillManager : MonoBehaviour
     private float cardZoomScale = 1.5f;  // 확대 시 스케일
     private float zoomDuration = 0.3f;   // 확대/축소 애니메이션 시간
     private Vector3 screenCenter;         // 화면 중앙 위치
-    private bool isCardZoomed = false;    // 현재 확대된 카드가 있는지
+    private bool isCardZoomed = false;    // 현재 확대된 카드가 있는��
     private int zoomedCardIndex = -1;     // 현재 확대된 카드의 인덱스
 
     private Vector3[] originalPositions = new Vector3[3]; // 카드의 원래 위치 저장
     private int selectedCardIndex = -1; // 현재 선택된 카드의 인덱스
 
+    [Header("Card Zoom Settings")]
+    public Transform cardZoomPosition; // 카드가 확대될 때 이동할 위치
+    private Vector3[] originalCardPositions = new Vector3[3]; // 각 카드의 원래 위치
+    private Quaternion[] originalCardRotations = new Quaternion[3]; // 각 카드의 원래 회전값
+
     void Start()
     {
         InitializeCardComponents();
-        screenCenter = new Vector3(Screen.width / 2f, Screen.height / 2f, 0);
+        
+        // 카드 줌 위치 찾기
+        GameObject cardZoomObj = GameObject.Find("CardZoomPosition");
+        if (cardZoomObj != null)
+        {
+            cardZoomPosition = cardZoomObj.transform;
+        }
+        else
+        {
+            Debug.LogError("CardZoomPosition 오브젝트를 찾을 수 없습니다!");
+        }
+
+        // 각 카드의 초기 위치와 회전값 저장
+        SaveOriginalCardTransforms();
     }
 
     private void InitializeCardComponents()
@@ -236,6 +254,9 @@ public class SkillManager : MonoBehaviour
             }
         }
 
+        // 카드 위치와 회전값 저장
+        SaveOriginalCardTransforms();
+
         SetupCardInteractions();
         Debug.LogWarning($"{character.GetPlayer.charName}의 카드 UI 업데이트 완료");
     }
@@ -375,13 +396,7 @@ public class SkillManager : MonoBehaviour
 
     private void ZoomCard(int index, Image cardImage)
     {
-        // 원래 위치 저장
-        Vector3 originalPosition = cardImage.transform.position;
-        Vector3 originalScale = cardImage.transform.localScale;
-
-        // 화면 중앙 위치 계산
-        Vector3 centerPosition = Camera.main.ScreenToWorldPoint(screenCenter);
-        centerPosition.z = cardImage.transform.position.z;
+        if (cardZoomPosition == null) return;
 
         // 다른 카드들 페이드 아웃 및 상호작용 비활성화
         Image[] cards = { card1Image, card2Image, card3Image };
@@ -401,8 +416,18 @@ public class SkillManager : MonoBehaviour
 
         // 선택된 카드 확대 및 이동
         Sequence zoomSequence = DOTween.Sequence();
-        zoomSequence.Join(cardImage.transform.DOMove(centerPosition, zoomDuration).SetEase(Ease.OutQuad));
-        zoomSequence.Join(cardImage.transform.DOScale(cardZoomScale, zoomDuration).SetEase(Ease.OutQuad));
+        
+        // 카드를 CardZoomPosition으로 이동
+        zoomSequence.Join(cardImage.transform.DOMove(cardZoomPosition.position, zoomDuration)
+            .SetEase(Ease.OutQuad));
+        
+        // 카드 크기 확대
+        zoomSequence.Join(cardImage.transform.DOScale(cardZoomScale, zoomDuration)
+            .SetEase(Ease.OutQuad));
+        
+        // 카드 회전값을 CardZoomPosition과 동일하게 설정
+        zoomSequence.Join(cardImage.transform.DORotateQuaternion(cardZoomPosition.rotation, zoomDuration)
+            .SetEase(Ease.OutQuad));
 
         isCardZoomed = true;
         zoomedCardIndex = index;
@@ -415,21 +440,12 @@ public class SkillManager : MonoBehaviour
         }
         cardCanvas.overrideSorting = true;
         cardCanvas.sortingOrder = 100;
-
-        // 선택된 카드의 버튼은 계속 활성화 상태 유지
-        if (buttons[index] != null)
-        {
-            buttons[index].interactable = true;
-        }
     }
 
     private void UnzoomCard(int index, Image cardImage)
     {
         if (!isCardZoomed) return;
 
-        // 원래 위치로 되돌리기
-        Vector3 originalPosition = originalPositions[index];
-        
         // 모든 카드 페이드 인 및 상호작용 활성화
         Image[] cards = { card1Image, card2Image, card3Image };
         Button[] buttons = { card1Button, card2Button, card3Button };
@@ -438,7 +454,6 @@ public class SkillManager : MonoBehaviour
         {
             if (cards[i] != null)
             {
-                // 선택된 카드가 있는 경우 해당 투명도 유지
                 float targetAlpha = (selectedCardIndex != -1 && i != selectedCardIndex) ? 0.5f : 1f;
                 cards[i].DOFade(targetAlpha, zoomDuration);
                 if (buttons[i] != null)
@@ -448,11 +463,13 @@ public class SkillManager : MonoBehaviour
             }
         }
 
-        // 선택된 카드 축소 및 원래 위치로 이동
+        // 카드를 원래 위치, 크기, 회전값으로 되돌리기
         Sequence unzoomSequence = DOTween.Sequence();
-        unzoomSequence.Join(cardImage.transform.DOMove(originalPosition, zoomDuration)
+        unzoomSequence.Join(cardImage.transform.DOMove(originalCardPositions[index], zoomDuration)
             .SetEase(Ease.OutQuad));
         unzoomSequence.Join(cardImage.transform.DOScale(Vector3.one, zoomDuration)
+            .SetEase(Ease.OutQuad));
+        unzoomSequence.Join(cardImage.transform.DORotateQuaternion(originalCardRotations[index], zoomDuration)
             .SetEase(Ease.OutQuad));
 
         // 정렬 순서 복구
@@ -581,5 +598,18 @@ public class SkillManager : MonoBehaviour
 
         selectedCardIndex = -1;
         ResetCardOpacity();
+    }
+
+    private void SaveOriginalCardTransforms()
+    {
+        Image[] cards = { card1Image, card2Image, card3Image };
+        for (int i = 0; i < cards.Length; i++)
+        {
+            if (cards[i] != null)
+            {
+                originalCardPositions[i] = cards[i].transform.position;
+                originalCardRotations[i] = cards[i].transform.rotation;
+            }
+        }
     }
 }

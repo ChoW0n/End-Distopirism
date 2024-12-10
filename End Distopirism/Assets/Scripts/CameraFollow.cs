@@ -1,133 +1,193 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using DG.Tweening;
 
 public class CameraFollow : MonoBehaviour
 {
-    public Transform target; // 카메라가 따라갈 타겟
-    public float smoothSpeed = 0.02f; // 더 부드러운 움직임을 위해 값 조정
-    public GameObject floorBackground;  //전투 시 깔아둘 바닥 오브젝트
-    public Vector3 offset = new Vector3(0, 150, -300); // 초기 오프셋 값 수정
-    public Camera mainCamera; // 메인 카메라
-    public float zoomedSize = 460f; // 공격 시 카메라 사이즈
-    private float initialSize = 700f; // 초기 카메라 사이즈
-    private Vector3 initialPosition = new Vector3(0, 150, -900); // 초기 위치
-    private Quaternion initialRotation = Quaternion.Euler(15, 0, 0); // 초기 회전값
+    private Vector3 originalPosition;
+    private Quaternion originalRotation;
+    private float originalFOV;
+    private Camera mainCamera;
+    private BattleLine battleLine;
+
+    [Header("Camera Settings")]
+    public float smoothSpeed = 5f;
+    public float zoomInFOV = 45f;
+    public float normalFOV = 60f;
+    public float combatHeight = 3f;
+    public float combatAngle = 15f;
+
+    [Header("Combat Camera")]
+    public float sideViewAngle = 25f; // 측면 뷰 각도
+    public float heightOffset = 2f; // 높이 오프셋
+    public float distanceOffset = 5f; // 거리 오프셋
+    public float transitionDuration = 0.8f; // 전환 시간
+    private bool isLeftSideView = true; // 현재 카메라가 왼쪽에서 보고 있는지
 
     private void Start()
     {
-        if (mainCamera == null)
+        mainCamera = GetComponent<Camera>();
+        originalPosition = transform.position;
+        originalRotation = transform.rotation;
+        originalFOV = mainCamera.fieldOfView;
+        
+        battleLine = FindObjectOfType<BattleLine>();
+        if (battleLine == null)
         {
-            mainCamera = Camera.main; // 메인 카메라 설정
-        }
-        initialSize = mainCamera.orthographicSize; // 초기 카메라 사이즈 저장
-        initialPosition = transform.position; // 초기 카메라 위치 저장
-        initialRotation = transform.rotation; // 초기 카메라 회전 저장
-    }
-
-    private void LateUpdate()
-    {
-        if (target != null && !CameraShake.Instance.IsShaking())
-        {
-            // 타겟의 위치에 오프셋 추가
-            Vector3 desiredPosition = new Vector3(target.position.x, target.position.y + offset.y + 110, target.position.z + offset.z - 100);
-            Vector3 smoothedPosition = Vector3.Lerp(transform.position, desiredPosition, smoothSpeed);
-            transform.position = smoothedPosition;
+            Debug.LogWarning("BattleLine을 찾을 수 없습니다.");
         }
     }
 
-    // 공격 시 카메라를 타겟으로 이동하고 사이즈를 줄이는 메서드
-    public void ZoomInOnTarget(Transform attacker)
+    public void ZoomInOnTarget(Transform target)
     {
-        target = attacker;
-        StartCoroutine(SmoothZoom(420f)); // 줌 사이즈 조정
-        StartCoroutine(SmoothRotate(new Vector3(25f, 0f, 0f), 1f)); // 카메라 각도 미세 조정
+        if (target == null) return;
+
+        // 기존 트윈 취소
+        transform.DOKill();
+        mainCamera.DOKill();
+
+        StartCoroutine(CombatCameraSequence(target));
     }
 
-    // 카메라 각도를 공격 시 변경하는 메서드
-    private void ChangeCameraAngle()
+    private IEnumerator CombatCameraSequence(Transform target)
     {
-        StartCoroutine(SmoothRotate(new Vector3(35f, 0f, 0f), 1f)); // X 40으로 부드럽게 회전
-        //StartCoroutine(SmoothPosition(new Vector3(0f, 0f, 0f), 1f)); // Z -10으로 부드럽게 이동
-    }
+        if (target == null) yield break;
 
-    private IEnumerator SmoothPosition(Vector3 targetPosition, float duration)
-    {
-        Vector3 startPosition = transform.position; // 현재 카메라 위치
-        Vector3 endPosition = targetPosition; // 목표 위치
+        // 전투 중인 두 캐릭터 찾기
+        Transform otherCharacter = FindOpponentCharacter(target);
+        if (otherCharacter == null) yield break;
 
-        float elapsedTime = 0f;
+        // 중앙점 계산
+        Vector3 centerPoint = (target.position + otherCharacter.position) / 2f;
+        float distance = Vector3.Distance(target.position, otherCharacter.position);
 
-        while (elapsedTime < duration)
+        // 카메라 방향 전환 (이전 방향의 반대로)
+        isLeftSideView = !isLeftSideView;
+        float currentSideAngle = isLeftSideView ? -sideViewAngle : sideViewAngle;
+        
+        // 1. 비스듬한 앵글로 전환
+        Vector3 sidePosition = centerPoint + 
+            Quaternion.Euler(0, currentSideAngle, 0) * (Vector3.back * (distance + distanceOffset)) + 
+            Vector3.up * heightOffset;
+        
+        Quaternion sideRotation = Quaternion.LookRotation(centerPoint - sidePosition);
+
+        // DOTween을 사용하여 부드러운 카메라 이동
+        transform.DOMove(sidePosition, transitionDuration).SetEase(Ease.InOutQuad);
+        transform.DORotateQuaternion(sideRotation, transitionDuration).SetEase(Ease.InOutQuad);
+        mainCamera.DOFieldOfView(zoomInFOV, transitionDuration).SetEase(Ease.InOutQuad);
+
+        yield return new WaitForSeconds(transitionDuration);
+
+        // 2. 약간의 카메라 흔들림 효과
+        Vector3 originalSidePosition = sidePosition;
+        float shakeTime = 0.3f;
+        float shakeIntensity = 0.1f;
+        
+        float elapsed = 0;
+        while (elapsed < shakeTime)
         {
-            transform.position = Vector3.Lerp(startPosition, endPosition, elapsedTime / duration); // 위치 보간
-            elapsedTime += Time.deltaTime; // 경과 시간 증가
-            yield return null; // 다음 프레임까지 대기
+            float offsetX = Random.Range(-shakeIntensity, shakeIntensity);
+            float offsetY = Random.Range(-shakeIntensity, shakeIntensity);
+            
+            transform.position = originalSidePosition + new Vector3(offsetX, offsetY, 0);
+            
+            elapsed += Time.deltaTime;
+            yield return null;
         }
 
-        transform.position = endPosition; // 최종 위치 설정
+        // 3. 원앙점으로 카메라 복귀
+        //transform.position = originalSidePosition;
     }
 
-    // 카메라를 부드럽게 회전시키는 코루틴
-    private IEnumerator SmoothRotate(Vector3 targetAngle, float duration)
+    // 상대 캐릭터를 찾는 메서드
+    private Transform FindOpponentCharacter(Transform currentCharacter)
     {
-        Quaternion startRotation = transform.rotation; // 현재 카메라 회전
-        Quaternion endRotation = Quaternion.Euler(targetAngle); // 목표 회전
+        CharacterProfile currentProfile = currentCharacter.GetComponent<CharacterProfile>();
+        if (currentProfile == null) return null;
 
-        float elapsedTime = 0f;
-
-        while (elapsedTime < duration)
+        // 현재 캐릭터가 플레이어인 경우
+        if (currentProfile.CompareTag("Player"))
         {
-            transform.rotation = Quaternion.Slerp(startRotation, endRotation, elapsedTime / duration); // 회전 보간
-            elapsedTime += Time.deltaTime; // 경과 시간 증가
-            yield return null; // 다음 프레임까지 대기
+            // BattleManager에서 현재 선택된 적 찾기
+            int playerIndex = BattleManager.Instance.playerObjects.IndexOf(currentProfile);
+            if (playerIndex >= 0 && playerIndex < BattleManager.Instance.targetObjects.Count)
+            {
+                return BattleManager.Instance.targetObjects[playerIndex]?.transform;
+            }
+        }
+        // 현재 캐릭터가 적인 경우
+        else if (currentProfile.CompareTag("Enemy"))
+        {
+            // BattleManager에서 현재 선택된 플레이어 찾기
+            int enemyIndex = BattleManager.Instance.targetObjects.IndexOf(currentProfile);
+            if (enemyIndex >= 0 && enemyIndex < BattleManager.Instance.playerObjects.Count)
+            {
+                return BattleManager.Instance.playerObjects[enemyIndex]?.transform;
+            }
         }
 
-        transform.rotation = endRotation; // 최종 회전 설정
+        return null;
     }
 
-    // 카메라 사이즈를 부드럽게 줄이는 코루틴
-    private IEnumerator SmoothZoom(float targetSize)
-    {
-        float startSize = mainCamera.orthographicSize; // 현재 카메라 사이즈
-        float duration = 1f; // 줌 인에 걸리는 시간
-        float elapsedTime = 0f;
-        //floorBackground.SetActive(true);
-        while (elapsedTime < duration)
-        {
-            mainCamera.orthographicSize = Mathf.Lerp(startSize, targetSize, elapsedTime / duration); // 사이즈 보간
-            elapsedTime += Time.deltaTime; // 경과 시간 증가
-            yield return null; // 다음 프레임까지 대기
-        }
-
-        mainCamera.orthographicSize = targetSize; // 최종 사이즈 설정
-    }
-
-    // 카메라를 초기 위치와 사이즈로 되돌리는 메서드
     public void ResetCamera()
     {
-        target = null; // 타겟 초기화
-        StartCoroutine(SmoothZoom(initialSize)); // 부드럽게 초기 사이즈로 되돌리기
-        StartCoroutine(MoveToInitialPosition()); // 초기 위치로 부드럽게 이동
-        StartCoroutine(SmoothRotate(initialRotation.eulerAngles, 1f)); // 초기 회전으로 부드럽게 돌아가기
+        // 기존 트윈 취소
+        transform.DOKill();
+        mainCamera.DOKill();
 
-        //floorBackground.SetActive(false);
-    }
-
-    // 카메라를 초기 위치로 부드럽게 이동하는 코루틴
-    private IEnumerator MoveToInitialPosition()
-    {
-        Vector3 startPosition = transform.position; // 현재 카메라 위치
-        float duration = 1f; // 이동에 걸리는 시간
-        float elapsedTime = 0f;
-
-        while (elapsedTime < duration)
+        // BattleLine 비활성화
+        if (battleLine != null)
         {
-            transform.position = Vector3.Lerp(startPosition, initialPosition, elapsedTime / duration); // 위치 보간
-            elapsedTime += Time.deltaTime; // 경과 시간 증가
-            yield return null; // 다음 프레임까지 대기
+            battleLine.SetLinesActive(false);
         }
 
-        transform.position = initialPosition; // 최종 위치 설정
+        // 카메라를 원래 위치로 부드럽게 되돌리기
+        transform.DOMove(originalPosition, transitionDuration).SetEase(Ease.InOutQuad);
+        transform.DORotateQuaternion(originalRotation, transitionDuration).SetEase(Ease.InOutQuad);
+        mainCamera.DOFieldOfView(originalFOV, transitionDuration).SetEase(Ease.InOutQuad);
+    }
+
+    // 전투 시작 시 호출될 메서드
+    public void SetupCombatView()
+    {
+        // 기존 트윈 취소
+        transform.DOKill();
+        mainCamera.DOKill();
+
+        Vector3 combatPosition = originalPosition + Vector3.up * combatHeight;
+        Quaternion combatRotation = Quaternion.Euler(combatAngle, originalRotation.eulerAngles.y, 0);
+
+        transform.DOMove(combatPosition, transitionDuration).SetEase(Ease.InOutQuad);
+        transform.DORotateQuaternion(combatRotation, transitionDuration).SetEase(Ease.InOutQuad);
+    }
+
+    // 공격 장면에서 두 캐릭터를 모두 보여주는 메서드
+    public void FocusOnDuel(Transform attacker, Transform defender)
+    {
+        if (attacker == null || defender == null) return;
+        
+        // 기존 트윈 취소
+        transform.DOKill();
+        mainCamera.DOKill();
+
+        // 중앙점 계산
+        Vector3 centerPoint = (attacker.position + defender.position) / 2f;
+        float distance = Vector3.Distance(attacker.position, defender.position);
+        
+        // 공격자의 위치에 따라 카메라 각도 결정
+        bool isAttackerPlayer = attacker.CompareTag("Player");
+        float currentSideAngle = isAttackerPlayer ? -sideViewAngle : sideViewAngle;
+        
+        Vector3 duelPosition = centerPoint + 
+            Quaternion.Euler(0, currentSideAngle, 0) * (Vector3.back * (distance + distanceOffset)) + 
+            Vector3.up * heightOffset;
+        
+        Quaternion duelRotation = Quaternion.LookRotation(centerPoint - duelPosition);
+
+        transform.DOMove(duelPosition, transitionDuration).SetEase(Ease.InOutQuad);
+        transform.DORotateQuaternion(duelRotation, transitionDuration).SetEase(Ease.InOutQuad);
+        mainCamera.DOFieldOfView(zoomInFOV + 5f, transitionDuration).SetEase(Ease.InOutQuad);
     }
 }

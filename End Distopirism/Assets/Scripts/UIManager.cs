@@ -702,7 +702,7 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        // 캐릭터��� 약간 앞쪽에 생성
+        // 캐릭터 약간 앞쪽에 생성
         Vector3 effectPosition = characterTransform.position + new Vector3(0, 1f, -0.1f);
         GameObject effect = Instantiate(prefabToUse, effectPosition, Quaternion.identity);
         effect.transform.SetParent(canvas2.transform, true);

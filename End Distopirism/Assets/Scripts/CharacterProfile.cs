@@ -148,6 +148,18 @@ public class CharacterProfile : MonoBehaviour
         // 현재 표시값 초기화
         currentHealthDisplay = GetPlayer.hp;
         currentMentalityDisplay = GetPlayer.menTality;
+
+        // 캐릭터 스프라이트를 약간 회전시켜 3/4 뷰 효과를 줍니다
+        //if (CompareTag("Player"))
+        //{
+            // 플레이어 캐릭터는 오른쪽으로 20도 회전
+        //    transform.rotation = Quaternion.Euler(0, 20f, 0);
+        //}
+        //else if (CompareTag("Enemy"))
+        //{
+            // 적 캐릭터는 왼쪽으로 20도 회전
+        //    transform.rotation = Quaternion.Euler(0, 20f, 0);
+        //}
     }
 
     private IEnumerator WaitForScaleAndCreateBars()
@@ -223,7 +235,7 @@ public class CharacterProfile : MonoBehaviour
             mentalityFill.fillAmount = player.menTality / 100f;
         }
 
-        // 체력바 생성 후 텍스트 컴포넌트 찾기
+        // 력바 생성 후 텍스트 컴포넌트 찾기
         playerHPText = healthBar.transform.Find("PlayerHP")?.GetComponent<TextMeshProUGUI>();
         enemyHPText = healthBar.transform.Find("EnemyHP")?.GetComponent<TextMeshProUGUI>();
 
@@ -490,15 +502,7 @@ public class CharacterProfile : MonoBehaviour
             UIManager.Instance.playerSkillEffectPrefab : 
             UIManager.Instance.enemySkillEffectPrefab;
 
-        // Canvas2 참조 가져오기
-        Canvas canvas2 = UIManager.Instance.canvas2;
-        if (canvas2 == null)
-        {
-            Debug.LogError("Canvas2가 할당되지 않았습니다. UIManager의 Inspector에서 Canvas2를 할당해주세요.");
-            return;
-        }
-
-        currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, canvas2.transform);
+        currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, UIManager.Instance.canvas.transform);
         
         Canvas skillCanvas = currentSkillEffect.GetComponent<Canvas>();
         if (skillCanvas != null)
@@ -560,7 +564,7 @@ public class CharacterProfile : MonoBehaviour
         float duration = 0.4f;
         float elapsedTime = 0f;
         int startDamage = int.Parse(dmgText.text);
-        Vector3 originalScale = dmgText.transform.localScale;
+        Vector3 originalScale = Vector3.one; // 원본 스케일을 1로 고정
         Color originalColor = dmgText.color;
         
         while (elapsedTime < duration)
@@ -568,14 +572,14 @@ public class CharacterProfile : MonoBehaviour
             elapsedTime += Time.deltaTime;
             float progress = elapsedTime / duration;
             
-            // 현기 애니메이션
-            float scaleFactor = 1f + Mathf.Sin(progress * Mathf.PI) * 0.4f;
+            // 스케일 애니메이션
+            float scaleFactor = 1f + Mathf.Sin(progress * Mathf.PI) * 0.2f; // 스케일 변화 폭을 0.2로 줄임
             dmgText.transform.localScale = originalScale * scaleFactor;
             
             // 색상 변경
             dmgText.color = Color.Lerp(Color.red, originalColor, progress);
             
-            // 숫 업데이트
+            // 숫자 업데이트
             int currentDamage = (int)Mathf.Lerp(startDamage, newDamage, progress);
             dmgText.text = currentDamage.ToString();
             
@@ -583,7 +587,7 @@ public class CharacterProfile : MonoBehaviour
         }
         
         // 최종 상태로 설정
-        dmgText.transform.localScale = originalScale;
+        dmgText.transform.localScale = originalScale; // 스케일을 원래대로 복구
         dmgText.color = originalColor;
         dmgText.text = newDamage.ToString();
     }
@@ -647,7 +651,7 @@ public class CharacterProfile : MonoBehaviour
             int previousMinDmg = player.minDmg;
             int previousDmgUp = player.dmgUp;
             
-            // 새로운 스킬 스탯 적용
+            // 새로운 스킬 스탯 ���용
             player.maxDmg = selectedSkill.maxDmg;
             player.minDmg = selectedSkill.minDmg;
             player.dmgUp = selectedSkill.dmgUp;
@@ -837,7 +841,7 @@ public class CharacterProfile : MonoBehaviour
         // 혼란 상태 체크
         if (player.isConfusionEffect)
         {
-            Debug.LogWarning($"[상태이상 체크] {player.charName}의 혼란 효과 (남은 지속��간: {player.confusionTurns}턴)");
+            Debug.LogWarning($"[상태이상 체크] {player.charName}의 혼란 효과 (남은 지속시간: {player.confusionTurns}턴)");
         }
 
         // 독 상태 체크

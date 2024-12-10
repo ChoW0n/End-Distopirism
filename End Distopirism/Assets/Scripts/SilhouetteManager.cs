@@ -99,16 +99,12 @@ public class Silhouette : MonoBehaviour
             SlideEA = silhouetteList.Count;
         }
 
-        // 모든 실루엣을 카메라 방향으로 회전
-        if (mainCamera != null)
+        // 모든 실루엣이 원본 캐릭터의 회전값을 따라가도록 수정
+        foreach (GameObject silhouette in silhouetteList)
         {
-            Quaternion targetRotation = mainCamera.transform.rotation;
-            foreach (GameObject silhouette in silhouetteList)
+            if (silhouette != null)
             {
-                if (silhouette != null)
-                {
-                    silhouette.transform.rotation = targetRotation;
-                }
+                silhouette.transform.rotation = transform.rotation;
             }
         }
 
