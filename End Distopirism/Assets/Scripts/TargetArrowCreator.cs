@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class TargetArrowCreator : MonoBehaviour
 {
-    public float curveHeight = 200f;
+    public float curveHeight = 300f;
     public int resolution = 50;
     public float arrowHeadLength = 40f;
     public float lineWidth = 5f;
@@ -99,8 +99,8 @@ public class TargetArrowCreator : MonoBehaviour
         Transform start = connection.player;
         Transform end = connection.target;
 
-        Vector3 startPoint = start.position + Vector3.up * 120f;
-        Vector3 endPoint = end.position + Vector3.up * 120f;
+        Vector3 startPoint = start.position + Vector3.up * 250f + Vector3.right * 50f;
+        Vector3 endPoint = end.position + Vector3.up * 250f + Vector3.left * 60f;
         Vector3 controlPoint = (startPoint + endPoint) / 2f + Vector3.up * curveHeight;
 
         float elapsedTime = 0f;

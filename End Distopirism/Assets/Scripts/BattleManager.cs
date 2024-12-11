@@ -13,7 +13,8 @@ public enum GameState
     enemyTurn, 
     win, 
     lose, 
-    pause
+    pause,
+    CheckBattleEnd
 }
 
 public class BattleManager : MonoBehaviour
@@ -48,6 +49,9 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private StageData stageData;
 
     private BattleLine battleLine; // BattleLine 참조 추가
+
+    [SerializeField] private BoxCollider battleZone; // 2D에서 3D로 변경
+    [SerializeField] private float safeDistance = 300f; // 전투 쌍 사이의 최소 안전 거리
 
     void Awake()
     {
@@ -491,7 +495,7 @@ public class BattleManager : MonoBehaviour
             {
                 foreach (var effect in player.GetPlayer.statusEffects.ToList())
                 {
-                    if (effect.effectName == "출혈")
+                    if (effect.effectName == "��혈")
                     {
                         int bleedDamage = Mathf.RoundToInt(player.GetPlayer.maxHp * effect.healthPercentDamage);
                         player.GetPlayer.hp -= bleedDamage;
@@ -635,7 +639,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     if (attackerMove != null)
     {
-        attackerMove.Attack(); // Hit 애니메이션 재��
+        attackerMove.Attack(); // Hit 애니메이션 재
         attacker.ShowSkillEffect(attacker.GetPlayer.dmg);
     }
 
@@ -696,7 +700,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             }
             else // 합 패배 시
             {
-                // 상태이상의 피해량 12 증가
+                // 태이상의 피해량 12 증가
                 victim.GetPlayer.dmg += 12;
                 Debug.LogWarning($"{attacker.GetPlayer.charName}의 강한 한 방 실패로 {victim.GetPlayer.charName}의 피해량 12 증가");
                 victim.UpdateSkillEffectDamage(victim.GetPlayer.dmg);
@@ -706,7 +710,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // "독바르기" 스킬 처리
         if (attacker.GetPlayer.skills[0].skillName == "독바르기")
         {
-            if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
+            if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 리 시
             {
                 victim.GetPlayer.AddStatusEffect("독");
                 Debug.LogWarning($"{victim.GetPlayer.charName}에게 독 효과가 부여되었습니다.");
@@ -751,7 +755,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             if (effect.effectName == "방어력감소")
             {
                 defenseModifier = effect.defenseModifier;
-                Debug.LogWarning($"[방어력 감소] {victim.GetPlayer.charName}의 방어력이 {defenseModifier * 100}%로 감소됨");
+                Debug.LogWarning($"[방어 감소] {victim.GetPlayer.charName}의 방어력이 {defenseModifier * 100}%로 감소됨");
                 Debug.LogWarning($"[방어력 감소] 원래 방어력: {originalDefense} -> 감소된 방어력: {Mathf.RoundToInt(originalDefense * defenseModifier)}");
             }
         }
@@ -773,7 +777,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         Debug.LogWarning($"- 방어력: {modifiedDefense} (원래: {originalDefense}, 감소: {originalDefense - modifiedDefense})");
         Debug.LogWarning($"- 최종 피해: {finalDamageInt}");
 
-        // 피해를 입을 때 100% 확률로 정신력 감소 (기존 50% 확률에서 변경)
+        // 피해를 입을 때 100% 확률로 정신력 소 (기존 50% 확률에서 변경)
         victim.GetPlayer.menTality = Mathf.Max(0, victim.GetPlayer.menTality - 2);
         victim.UpdateStatus();
         Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력 2 감소 (피해로 인한 감소)");
@@ -880,8 +884,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
         {
             victim.GetPlayer.AddStatusEffect("출혈");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 출혈 효과가 부여되었습니다.");
-            // 출혈 이펙트 표시
+            Debug.LogWarning($"{victim.GetPlayer.charName}에 출혈 효과가 부여되었습니다.");
+            // 출혈 이펙트 시
             UIManager.Instance.CreateBloodEffect(victim.transform.position);
         }
         else // 합 패배 시
@@ -931,7 +935,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             // 공격자에게 2턴 출혈 효과 부여
             attacker.GetPlayer.AddStatusEffect("출혈2턴");
-            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 ��여되었습니다.");
+            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
             UIManager.Instance.CreateBloodEffect(attacker.transform.position);
         }
     }
@@ -940,7 +944,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     if (victim.GetPlayer.menTality < 20 && !victim.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란"))
     {
         victim.GetPlayer.AddStatusEffect("혼란");
-        Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력이 20 미만으로 떨어져 혼란 상태가 되었습니다.");
+        Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력이 20 미만으로 떨어져 란 상태가 되었습니다.");
     }
 
     // 혼 상태에서의 자해 체크 (정신력 20 미만에서 자연 발생한 경우)
@@ -1175,32 +1179,68 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     private void MoveCombatants()
     {
-        // 각 전투 쌍마다 위치 오브젝트의 X값을 덤으로 설정
-        for (int i = 0; i < Mathf.Min(playerBattlePositions.Length, enemyBattlePositions.Length); i++)
+        if (battleZone == null)
         {
-            float randomOffsetX = Random.Range(-524f, 467f);
-            float randomOffsetZ = Random.Range(-400f, 50f);
+            Debug.LogError("BattleZone이 설정되지 않았습니다!");
+            return;
+        }
 
-            // 위치 오브젝트의 X값 수정
-            Vector3 playerPos = playerBattlePositions[i].position;
-            Vector3 enemyPos = enemyBattlePositions[i].position;
-            
-            // 플레이어 위치 설
-            playerBattlePositions[i].position = new Vector3(playerPos.x + randomOffsetX, playerPos.y, playerPos.z +  randomOffsetZ);
-            
-            // 적 위치는 플레이어보다 200 오른쪽에 설정
-            enemyBattlePositions[i].position = new Vector3(playerBattlePositions[i].position.x + 200f, enemyPos.y, enemyPos.z + randomOffsetZ);
+        Vector3 zoneCenter = battleZone.bounds.center;
+        Vector3 zoneSize = battleZone.bounds.size;
+        List<Vector3> occupiedPositions = new List<Vector3>(); // 이미 사용된 위치들을 저장
+
+        for (int i = 0; i < Mathf.Min(playerObjects.Count, targetObjects.Count); i++)
+        {
+            Vector3 playerTargetPos;
+            Vector3 enemyTargetPos;
+            bool validPosition = false;
+            int maxAttempts = 30; // 최대 시도 횟수
+            int attempts = 0;
+
+            do
+            {
+                // 랜덤 위치 생성
+                float randomX = Random.Range(zoneCenter.x - zoneSize.x/2, zoneCenter.x + zoneSize.x/2);
+                float randomZ = Random.Range(zoneCenter.z - zoneSize.z/2, zoneCenter.z + zoneSize.z/2);
+
+                playerTargetPos = new Vector3(randomX, zoneCenter.y, randomZ);
+                enemyTargetPos = new Vector3(randomX + 200f, zoneCenter.y, randomZ);
+
+                // 이전 위치들과의 거리 확인
+                validPosition = true;
+                foreach (Vector3 pos in occupiedPositions)
+                {
+                    if (Vector3.Distance(playerTargetPos, pos) < safeDistance ||
+                        Vector3.Distance(enemyTargetPos, pos) < safeDistance)
+                    {
+                        validPosition = false;
+                        break;
+                    }
+                }
+
+                attempts++;
+                if (attempts >= maxAttempts)
+                {
+                    Debug.LogWarning("안전한 위치를 찾지 못했습니다. 마지막 시도 위치를 사용합니다.");
+                    validPosition = true;
+                }
+
+            } while (!validPosition);
+
+            // 사용된 위치 저장
+            occupiedPositions.Add(playerTargetPos);
+            occupiedPositions.Add(enemyTargetPos);
 
             // 플레이어 이동
-            if (i < playerObjects.Count)
+            if (i < playerObjects.Count && playerObjects[i] != null)
             {
-                StartCoroutine(MoveWithDashSound(playerObjects[i], playerBattlePositions[i].position));
+                StartCoroutine(MoveWithDashSound(playerObjects[i], playerTargetPos));
             }
 
             // 적 이동
-            if (i < targetObjects.Count)
+            if (i < targetObjects.Count && targetObjects[i] != null)
             {
-                StartCoroutine(MoveWithDashSound(targetObjects[i], enemyBattlePositions[i].position));
+                StartCoroutine(MoveWithDashSound(targetObjects[i], enemyTargetPos));
             }
         }
     }
@@ -1265,7 +1305,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // false를 전달하여 마지막 전투가 아님을 표시
         yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim, false));
         
-        // 든 데미지 적용�� 움직임이 끝 후에 체력 확인 및 전투 종료 처리
+        // 든 데미지 적용 움직임이 끝 후에 체력 확인 및 전투 종료 처리
         CheckHealth(attacker, victim);
         CheckBattleEnd();
     }

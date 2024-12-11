@@ -476,8 +476,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   moveSpeed: 1000
   spacingDistance: 200
-  advanceDistance: 40
-  retreatDistance: 40
+  advanceDistance: 80
+  retreatDistance: 80
   animator: {fileID: 0}
 --- !u!114 &4325937244863638218
 MonoBehaviour:
