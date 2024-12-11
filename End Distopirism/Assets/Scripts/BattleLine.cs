@@ -125,7 +125,7 @@ public class BattleLine : MonoBehaviour
                         }
                     }
                     // 마지막 라인의 뒤에 배치
-                    leftPositions[i] = lastLinePosition + lineWidths[i];
+                    leftPositions[i] = lastLinePosition + lineWidths[i] - 10;
                 }
             }
         }
@@ -154,7 +154,7 @@ public class BattleLine : MonoBehaviour
                         }
                     }
                     // 마지막 라인의 뒤에 배치
-                    rightPositions[i] = lastLinePosition - lineWidths[i];
+                    rightPositions[i] = lastLinePosition - lineWidths[i] + 10;
                 }
             }
         }
