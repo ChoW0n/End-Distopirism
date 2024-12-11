@@ -420,7 +420,9 @@ public class CharacterProfile : MonoBehaviour
         if (mainCamera != null)
         {
             Vector3 euler = transform.rotation.eulerAngles;
-            euler.x = mainCamera.transform.eulerAngles.x; // X 회전만 카메라를 따라감
+            euler.x = mainCamera.transform.eulerAngles.x; // X 회전 카메라를 따라감
+            euler.y = mainCamera.transform.eulerAngles.y; // Y 회전 카메라를 따라감
+            euler.z = mainCamera.transform.eulerAngles.z; // Z 회전 카메라를 따라감
             // Y축과 Z축은 현재 값을 유지
             transform.rotation = Quaternion.Euler(euler);
         }

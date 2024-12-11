@@ -1178,17 +1178,18 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 각 전투 쌍마다 위치 오브젝트의 X값을 덤으로 설정
         for (int i = 0; i < Mathf.Min(playerBattlePositions.Length, enemyBattlePositions.Length); i++)
         {
-            float randomOffsetX = Random.Range(-200f, 200f);
+            float randomOffsetX = Random.Range(-524f, 467f);
+            float randomOffsetZ = Random.Range(-400f, 50f);
 
             // 위치 오브젝트의 X값 수정
             Vector3 playerPos = playerBattlePositions[i].position;
             Vector3 enemyPos = enemyBattlePositions[i].position;
             
             // 플레이어 위치 설
-            playerBattlePositions[i].position = new Vector3(playerPos.x + randomOffsetX, playerPos.y, playerPos.z);
+            playerBattlePositions[i].position = new Vector3(playerPos.x + randomOffsetX, playerPos.y, playerPos.z +  randomOffsetZ);
             
             // 적 위치는 플레이어보다 200 오른쪽에 설정
-            enemyBattlePositions[i].position = new Vector3(playerBattlePositions[i].position.x + 200f, enemyPos.y, enemyPos.z);
+            enemyBattlePositions[i].position = new Vector3(playerBattlePositions[i].position.x + 200f, enemyPos.y, enemyPos.z + randomOffsetZ);
 
             // 플레이어 이동
             if (i < playerObjects.Count)
