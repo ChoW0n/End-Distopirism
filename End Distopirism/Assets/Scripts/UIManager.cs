@@ -66,6 +66,11 @@ public class UIManager : MonoBehaviour
 
     private Dictionary<CharacterProfile, List<GameObject>> characterStatusIcons = new Dictionary<CharacterProfile, List<GameObject>>();
 
+    [Header("Battle Result")]
+    public GameObject battleResultPrefab;  // 승리/패배 이미지를 표시할 프리팹
+    public Sprite victorySprite;          // 승리 이미지
+    public Sprite defeatSprite;           // 패배 이미지
+
     public static UIManager Instance
     {
         get
@@ -311,61 +316,108 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void ShowBattleResultText(string message, Vector3 position)
+    public void ShowBattleResultText(string message, Transform characterTransform)
     {
-        GameObject canvas2 = GameObject.Find("Canvas2");
-        if (canvas2 == null)
+        // ResultPosition 오브젝트 찾기
+        Transform resultPos = characterTransform.Find("ResultPosition");
+        if (resultPos == null)
         {
-            Debug.LogError("Canvas2를 찾을 수 없습니다!");
+            Debug.LogError($"{characterTransform.name}에서 ResultPosition을 찾을 수 없습니다!");
             return;
         }
 
-        // 월드 위치를 스크린 좌표로 변환
-        Vector3 screenPoint = Camera.main.WorldToScreenPoint(position);
-
-        GameObject damageText = Instantiate(damageTextPrefab, screenPoint, Quaternion.identity, canvas2.transform);
-        TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
-        textComponent.text = message;
-
-        if (message == "승리")
+        // 결과 이미지 생성
+        GameObject resultObj = Instantiate(battleResultPrefab);
+        resultObj.transform.position = resultPos.position;
+        
+        // 카메라를 바라보도록 회전 설정
+        resultObj.transform.rotation = Camera.main.transform.rotation;
+        
+        // 캔버스 설정
+        Canvas resultCanvas = resultObj.GetComponent<Canvas>();
+        if (resultCanvas != null)
         {
-            textComponent.color = Color.green;
-        }
-        else if (message == "패배")
-        {
-            textComponent.color = Color.red;
+            resultCanvas.worldCamera = Camera.main;
+            resultCanvas.sortingOrder = 1;
         }
 
-        StartCoroutine(AnimateDamageText(damageText));
+        // 이미지 컴포넌트 설정
+        Image resultImage = resultObj.GetComponentInChildren<Image>();
+        if (resultImage != null)
+        {
+            resultImage.sprite = message == "승리" ? victorySprite : defeatSprite;
+        }
+
+        StartCoroutine(AnimateBattleResult(resultObj));
+    }
+
+    private IEnumerator AnimateBattleResult(GameObject resultObj)
+    {
+        float duration = 1f;
+        float elapsedTime = 0f;
+        Vector3 startPos = resultObj.transform.position;
+        Vector3 endPos = startPos + (Vector3.up * 1f);
+        Image resultImage = resultObj.GetComponentInChildren<Image>();
+
+        while (elapsedTime < duration)
+        {
+            if (resultObj == null) break;
+
+            elapsedTime += Time.deltaTime;
+            float t = elapsedTime / duration;
+
+            resultObj.transform.position = Vector3.Lerp(startPos, endPos, t);
+            
+            // 매 프레임마다 카메라를 바라보도록 회전 업데이트
+            resultObj.transform.rotation = Camera.main.transform.rotation;
+            
+            if (resultImage != null)
+            {
+                Color color = resultImage.color;
+                resultImage.color = new Color(color.r, color.g, color.b, 1 - t);
+            }
+
+            yield return null;
+        }
+
+        if (resultObj != null)
+        {
+            Destroy(resultObj);
+        }
     }
 
     public void ShowDamageTextNearCharacter(int damage, Transform characterTransform)
     {
-        GameObject canvas2 = GameObject.Find("Canvas2");
-        if (canvas2 == null)
+        // DmgTextPosition 오브젝트 찾기
+        Transform dmgTextPos = characterTransform.Find("DmgTextPosition");
+        if (dmgTextPos == null)
         {
-            Debug.LogError("Canvas2를 찾을 수 없습니다!");
+            Debug.LogError($"{characterTransform.name}에서 DmgTextPosition을 찾을 수 없습니다!");
             return;
         }
 
-        // 캐릭터의 월드 위치를 스크린 좌표로 변환
-        Vector3 screenPoint = Camera.main.WorldToScreenPoint(characterTransform.position);
-        
-        // 랜덤 오프셋을 스크린 좌표에 적용 (값을 줄임)
-        Vector2 randomOffset = Random.insideUnitCircle * 25f;
-        screenPoint += new Vector3(randomOffset.x, randomOffset.y + 25f, 0);
+        // 데미지 텍스트 생성
+        GameObject damageText = Instantiate(damageTextPrefab);
+        damageText.transform.position = dmgTextPos.position;
 
-        GameObject damageText = Instantiate(damageTextPrefab, screenPoint, Quaternion.identity, canvas2.transform);
-        RectTransform rectTransform = damageText.GetComponent<RectTransform>();
-        if (rectTransform != null)
+        damageText.transform.rotation = Camera.main.transform.rotation;
+        
+        // 캔버스 설정
+        Canvas damageCanvas = damageText.GetComponent<Canvas>();
+        if (damageCanvas != null)
         {
-            rectTransform.anchoredPosition = screenPoint;
+            damageCanvas.worldCamera = Camera.main;
+            damageCanvas.sortingOrder = 1;
         }
 
-        TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
-        textComponent.text = damage < 0 ? damage.ToString() : "-" + damage.ToString();
-        textComponent.color = Color.red;
-        
+        // 텍스트 컴포넌트 설정
+        TextMeshProUGUI textComponent = damageText.GetComponentInChildren<TextMeshProUGUI>();
+        if (textComponent != null)
+        {
+            textComponent.text = damage < 0 ? damage.ToString() : "-" + damage.ToString();
+            textComponent.color = Color.red;
+        }
+
         StartCoroutine(AnimateDamageText(damageText));
     }
 
@@ -373,26 +425,33 @@ public class UIManager : MonoBehaviour
     {
         float duration = 1f;
         float elapsedTime = 0f;
-        Vector3 startPosition = damageText.transform.position;
-        Vector3 endPosition = startPosition + new Vector3(0f, 50f, 0f); // 상승 높이를 줄임
-        TextMeshProUGUI textComponent = damageText.GetComponent<TextMeshProUGUI>();
+        Vector3 startPos = damageText.transform.position;
+        Vector3 endPos = startPos + (Vector3.up * 1f);
+        TextMeshProUGUI textComponent = damageText.GetComponentInChildren<TextMeshProUGUI>();
 
         while (elapsedTime < duration)
         {
+            if (damageText == null) break;
+
             elapsedTime += Time.deltaTime;
             float t = elapsedTime / duration;
-            
-            // 화면 밖으로 나가지 않도록 위치 제한
-            Vector3 newPosition = Vector3.Lerp(startPosition, endPosition, t);
-            newPosition.x = Mathf.Clamp(newPosition.x, 0, Screen.width);
-            newPosition.y = Mathf.Clamp(newPosition.y, 0, Screen.height);
-            
-            damageText.transform.position = newPosition;
-            textComponent.color = new Color(textComponent.color.r, textComponent.color.g, textComponent.color.b, 1 - t);
+
+            damageText.transform.position = Vector3.Lerp(startPos, endPos, t);
+
+            damageText.transform.rotation = Camera.main.transform.rotation;
+
+            if (textComponent != null)
+            {
+                textComponent.color = new Color(textComponent.color.r, textComponent.color.g, textComponent.color.b, 1 - t);
+            }
+
             yield return null;
         }
 
-        Destroy(damageText);
+        if (damageText != null)
+        {
+            Destroy(damageText);
+        }
     }
 
     public void SetBattleUI(bool isBattle)

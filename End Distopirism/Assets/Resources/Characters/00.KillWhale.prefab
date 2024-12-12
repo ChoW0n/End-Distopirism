@@ -247,6 +247,37 @@ MonoBehaviour:
   m_BlockingMask:
     serializedVersion: 2
     m_Bits: 4294967295
+--- !u!1 &3188494598154884608
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 772839738110608236}
+  m_Layer: 0
+  m_Name: ResultPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &772839738110608236
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3188494598154884608}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1, y: 2, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7611307608068813809}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &3641773081013217353
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,6 +433,8 @@ Transform:
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 8681359561413015145}
+  - {fileID: 772839738110608236}
   - {fileID: 7373318077427670118}
   - {fileID: 1043533552786872660}
   - {fileID: 1757472885222282268}
@@ -524,14 +557,6 @@ MonoBehaviour:
     confusionTurns: 0
     poisonTurns: 0
     defenseDownTurns: 0
-    attackBloodSprites:
-    - {fileID: 21300000, guid: f19a1c9ef3b79f8459acff084b64c68a, type: 3}
-    - {fileID: 21300000, guid: b795a127a4793354e9194b2c0a14ac04, type: 3}
-    - {fileID: 21300000, guid: 464f050236a2b2d4fa9ed87d5b1b7e6b, type: 3}
-    skillBloodSprites:
-    - {fileID: 21300000, guid: cb52816bc5321934eada4c253b823d43, type: 3}
-    bleedingSprites:
-    - {fileID: 21300000, guid: 3bdbd036a0390374b9414bc6de25614a, type: 3}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -704,6 +729,37 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
+--- !u!1 &5553074780376805946
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8681359561413015145}
+  m_Layer: 0
+  m_Name: DmgTextPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8681359561413015145
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5553074780376805946}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -2, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7611307608068813809}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6841884381536201661
 GameObject:
   m_ObjectHideFlags: 0

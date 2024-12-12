@@ -1034,6 +1034,37 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!1 &101271130
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 101271131}
+  m_Layer: 0
+  m_Name: DmgTextPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &101271131
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 101271130}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1899952474}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &102170320
 GameObject:
   m_ObjectHideFlags: 0
@@ -1602,14 +1633,6 @@ MonoBehaviour:
     confusionTurns: 0
     poisonTurns: 0
     defenseDownTurns: 0
-    attackBloodSprites:
-    - {fileID: 21300000, guid: 7a5b4bb356f7dce4696db4ba8ea39b3c, type: 3}
-    - {fileID: 21300000, guid: cb52816bc5321934eada4c253b823d43, type: 3}
-    - {fileID: 21300000, guid: 3bdbd036a0390374b9414bc6de25614a, type: 3}
-    skillBloodSprites:
-    - {fileID: 21300000, guid: cb52816bc5321934eada4c253b823d43, type: 3}
-    bleedingSprites:
-    - {fileID: 21300000, guid: 3bdbd036a0390374b9414bc6de25614a, type: 3}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -1713,6 +1736,8 @@ Transform:
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1628623766}
+  - {fileID: 2022576195}
   - {fileID: 977325835}
   - {fileID: 1300537950}
   - {fileID: 2114361552}
@@ -1914,6 +1939,37 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.5
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!1 &382453160
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 382453161}
+  m_Layer: 0
+  m_Name: ResultPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &382453161
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 382453160}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1899952474}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &387363295
 GameObject:
   m_ObjectHideFlags: 0
@@ -5226,6 +5282,9 @@ MonoBehaviour:
   confusionSprite: {fileID: 21300000, guid: 68bb6c19fe83ab14eaf83f4bb3a653c8, type: 3}
   poisonSprite: {fileID: 21300000, guid: 1656e27d6e517f14296e0c073aac3280, type: 3}
   defenseDownSprite: {fileID: 21300000, guid: 968cdda19482c694eae21eee10f26615, type: 3}
+  battleResultPrefab: {fileID: 1758907937922634839, guid: 912c049b18db48244acd93fca3b55fc2, type: 3}
+  victorySprite: {fileID: 21300000, guid: adae89e9032d0e44d9605db771a2ceca, type: 3}
+  defeatSprite: {fileID: 21300000, guid: 88f1e84e72072844b8b68f5f7f6ff793, type: 3}
 --- !u!4 &1448075423
 Transform:
   m_ObjectHideFlags: 0
@@ -6015,6 +6074,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1601038527}
   m_CullTransparentMesh: 1
+--- !u!1 &1628623765
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1628623766}
+  m_Layer: 0
+  m_Name: ResultPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1628623766
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1628623765}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 219168972}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1634895006
 GameObject:
   m_ObjectHideFlags: 0
@@ -7306,14 +7396,6 @@ MonoBehaviour:
     confusionTurns: 0
     poisonTurns: 0
     defenseDownTurns: 0
-    attackBloodSprites:
-    - {fileID: 21300000, guid: 7a5b4bb356f7dce4696db4ba8ea39b3c, type: 3}
-    - {fileID: 21300000, guid: cb52816bc5321934eada4c253b823d43, type: 3}
-    - {fileID: 21300000, guid: 3bdbd036a0390374b9414bc6de25614a, type: 3}
-    skillBloodSprites:
-    - {fileID: 21300000, guid: 3bdbd036a0390374b9414bc6de25614a, type: 3}
-    bleedingSprites:
-    - {fileID: 21300000, guid: cb52816bc5321934eada4c253b823d43, type: 3}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -7417,6 +7499,8 @@ Transform:
   m_LocalScale: {x: 100, y: 100, z: 100}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 382453161}
+  - {fileID: 101271131}
   - {fileID: 1859974869}
   - {fileID: 2095433255}
   - {fileID: 2080839708}
@@ -7803,6 +7887,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1980663794}
   m_CullTransparentMesh: 1
+--- !u!1 &2022576194
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2022576195}
+  m_Layer: 0
+  m_Name: DmgTextPosition
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2022576195
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2022576194}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 2, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 219168972}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2028081124
 GameObject:
   m_ObjectHideFlags: 0

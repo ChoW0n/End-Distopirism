@@ -621,14 +621,14 @@ public class BattleManager : MonoBehaviour
 
         if (playerDamage > targetDamage)
         {
-            UIManager.Instance.ShowBattleResultText("승리", playerObjectPosition + Vector3.up * 250f);
-            UIManager.Instance.ShowBattleResultText("패배", targetObjectPosition + Vector3.up * 250f);
+            UIManager.Instance.ShowBattleResultText("승리", playerObject.transform);
+            UIManager.Instance.ShowBattleResultText("패배", targetObject.transform);
             playerObject.PlayHitSound(); // 합 승리 시 히트 사드
         }
         else
         {
-            UIManager.Instance.ShowBattleResultText("패배", playerObjectPosition + Vector3.up * 250f);
-            UIManager.Instance.ShowBattleResultText("승리", targetObjectPosition + Vector3.up * 250f);
+            UIManager.Instance.ShowBattleResultText("패배", playerObject.transform);
+            UIManager.Instance.ShowBattleResultText("승리", targetObject.transform);
             targetObject.PlayHitSound(); // 합 승리 시 히트 사운드
         }
     }
