@@ -1244,7 +1244,7 @@ MonoBehaviour:
   characterPrefab: {fileID: 6685820286248760040, guid: 3c13c40132b134e42994f4a36f6d6b7a, type: 3}
   characterSpacing: 0
   characterSize: 170
-  maxCharactersPerRow: 10
+  maxCharactersPerRow: 3
   cardSelectPanel: {fileID: 282194961}
   cardScrollContent: {fileID: 282194962}
   cardButtonPrefab: {fileID: 5702003165530961871, guid: 015fc4567ac0e58468a57dfcf092a2a7, type: 3}
