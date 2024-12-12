@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using DG.Tweening;
 
@@ -28,6 +26,19 @@ public class CameraFollow : MonoBehaviour
     [Header("CurrentTarget")]
     public Transform currentTarget;
     public bool isFollowing = false;
+    public bool isBattle = false;
+
+    [Header("Cursor Follow Settings")]
+    public float cursorFollowIntensity = 0.1f;    // 마우스 움직임에 따른 카메라 이동 강도
+    public float cursorFollowSmoothness = 5f;     // 카메라 움직임 부드러움
+    private Vector3 initialPosition;               // 카메라 초기 위치
+    private Vector3 targetPosition;                // 목표 위치
+
+    [Header("Zoom Settings")]
+    public float zoomSpeed = 5f;
+    public float minZoom = 40f;
+    public float maxZoom = 80f;
+    private float targetZoom;
 
     private void Start()
     {
@@ -35,12 +46,75 @@ public class CameraFollow : MonoBehaviour
         originalPosition = transform.position;
         originalRotation = transform.rotation;
         originalFOV = mainCamera.fieldOfView;
+        targetZoom = originalFOV;  // 초기 줌 값 설정
         
         battleLine = FindObjectOfType<BattleLine>();
         if (battleLine == null)
         {
             Debug.LogWarning("BattleLine을 찾을 수 없습니다.");
         }
+
+        initialPosition = transform.position;
+        targetPosition = initialPosition;
+    }
+
+    private void LateUpdate()
+    {
+        if (isBattle)
+        {
+            HandleBattleCamera();
+        }
+        else
+        {
+            HandleCursorFollow();
+            HandleZoom();
+        }
+    }
+
+    private void HandleBattleCamera()
+    {
+        if (isFollowing && currentTarget != null)
+        {
+            // 기존 전투 카메라 로직
+            Vector3 targetPosition = currentTarget.position;
+            transform.position = Vector3.Lerp(transform.position, targetPosition, Time.deltaTime * smoothSpeed);
+        }
+    }
+
+    private void HandleCursorFollow()
+    {
+        // 마우스 위치를 -1 ~ 1 범위로 정규화
+        Vector2 mousePos = new Vector2(
+            (Input.mousePosition.x / Screen.width) * 2 - 1,
+            (Input.mousePosition.y / Screen.height) * 2 - 1
+        );
+
+        // 마우스 위치에 따른 오프셋 계산
+        Vector3 offset = new Vector3(
+            mousePos.x * cursorFollowIntensity,
+            mousePos.y * cursorFollowIntensity,
+            0
+        );
+
+        // 목표 위치 계산 (초기 위치 + 오프셋)
+        targetPosition = initialPosition + offset;
+
+        // 부드러운 이동
+        transform.position = Vector3.Lerp(
+            transform.position,
+            targetPosition,
+            Time.deltaTime * cursorFollowSmoothness
+        );
+    }
+
+    private void HandleZoom()
+    {
+        float scrollInput = Input.GetAxis("Mouse ScrollWheel");
+        if (scrollInput != 0)
+        {
+            targetZoom = Mathf.Clamp(targetZoom - scrollInput * zoomSpeed, minZoom, maxZoom);
+        }
+        mainCamera.fieldOfView = Mathf.Lerp(mainCamera.fieldOfView, targetZoom, Time.deltaTime * cursorFollowSmoothness);
     }
 
     public void ZoomInOnTarget(Transform target)
@@ -126,8 +200,9 @@ public class CameraFollow : MonoBehaviour
     public void ResetCamera()
     {
         currentTarget = null;
-
         isFollowing = false;
+        isBattle = false;
+        targetZoom = originalFOV;  // 줌 초기화
 
         // 기존 트윈 취소
         transform.DOKill();
@@ -148,6 +223,10 @@ public class CameraFollow : MonoBehaviour
     // 전투 시작 시 호출될 메서드
     public void SetupCombatView()
     {
+        isBattle = true;
+        targetZoom = normalFOV;  // 전투 시작 시 줌 초기화
+        mainCamera.fieldOfView = normalFOV;
+
         // 기존 트윈 취소
         transform.DOKill();
         mainCamera.DOKill();
@@ -168,9 +247,11 @@ public class CameraFollow : MonoBehaviour
         transform.DOKill();
         mainCamera.DOKill();
 
-        // 중앙점 계산
-        Vector3 centerPoint = (attacker.position + defender.position) / 2f;
-        float distance = Vector3.Distance(attacker.position, defender.position);
+        // 중앙점 계산 (캐릭터 높이의 절반을 더해서 실제 중앙점 계산)
+        Vector3 attackerCenter = attacker.position + Vector3.up * 1f; // 캐릭터 높이의 절반인 1을 더함
+        Vector3 defenderCenter = defender.position + Vector3.up * 1f;
+        Vector3 centerPoint = (attackerCenter + defenderCenter) / 2f;
+        float distance = Vector3.Distance(attackerCenter, defenderCenter);
         
         // 공격자의 위치에 따라 카메라 각도 결정
         bool isAttackerPlayer = attacker.CompareTag("Player");

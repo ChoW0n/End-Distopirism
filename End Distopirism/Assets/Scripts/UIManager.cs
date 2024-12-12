@@ -487,7 +487,9 @@ public class UIManager : MonoBehaviour
     {
         if (bloodEffectPrefab == null || bloodSprites.Length == 0) return;
 
-        GameObject bloodEffect = Instantiate(bloodEffectPrefab, position, Quaternion.identity);
+        // y값을 1.5f만큼 위로 올림
+        Vector3 adjustedPosition = new Vector3(position.x, position.y + 1.5f, position.z);
+        GameObject bloodEffect = Instantiate(bloodEffectPrefab, adjustedPosition, Quaternion.identity);
         SpriteRenderer spriteRenderer = bloodEffect.GetComponent<SpriteRenderer>();
         
         if (spriteRenderer != null)

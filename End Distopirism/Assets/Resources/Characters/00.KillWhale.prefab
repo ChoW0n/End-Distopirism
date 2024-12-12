@@ -524,6 +524,14 @@ MonoBehaviour:
     confusionTurns: 0
     poisonTurns: 0
     defenseDownTurns: 0
+    attackBloodSprites:
+    - {fileID: 21300000, guid: f19a1c9ef3b79f8459acff084b64c68a, type: 3}
+    - {fileID: 21300000, guid: b795a127a4793354e9194b2c0a14ac04, type: 3}
+    - {fileID: 21300000, guid: 464f050236a2b2d4fa9ed87d5b1b7e6b, type: 3}
+    skillBloodSprites:
+    - {fileID: 21300000, guid: cb52816bc5321934eada4c253b823d43, type: 3}
+    bleedingSprites:
+    - {fileID: 21300000, guid: 3bdbd036a0390374b9414bc6de25614a, type: 3}
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -611,7 +619,7 @@ CapsuleCollider:
   m_Radius: 0.92
   m_Height: 2.56
   m_Direction: 1
-  m_Center: {x: 0, y: -0.01, z: 0}
+  m_Center: {x: 0, y: 0.96, z: 0}
 --- !u!1 &4700237753442775207
 GameObject:
   m_ObjectHideFlags: 0

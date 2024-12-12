@@ -281,28 +281,67 @@ public class CharacterProfile : MonoBehaviour
     // 체력이나 정신력이 변경될 때 호출할 메서드
     public void UpdateStatus()
     {
+        // 이전 값 저장
+        float prevHealth = GetPlayer.hp;
+        float prevMentality = GetPlayer.menTality;
+
         // 체력이 0 미만으로 내려가지 않도록
         GetPlayer.hp = Mathf.Max(0, GetPlayer.hp);
         
         // 정신력이 0~100 범위를 벗어나 않도록
         GetPlayer.menTality = Mathf.Clamp(GetPlayer.menTality, 0f, 100f);
 
-        // 체력바 색상 업데이트 (옵션)
+        // 체력바 색상 업데이트 및 피해 효과
         if (healthBarFill != null)
         {
             float healthPercentage = (float)GetPlayer.hp / GetPlayer.maxHp;
             healthBarFill.color = Color.Lerp(Color.red, Color.green, healthPercentage);
+
+            // 체력이 감소했을 때 반짝임 효과
+            if (GetPlayer.hp < prevHealth)
+            {
+                Sequence seq = DOTween.Sequence();
+                seq.Append(healthBarFill.DOColor(Color.white, 0.1f));
+                seq.Append(healthBarFill.DOColor(healthBarFill.color, 0.1f));
+                seq.SetLoops(2);
+            }
         }
 
-        // 정신력바 색상 업데이트 (옵션)
+        // 정신력바 색상 업데이트 및 피해 효과
         if (mentalityBarFill != null)
         {
             float mentalityPercentage = GetPlayer.menTality / 100f;
             mentalityBarFill.color = Color.Lerp(Color.red, Color.blue, mentalityPercentage);
+
+            // 정신력이 감소했을 때 반짝임 효과
+            if (GetPlayer.menTality < prevMentality)
+            {
+                Sequence seq = DOTween.Sequence();
+                seq.Append(mentalityBarFill.DOColor(Color.white, 0.1f));
+                seq.Append(mentalityBarFill.DOColor(mentalityBarFill.color, 0.1f));
+                seq.SetLoops(2);
+            }
         }
 
-        // 텍스트 업데이트 추가
+        // 텍스트 업데이트 및 강조 효과
         UpdateStatusTexts();
+        if (GetPlayer.hp < prevHealth || GetPlayer.menTality < prevMentality)
+        {
+            if (CompareTag("Player"))
+            {
+                if (GetPlayer.hp < prevHealth && playerHPText != null)
+                    playerHPText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
+                if (GetPlayer.menTality < prevMentality && playerMTText != null)
+                    playerMTText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
+            }
+            else
+            {
+                if (GetPlayer.hp < prevHealth && enemyHPText != null)
+                    enemyHPText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
+                if (GetPlayer.menTality < prevMentality && enemyMTText != null)
+                    enemyMTText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
+            }
+        }
     }
 
     public void ShowCharacterInfo()

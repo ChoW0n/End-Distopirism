@@ -352,7 +352,6 @@ MonoBehaviour:
     defLevel: 10
     dmgLevel: 40
     dmg: 0
-    maxDmg: 0
     minDmg: 0
     dmgUp: 0
     maxCoin: 3
@@ -361,11 +360,24 @@ MonoBehaviour:
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     charSprite: {fileID: 0}
+    nextTurnCoinModifier: 0
+    isBleedingEffect: 0
+    isConfusionEffect: 0
+    isPoisonEffect: 0
+    isDefenseDownEffect: 0
+    bleedingTurns: 0
+    confusionTurns: 0
+    poisonTurns: 0
+    defenseDownTurns: 0
   live: 0
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
   isSelected: 0
+  dashSound: {fileID: 0}
+  hitSound: {fileID: 0}
+  skillHistories: []
+  effectHistories: []
 --- !u!114 &230979968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -671,7 +683,6 @@ MonoBehaviour:
     defLevel: 10
     dmgLevel: 50
     dmg: 0
-    maxDmg: 0
     minDmg: 0
     dmgUp: 0
     maxCoin: 3
@@ -684,11 +695,24 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     charSprite: {fileID: 0}
+    nextTurnCoinModifier: 0
+    isBleedingEffect: 0
+    isConfusionEffect: 0
+    isPoisonEffect: 0
+    isDefenseDownEffect: 0
+    bleedingTurns: 0
+    confusionTurns: 0
+    poisonTurns: 0
+    defenseDownTurns: 0
   live: 0
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
   isSelected: 0
+  dashSound: {fileID: 0}
+  hitSound: {fileID: 0}
+  skillHistories: []
+  effectHistories: []
 --- !u!114 &591501595
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1107,12 +1131,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61818b6102f81de4a9933a5a4104bdd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {fileID: 0}
   smoothSpeed: 0.02
-  floorBackground: {fileID: 1123632771}
-  offset: {x: 0, y: 100, z: -300}
-  mainCamera: {fileID: 868082949}
-  zoomedSize: 460
+  zoomInFOV: 45
+  normalFOV: 60
+  combatHeight: 3
+  combatAngle: 15
+  sideViewAngle: 25
+  heightOffset: 2
+  distanceOffset: 5
+  transitionDuration: 0.8
+  currentTarget: {fileID: 0}
+  isFollowing: 0
 --- !u!1 &922897784
 GameObject:
   m_ObjectHideFlags: 0
@@ -1190,7 +1219,6 @@ MonoBehaviour:
     defLevel: 10
     dmgLevel: 46
     dmg: 0
-    maxDmg: 0
     minDmg: 0
     dmgUp: 0
     maxCoin: 5
@@ -1203,11 +1231,24 @@ MonoBehaviour:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     charSprite: {fileID: 0}
+    nextTurnCoinModifier: 0
+    isBleedingEffect: 0
+    isConfusionEffect: 0
+    isPoisonEffect: 0
+    isDefenseDownEffect: 0
+    bleedingTurns: 0
+    confusionTurns: 0
+    poisonTurns: 0
+    defenseDownTurns: 0
   live: 0
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
   isSelected: 0
+  dashSound: {fileID: 0}
+  hitSound: {fileID: 0}
+  skillHistories: []
+  effectHistories: []
 --- !u!212 &922897787
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -1842,6 +1883,8 @@ MonoBehaviour:
   playerBattlePositions: []
   enemyBattlePositions: []
   stageData: {fileID: 0}
+  battleZone: {fileID: 0}
+  safeDistance: 300
 --- !u!1 &1448075421
 GameObject:
   m_ObjectHideFlags: 0
@@ -1873,12 +1916,35 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   damageTextPrefab: {fileID: 1086182536178314378, guid: f2ef3cb4019e4d843a363bac573e9659, type: 3}
   canvas: {fileID: 1943806772}
+  canvas2: {fileID: 0}
   playerProfilePanel: {fileID: 2081317365}
   enemyProfilePanel: {fileID: 1878296296}
   healthBarPrefab: {fileID: 0}
   mentalityBarPrefab: {fileID: 0}
   playerSkillEffectPrefab: {fileID: 0}
   enemySkillEffectPrefab: {fileID: 0}
+  turnText: {fileID: 0}
+  pausePanel: {fileID: 0}
+  speedButton: {fileID: 0}
+  speedButtonText: {fileID: 0}
+  gameEndPanel: {fileID: 0}
+  menuButton: {fileID: 0}
+  loadingScreen: {fileID: 0}
+  fadeImage: {fileID: 0}
+  bloodEffectPrefab: {fileID: 0}
+  bloodSprites: []
+  poisonSprites: []
+  defenseSprites: []
+  effectFadeInDuration: 0.3
+  effectStayDuration: 0.5
+  effectFadeOutDuration: 0.7
+  effectScaleMin: 0.8
+  effectScaleMax: 1.2
+  statusEffectIconPrefab: {fileID: 0}
+  bleedingSprite: {fileID: 0}
+  confusionSprite: {fileID: 0}
+  poisonSprite: {fileID: 0}
+  defenseDownSprite: {fileID: 0}
 --- !u!4 &1448075423
 Transform:
   m_ObjectHideFlags: 0
@@ -1938,10 +2004,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 66df94a77248f6542ac3fdda22363583, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  defaultSprite: {fileID: 0}
-  successSprite: {fileID: 0}
-  cardHoverScale: 1.2
-  cardAnimationDuration: 0.3
+  cardZoomPosition: {fileID: 0}
 --- !u!1001 &1871742039
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2130,7 +2193,7 @@ Canvas:
   m_OverridePixelPerfect: 0
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -2389,7 +2452,6 @@ MonoBehaviour:
     defLevel: 5
     dmgLevel: 10
     dmg: 0
-    maxDmg: 0
     minDmg: 0
     dmgUp: 0
     maxCoin: 1
@@ -2398,11 +2460,24 @@ MonoBehaviour:
     skills:
     - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
     charSprite: {fileID: 0}
+    nextTurnCoinModifier: 0
+    isBleedingEffect: 0
+    isConfusionEffect: 0
+    isPoisonEffect: 0
+    isDefenseDownEffect: 0
+    bleedingTurns: 0
+    confusionTurns: 0
+    poisonTurns: 0
+    defenseDownTurns: 0
   live: 0
   bonusDmg: 0
   coinBonus: 0
   successCount: 0
   isSelected: 0
+  dashSound: {fileID: 0}
+  hitSound: {fileID: 0}
+  skillHistories: []
+  effectHistories: []
 --- !u!114 &2115570239
 MonoBehaviour:
   m_ObjectHideFlags: 0

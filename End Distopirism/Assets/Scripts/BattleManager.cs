@@ -51,7 +51,7 @@ public class BattleManager : MonoBehaviour
     private BattleLine battleLine; // BattleLine 참조 추가
 
     [SerializeField] private SphereCollider battleZone; // 2D에서 3D로 변경
-    [SerializeField] private float safeDistance = 300f; // 전투 쌍 사이의 최소 안전 거리
+    [SerializeField] private float safeDistance = 150f; // 전투 쌍 사이의 최소 안전 거리
 
     void Awake()
     {
@@ -495,7 +495,7 @@ public class BattleManager : MonoBehaviour
             {
                 foreach (var effect in player.GetPlayer.statusEffects.ToList())
                 {
-                    if (effect.effectName == "��혈")
+                    if (effect.effectName == "출혈")
                     {
                         int bleedDamage = Mathf.RoundToInt(player.GetPlayer.maxHp * effect.healthPercentDamage);
                         player.GetPlayer.hp -= bleedDamage;
@@ -1130,10 +1130,11 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // UI 표시
         UIManager.Instance.ShowGameEndUI();
 
-        // 카메라 리셋 (BattleLine 비활성화 포함)
+        // 카메라 리셋 (isBattle 상태도 함께 해제)
         var battleCamera = FindObjectOfType<CameraFollow>();
         if (battleCamera != null)
         {
+            battleCamera.isBattle = false;  // 명시적으로 isBattle 상태 해제
             battleCamera.ResetCamera();
         }
     }
@@ -1211,12 +1212,16 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
             do
             {
-                // 랜덤 위치 생성
+                // 랜덤 위치 생성 (X와 Z축 모두 랜덤)
                 float randomX = Random.Range(zoneCenter.x - zoneSize.x/2, zoneCenter.x + zoneSize.x/2);
                 float randomZ = Random.Range(zoneCenter.z - zoneSize.z/2, zoneCenter.z + zoneSize.z/2);
 
                 playerTargetPos = new Vector3(randomX, zoneCenter.y, randomZ);
-                enemyTargetPos = new Vector3(randomX + 200f, zoneCenter.y, randomZ);
+                
+                // 적의 위치도 X와 Z축 모두 오프셋 적용
+                float enemyOffsetX = Random.Range(150f, 250f); // X축 오프셋 랜덤화
+                float enemyOffsetZ = Random.Range(-100f, 100f); // Z축 오프셋 랜덤화
+                enemyTargetPos = new Vector3(randomX + enemyOffsetX, zoneCenter.y, randomZ + enemyOffsetZ);
 
                 // 이전 위치들과의 거리 확인
                 validPosition = true;
@@ -1273,25 +1278,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         }
     }
 
-    private Vector3 CalculateCenterPoint()
-    {
-        Vector3 playerCenter = Vector3.zero;
-        Vector3 enemyCenter = Vector3.zero;
-
-        foreach (CharacterProfile player in playerObjects)
-        {
-            playerCenter += player.transform.position;
-        }
-        playerCenter /= playerObjects.Count;
-
-        foreach (CharacterProfile enemy in targetObjects)
-        {
-            enemyCenter += enemy.transform.position;
-        }
-        enemyCenter /= targetObjects.Count;
-
-        return (playerCenter + enemyCenter) / 2f;
-    }
 
     void MoveCharacters(CharacterProfile advancer, CharacterProfile retreater)
     {
@@ -1345,22 +1331,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         yield return new WaitForSeconds(0.5f);
     }
 
-    // 캐릭터 이동 중인지 확인하는 퍼 메서드
-    private bool IsAnyCharacterMoving()
-    {
-        var allCharacters = GameObject.FindGameObjectsWithTag("Player")
-            .Concat(GameObject.FindGameObjectsWithTag("Enemy"));
-            
-        foreach (var character in allCharacters)
-        {
-            BattleMove move = character.GetComponent<BattleMove>();
-            if (move != null && move.IsMoving())
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public void OnSkillSelected()
     {
