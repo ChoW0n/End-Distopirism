@@ -99,8 +99,8 @@ public class TargetArrowCreator : MonoBehaviour
         Transform start = connection.player;
         Transform end = connection.target;
 
-        Vector3 startPoint = start.position + Vector3.up * 250f + Vector3.right * 50f;
-        Vector3 endPoint = end.position + Vector3.up * 250f + Vector3.left * 60f;
+        Vector3 startPoint = start.position + Vector3.up * 250f + Vector3.right * 70f;
+        Vector3 endPoint = end.position + Vector3.up * 250f + Vector3.left * 70f;
         Vector3 controlPoint = (startPoint + endPoint) / 2f + Vector3.up * curveHeight;
 
         float elapsedTime = 0f;
