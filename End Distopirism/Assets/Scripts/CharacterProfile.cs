@@ -336,20 +336,6 @@ public class CharacterProfile : MonoBehaviour
         UIManager.Instance.ShowSkillCards(this.CompareTag("Player") ? UIManager.Instance.playerProfilePanel : UIManager.Instance.enemyProfilePanel);
     }
 
-    // 스킬을 캐릭터에 적용하는 메서드 수정
-    void ApplySkill()
-    {
-        if (player.skills != null && player.skills.Count > 0)
-        {
-            Skill skill = player.skills[0];
-            player.maxDmg = skill.maxDmg;
-            player.minDmg = skill.minDmg; 
-            player.dmgUp = skill.dmgUp;
-            Debug.Log($"[스킬 적용] 캐릭터: {player.charName}, 스킬: {skill.skillName}");
-            Debug.Log($"[스킬 스탯] 최대 데미지: {skill.maxDmg}, 최소 데미지: {skill.minDmg}, 데미지 증가: {skill.dmgUp}");
-        }
-    }
-
     public void OnDeath()
     {
         StartCoroutine(DeathSequence());
@@ -493,6 +479,7 @@ public class CharacterProfile : MonoBehaviour
     // 스킬 이펙트 생성 및 표시
     public void ShowSkillEffect(int initialDamage)
     {
+        GameObject canvas2 = GameObject.Find("Canvas2");
         if (skillPosition == null) return;
 
         if (currentSkillEffect != null)
@@ -504,7 +491,7 @@ public class CharacterProfile : MonoBehaviour
             UIManager.Instance.playerSkillEffectPrefab : 
             UIManager.Instance.enemySkillEffectPrefab;
 
-        currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, UIManager.Instance.canvas.transform);
+        currentSkillEffect = Instantiate(prefab, skillPosition.position, Quaternion.identity, UIManager.Instance.canvas2.transform);
         
         Canvas skillCanvas = currentSkillEffect.GetComponent<Canvas>();
         if (skillCanvas != null)
@@ -566,7 +553,7 @@ public class CharacterProfile : MonoBehaviour
         float duration = 0.4f;
         float elapsedTime = 0f;
         int startDamage = int.Parse(dmgText.text);
-        Vector3 originalScale = Vector3.one; // 원본 스케일을 1로 고정
+        Vector3 originalScale = dmgText.transform.localScale; ; // 원본 스케일을 68로 고정
         Color originalColor = dmgText.color;
         
         while (elapsedTime < duration)
@@ -575,7 +562,7 @@ public class CharacterProfile : MonoBehaviour
             float progress = elapsedTime / duration;
             
             // 스케일 애니메이션
-            float scaleFactor = 1f + Mathf.Sin(progress * Mathf.PI) * 0.2f; // 스케일 변화 폭을 0.2로 줄임
+            float scaleFactor = 1f + Mathf.Sin(progress * Mathf.PI) * 0.4f; // 스케일 변화 폭을 0.2로 줄임
             dmgText.transform.localScale = originalScale * scaleFactor;
             
             // 색상 변경
@@ -649,12 +636,10 @@ public class CharacterProfile : MonoBehaviour
         if (selectedSkill != null)
         {
             // 이전 스탯 저장
-            int previousMaxDmg = player.maxDmg;
             int previousMinDmg = player.minDmg;
             int previousDmgUp = player.dmgUp;
             
             // 새로운 스킬 스탯 ���용
-            player.maxDmg = selectedSkill.maxDmg;
             player.minDmg = selectedSkill.minDmg;
             player.dmgUp = selectedSkill.dmgUp;
             
@@ -674,7 +659,6 @@ public class CharacterProfile : MonoBehaviour
             
             // 스탯 변경 로그 출력
             Debug.Log($"[스킬 적용] 캐릭터: {player.charName}, 스킬: {selectedSkill.skillName}");
-            Debug.Log($"[스킬 스탯 변경] 최대 데미지: {previousMaxDmg} -> {selectedSkill.maxDmg} ({selectedSkill.maxDmg - previousMaxDmg:+#;-#;0})");
             Debug.Log($"[스킬 스탯 변경] 최소 데미지: {previousMinDmg} -> {selectedSkill.minDmg} ({selectedSkill.minDmg - previousMinDmg:+#;-#;0})");
             Debug.Log($"[스킬 스탯 변경] 데미지 증가: {previousDmgUp} -> {selectedSkill.dmgUp} ({selectedSkill.dmgUp - previousDmgUp:+#;-#;0})");
         }

@@ -60,7 +60,7 @@ Transform:
   m_GameObject: {fileID: 2502226582546680564}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.009, y: 1.329, z: 0}
+  m_LocalPosition: {x: 0.009, y: 2.66, z: 0}
   m_LocalScale: {x: 0.01, y: 0.01, z: 0.01}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -343,7 +343,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72be25687efd3be4bad5a0f914fbd52f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 1000
+  moveSpeed: 2000
   spacingDistance: 200
   advanceDistance: 80
   retreatDistance: 80
@@ -368,7 +368,6 @@ MonoBehaviour:
     defLevel: 5
     dmgLevel: 29
     dmg: 0
-    maxDmg: 0
     minDmg: 0
     dmgUp: 0
     maxCoin: 5
@@ -479,7 +478,6 @@ MonoBehaviour:
     defLevel: 10
     dmgLevel: 46
     dmg: 0
-    maxDmg: 0
     minDmg: 0
     dmgUp: 0
     maxCoin: 5

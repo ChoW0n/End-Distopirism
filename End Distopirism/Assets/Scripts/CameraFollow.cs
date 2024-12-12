@@ -59,7 +59,11 @@ public class CameraFollow : MonoBehaviour
         if (otherCharacter == null) yield break;
 
         // 중앙점 계산
-        Vector3 centerPoint = (target.position + otherCharacter.position) / 2f;
+        Vector3 centerPoint = (target.position + otherCharacter.position) / 2.5f;
+        //중앙점의 높이를 캐릭터에 발에서 더 위로
+        // y축 높이를 조정
+        //float heightOffset = -2f; // 캐릭터 높이에 따라 조정할 값
+        //centerPoint.y += heightOffset;
         float distance = Vector3.Distance(target.position, otherCharacter.position);
 
         // 카메라 방향 전환 (이전 방향의 반대로)

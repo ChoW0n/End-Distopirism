@@ -285,7 +285,7 @@ public class UIManager : MonoBehaviour
         // 기본 정보 설정
         dmgLevelText.text = character.GetPlayer.dmgLevel.ToString();
         defLevelText.text = character.GetPlayer.defLevel.ToString();
-        maxDmgText.text = character.GetPlayer.maxDmg.ToString();
+        maxDmgText.text = ((character.GetPlayer.dmgUp*character.GetPlayer.coin)+character.GetPlayer.minDmg).ToString();
         minDmgText.text = character.GetPlayer.minDmg.ToString();
         dmgUpText.text = "+" + character.GetPlayer.dmgUp.ToString();
         coinText.text = character.GetPlayer.coin.ToString();
@@ -309,13 +309,6 @@ public class UIManager : MonoBehaviour
         {
             skillCards.gameObject.SetActive(isPlayer);
         }
-
-        Debug.LogWarning($"[캐릭터 정보 업데이트] {character.GetPlayer.charName} ({(isPlayer ? "플레이어" : "적")})" +
-            $"\n- 공격력: {character.GetPlayer.dmgLevel}" +
-            $"\n- 방어력: {character.GetPlayer.defLevel}" +
-            $"\n- 데미지: {character.GetPlayer.minDmg}-{character.GetPlayer.maxDmg} (+{character.GetPlayer.dmgUp})" +
-            $"\n- 코인: {character.GetPlayer.coin}" +
-            (showSkill ? $"\n- 선택된 스킬: {character.GetPlayer.skills[0].skillName}" : ""));
     }
 
     public void ShowBattleResultText(string message, Vector3 position)
@@ -684,83 +677,5 @@ public class UIManager : MonoBehaviour
                 if (durationText != null) durationText.text = player.defenseDownTurns.ToString();
             }
         }
-    }
-
-    // CreateSkillEffect 메서드 수정
-    public void CreateSkillEffect(Transform characterTransform, bool isPlayer)
-    {
-        if (canvas2 == null)
-        {
-            Debug.LogError("Canvas2가 할당되지 않았습니다. UIManager의 Inspector에서 Canvas2를 할당해주세요.");
-            return;
-        }
-
-        GameObject prefabToUse = isPlayer ? playerSkillEffectPrefab : enemySkillEffectPrefab;
-        if (prefabToUse == null)
-        {
-            Debug.LogError($"{(isPlayer ? "Player" : "Enemy")} 스킬 이펙트 프리팹이 할당되지 않았습니다.");
-            return;
-        }
-
-        // 캐릭터 약간 앞쪽에 생성
-        Vector3 effectPosition = characterTransform.position + new Vector3(0, 1f, -0.1f);
-        GameObject effect = Instantiate(prefabToUse, effectPosition, Quaternion.identity);
-        effect.transform.SetParent(canvas2.transform, true);
-
-        // 스케일 설정
-        effect.transform.localScale = new Vector3(100f, 100f, 100f);
-        
-        // 카메라를 향하도록 회전
-        effect.transform.LookAt(Camera.main.transform.position);
-        effect.transform.Rotate(0, 180, 0);
-    }
-
-    // HP, MT 바 생성 메서드 수정
-    public void CreateStatusBars(Transform characterTransform, bool isPlayer)
-    {
-        GameObject canvas2 = GameObject.Find("Canvas2");
-        if (canvas2 == null)
-        {
-            Debug.LogError("Canvas2를 찾을 수 없습니다!");
-            return;
-        }
-
-        // HP 바 생성
-        Vector3 hpBarPosition = characterTransform.position + new Vector3(0, 2f, -0.1f);
-        GameObject hpBar = Instantiate(healthBarPrefab, hpBarPosition, Quaternion.identity);
-        hpBar.transform.SetParent(canvas2.transform, false);
-        
-        // MT 바 생성
-        Vector3 mtBarPosition = characterTransform.position + new Vector3(0, 1.8f, -0.1f);
-        GameObject mtBar = Instantiate(mentalityBarPrefab, mtBarPosition, Quaternion.identity);
-        mtBar.transform.SetParent(canvas2.transform, false);
-
-        // 스케일 설정
-        Vector3 barScale = new Vector3(0.5f, 0.5f, 0.5f);
-        hpBar.transform.localScale = barScale;
-        mtBar.transform.localScale = barScale;
-
-        // 캐릭터를 따라다니도록 설정
-        StartCoroutine(UpdateBarsPosition(hpBar, mtBar, characterTransform));
-    }
-
-    private IEnumerator UpdateBarsPosition(GameObject hpBar, GameObject mtBar, Transform character)
-    {
-        while (hpBar != null && mtBar != null && character != null)
-        {
-            // HP 바 위치 업데이트
-            Vector3 hpPos = character.position + new Vector3(0, 2f, -0.1f);
-            hpBar.transform.position = hpPos;
-
-            // MT 바 위치 업데이트
-            Vector3 mtPos = character.position + new Vector3(0, 1.8f, -0.1f);
-            mtBar.transform.position = mtPos;
-
-            yield return null;
-        }
-
-        // 캐릭터가 파괴되면 바도 제거
-        if (hpBar != null) Destroy(hpBar);
-        if (mtBar != null) Destroy(mtBar);
     }
 }

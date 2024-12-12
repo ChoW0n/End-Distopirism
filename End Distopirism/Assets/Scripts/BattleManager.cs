@@ -50,7 +50,7 @@ public class BattleManager : MonoBehaviour
 
     private BattleLine battleLine; // BattleLine 참조 추가
 
-    [SerializeField] private BoxCollider battleZone; // 2D에서 3D로 변경
+    [SerializeField] private SphereCollider battleZone; // 2D에서 3D로 변경
     [SerializeField] private float safeDistance = 300f; // 전투 쌍 사이의 최소 안전 거리
 
     void Awake()
@@ -605,8 +605,8 @@ public class BattleManager : MonoBehaviour
     //데미지 연산 함수
     void CalculateDamage(CharacterProfile playerObject, CharacterProfile targetObject, out int playerDamage, out int targetDamage)
     {
-        playerDamage = (int)(Random.Range(playerObject.GetPlayer.maxDmg, playerObject.GetPlayer.minDmg) + playerObject.coinBonus + playerObject.bonusDmg);
-        targetDamage = (int)(Random.Range(targetObject.GetPlayer.maxDmg, targetObject.GetPlayer.minDmg) + targetObject.coinBonus + targetObject.bonusDmg);
+        playerDamage = (int)(playerObject.GetPlayer.minDmg + playerObject.coinBonus + playerObject.bonusDmg);
+        targetDamage = (int)(targetObject.GetPlayer.minDmg + targetObject.coinBonus + targetObject.bonusDmg);
 
         playerObject.GetPlayer.dmg = playerDamage;
         targetObject.GetPlayer.dmg = targetDamage;
@@ -650,7 +650,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         if (j > 0)
         {
             CoinRoll(attacker, ref attacker.successCount);
-            attacker.GetPlayer.dmg = Random.Range(attacker.GetPlayer.maxDmg, attacker.GetPlayer.minDmg) + attacker.coinBonus + attacker.bonusDmg;
+            attacker.GetPlayer.dmg = attacker.GetPlayer.minDmg + attacker.coinBonus + attacker.bonusDmg;
             attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
             // 코인 성공 횟수 UI 업데이트
             attacker.UpdateCoinCount(attacker.successCount);

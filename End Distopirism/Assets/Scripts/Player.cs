@@ -27,9 +27,6 @@ public class Player
     public int dmg;
 
     [HideInInspector]
-    public int maxDmg;
-
-    [HideInInspector]
     public int minDmg;
 
     [HideInInspector]

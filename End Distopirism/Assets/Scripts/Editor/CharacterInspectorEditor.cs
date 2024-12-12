@@ -55,7 +55,7 @@ public class CharacterInspectorEditor : Editor
         DisplaySkillIcon(skill.sprite, skill);
         EditorGUILayout.LabelField($"스킬: {skillName}");
         EditorGUILayout.LabelField($"폴더: {skillFolderName}");
-        EditorGUILayout.LabelField($"공격력: {skill.minDmg}~{skill.maxDmg}");
+        EditorGUILayout.LabelField($"공격력: {skill.minDmg}~{skill.dmgUp}*캐릭터의 현재 코인");
         EditorGUILayout.LabelField($"코인당 상승: {skill.dmgUp}");
 
         EditorGUILayout.EndVertical();

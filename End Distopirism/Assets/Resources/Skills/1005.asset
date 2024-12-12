@@ -13,8 +13,7 @@ MonoBehaviour:
   m_Name: 1005
   m_EditorClassIdentifier: 
   skillName: "\uB3C5\uBC14\uB974\uAE30"
-  sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  maxDmg: 4
+  sprite: {fileID: 21300000, guid: 91e41e7a64eaaa940a1a434d41349cf2, type: 3}
   minDmg: 4
   dmgUp: 3
   skillEffect: "\uD569 \uC2B9\uB9AC \uC2DC 3\uD134\uAC04 \uC9C0\uC18D\uB418\uB294
