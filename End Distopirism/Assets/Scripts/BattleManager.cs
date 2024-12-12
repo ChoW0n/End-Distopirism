@@ -547,6 +547,7 @@ public class BattleManager : MonoBehaviour
             if (battleCamera != null)
             {
                 battleCamera.ZoomInOnTarget(playerObject.transform);
+                battleCamera.isFollowing = true;
             }
 
             playerObject.successCount = targetObject.successCount = 0;
@@ -583,6 +584,7 @@ public class BattleManager : MonoBehaviour
         var mainCamera = FindObjectOfType<CameraFollow>();
         if (mainCamera != null)
         {
+            mainCamera.isFollowing = false;
             mainCamera.ResetCamera();
         }
 
@@ -634,6 +636,13 @@ public class BattleManager : MonoBehaviour
 
 IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProfile victim, bool isLastBattle)
 {
+    // 시작 시 null 체크
+    if (attacker == null || victim == null || 
+        attacker.gameObject == null || victim.gameObject == null)
+    {
+        yield break;
+    }
+
     BattleMove attackerMove = attacker.GetComponent<BattleMove>();
     BattleMove victimMove = victim.GetComponent<BattleMove>();
 
@@ -769,6 +778,17 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         UIManager.Instance.ShowDamageTextNearCharacter(finalDamageInt, victim.transform);
         UIManager.Instance.CreateBloodEffect(victim.transform.position);
         attacker.PlayHitSound();
+
+        // 카메라 설정
+        var battleCamera = FindObjectOfType<CameraFollow>();
+        if (battleCamera != null)
+        {
+            yield return new WaitForSeconds(0.5f);
+
+            battleCamera.currentTarget = attacker.transform;
+            battleCamera.ZoomInOnTarget(attacker.transform);
+            battleCamera.isFollowing = true;  // 따라가기 활성화
+        }
 
         // 피해 상세 로그
         Debug.LogWarning($"[피해 상세 - {victim.GetPlayer.charName}]");
@@ -963,14 +983,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             Debug.LogWarning($"[혼란 자해] {attacker.GetPlayer.charName}이(가) 혼란으로 인해 {selfDamage}의 자해 피해를 입음");
         }
     }
-
-    // 공격 시작 시 두 캐릭터를 모두 보여주는 카메라 앵글
-    var battleCamera = FindObjectOfType<CameraFollow>();
-    if (battleCamera != null && attacker != null && victim != null)
-    {
-        battleCamera.FocusOnDuel(attacker.transform, victim.transform);
-    }
-
 
 }
 

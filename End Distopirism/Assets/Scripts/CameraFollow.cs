@@ -25,6 +25,10 @@ public class CameraFollow : MonoBehaviour
     public float transitionDuration = 0.8f; // 전환 시간
     private bool isLeftSideView = true; // 현재 카메라가 왼쪽에서 보고 있는지
 
+    [Header("CurrentTarget")]
+    public Transform currentTarget;
+    public bool isFollowing = false;
+
     private void Start()
     {
         mainCamera = GetComponent<Camera>();
@@ -43,34 +47,27 @@ public class CameraFollow : MonoBehaviour
     {
         if (target == null) return;
 
+        isFollowing = true;
+
+        currentTarget = target;
+
         // 기존 트윈 취소
         transform.DOKill();
         mainCamera.DOKill();
 
-        StartCoroutine(CombatCameraSequence(target));
-    }
-
-    private IEnumerator CombatCameraSequence(Transform target)
-    {
-        if (target == null) yield break;
-
         // 전투 중인 두 캐릭터 찾기
         Transform otherCharacter = FindOpponentCharacter(target);
-        if (otherCharacter == null) yield break;
+        if (otherCharacter == null) return;
 
         // 중앙점 계산
         Vector3 centerPoint = (target.position + otherCharacter.position) / 2.5f;
-        //중앙점의 높이를 캐릭터에 발에서 더 위로
-        // y축 높이를 조정
-        //float heightOffset = -2f; // 캐릭터 높이에 따라 조정할 값
-        //centerPoint.y += heightOffset;
         float distance = Vector3.Distance(target.position, otherCharacter.position);
 
         // 카메라 방향 전환 (이전 방향의 반대로)
         isLeftSideView = !isLeftSideView;
         float currentSideAngle = isLeftSideView ? -sideViewAngle : sideViewAngle;
         
-        // 1. 비스듬한 앵글로 전환
+        // 비스듬한 앵글로 전환
         Vector3 sidePosition = centerPoint + 
             Quaternion.Euler(0, currentSideAngle, 0) * (Vector3.back * (distance + distanceOffset)) + 
             Vector3.up * heightOffset;
@@ -80,29 +77,20 @@ public class CameraFollow : MonoBehaviour
         // DOTween을 사용하여 부드러운 카메라 이동
         transform.DOMove(sidePosition, transitionDuration).SetEase(Ease.InOutQuad);
         transform.DORotateQuaternion(sideRotation, transitionDuration).SetEase(Ease.InOutQuad);
-        mainCamera.DOFieldOfView(zoomInFOV, transitionDuration).SetEase(Ease.InOutQuad);
-
-        yield return new WaitForSeconds(transitionDuration);
-
-        // 2. 약간의 카메라 흔들림 효과
-        Vector3 originalSidePosition = sidePosition;
-        float shakeTime = 0.3f;
-        float shakeIntensity = 0.1f;
-        
-        float elapsed = 0;
-        while (elapsed < shakeTime)
-        {
-            float offsetX = Random.Range(-shakeIntensity, shakeIntensity);
-            float offsetY = Random.Range(-shakeIntensity, shakeIntensity);
-            
-            transform.position = originalSidePosition + new Vector3(offsetX, offsetY, 0);
-            
-            elapsed += Time.deltaTime;
-            yield return null;
-        }
-
-        // 3. 원앙점으로 카메라 복귀
-        //transform.position = originalSidePosition;
+        mainCamera.DOFieldOfView(zoomInFOV, transitionDuration).SetEase(Ease.InOutQuad)
+            .OnComplete(() => {
+                // 카메라 흔들림 효과
+                Vector3 originalSidePosition = sidePosition;
+                float shakeTime = 0.3f;
+                float shakeIntensity = 0.1f;
+                
+                DOTween.Sequence()
+                    .Append(transform.DOShakePosition(shakeTime, shakeIntensity))
+                    .OnComplete(() => {
+                        // 원래 위치로 복귀
+                        transform.position = originalSidePosition;
+                    });
+            });
     }
 
     // 상대 캐릭터를 찾는 메서드
@@ -137,6 +125,10 @@ public class CameraFollow : MonoBehaviour
 
     public void ResetCamera()
     {
+        currentTarget = null;
+
+        isFollowing = false;
+
         // 기존 트윈 취소
         transform.DOKill();
         mainCamera.DOKill();
