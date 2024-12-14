@@ -22,12 +22,15 @@ public class BattleMove : MonoBehaviour
     private float dashShakeDuration = 0.1f;  // 대시 시 흔들림 지속 시간
     private float dashShakeIntensity = 1f;   // 대시 시 흔들림 강도
 
+    private BattleLine battleLine;
+
     private void Start()
     {
         initialPosition = transform.position;
         animator = GetComponent<Animator>();
         isPlayer = CompareTag("Player");
         characterProfile = GetComponent<CharacterProfile>();
+        battleLine = FindObjectOfType<BattleLine>();
     }
 
     public void PlayAttackSound()
@@ -55,6 +58,11 @@ public class BattleMove : MonoBehaviour
             animator.SetBool("Attack", true);
         }
 
+        if (battleLine != null)
+        {
+            battleLine.SetCombatSpeed();
+        }
+
         StartCoroutine(MoveCoroutine());
     }
 
@@ -65,6 +73,11 @@ public class BattleMove : MonoBehaviour
         if (animator != null)
         {
             animator.SetTrigger("Return");
+        }
+
+        if (battleLine != null)
+        {
+            battleLine.ResetToDefaultSpeed();
         }
 
         StartCoroutine(MoveCoroutine());
@@ -157,8 +170,22 @@ public class BattleMove : MonoBehaviour
         if (characterProfile != null)
         {
             characterProfile.PlayHitSound();
-            // 타격 시 화면 흔들림
             StartCoroutine(CameraShake.Instance.Shake(hitShakeDuration, hitShakeIntensity));
+            
+            if (battleLine != null)
+            {
+                battleLine.SetCombatSpeed();
+                StartCoroutine(ResetBattleLineSpeed());
+            }
+        }
+    }
+
+    private IEnumerator ResetBattleLineSpeed()
+    {
+        yield return new WaitForSeconds(0.5f);
+        if (battleLine != null)
+        {
+            battleLine.ResetToDefaultSpeed();
         }
     }
 
@@ -167,7 +194,6 @@ public class BattleMove : MonoBehaviour
         if (characterProfile != null)
         {
             characterProfile.PlayDashSound();
-            // 대시 시 화면 흔들림
             StartCoroutine(CameraShake.Instance.Shake(dashShakeDuration, dashShakeIntensity));
         }
     }

@@ -20,6 +20,10 @@ public class Silhouette : MonoBehaviour
     private float delta = 0;
     private bool errorDebug = false;
     private Camera mainCamera;  // 메인 카메라 참조 추가
+    private Vector3 lastPosition;
+    private Sprite lastSprite;
+    private bool wasMoving;
+    private BattleMove battleMove;
 
     private void Awake()
     {
@@ -35,6 +39,13 @@ public class Silhouette : MonoBehaviour
         
         // 초기 슬루엣 오브젝트 생성
         InitializeSilhouettes();
+
+        battleMove = GetComponent<BattleMove>();
+        lastPosition = transform.position;
+        if (GetComponent<SpriteRenderer>())
+        {
+            lastSprite = GetComponent<SpriteRenderer>().sprite;
+        }
     }
 
     private void InitializeSilhouettes()
@@ -108,38 +119,54 @@ public class Silhouette : MonoBehaviour
             }
         }
 
-        delta += Time.deltaTime;
-
-        // 잔상 생성 주기
-        if (delta > SlideTime && Active)
+        // 현재 이동 상태 확인
+        bool isMoving = battleMove != null && battleMove.IsMoving();
+        SpriteRenderer originalSR = GetComponent<SpriteRenderer>();
+        
+        // 위치 변경이나 스프라이트 변경 감지
+        bool positionChanged = Vector3.Distance(lastPosition, transform.position) > 0.01f;
+        bool spriteChanged = originalSR != null && lastSprite != originalSR.sprite;
+        
+        // 이동 시작하거나 스프라이트가 변경될 때만 잔상 생성
+        if (Active && ((!wasMoving && isMoving) || spriteChanged))
         {
-            delta = 0;
+            CreateSilhouette();
+        }
 
-            // 리스트가 비어있거나 인덱스가 범위를 벗어나면 리턴
-            if (silhouetteList.Count == 0 || limit >= silhouetteList.Count) return;
-
-            GameObject silhouette = silhouetteList[limit];
-            if (silhouette == null) return;
-
-            SpriteRenderer sr = silhouette.GetComponent<SpriteRenderer>();
-            SpriteRenderer originalSR = GetComponent<SpriteRenderer>();
-            if (sr == null || originalSR == null) return;
-
-            // 현재 위치, 스프라이트, 크기 및 flip 반영
-            silhouette.transform.position = transform.position + new Vector3(0, 0, -0.1f);
-            sr.sprite = originalSR.sprite;
-            sr.flipX = originalSR.flipX;
-            sr.flipY = originalSR.flipY;
-            silhouette.transform.localScale = transform.localScale;
-
-            // 일정한 잔상 색상 설정
-            sr.color = new Color(RedValue / 255f, GreenValue / 255f, BlueValue / 255f, 0.7f);
-
-            limit = (limit + 1) % SlideEA;
+        // 상태 업데이트
+        wasMoving = isMoving;
+        lastPosition = transform.position;
+        if (originalSR != null)
+        {
+            lastSprite = originalSR.sprite;
         }
 
         // 잔상 페이드아웃
         FadeSilhouettes();
+    }
+
+    private void CreateSilhouette()
+    {
+        if (silhouetteList.Count == 0 || limit >= silhouetteList.Count) return;
+
+        GameObject silhouette = silhouetteList[limit];
+        if (silhouette == null) return;
+
+        SpriteRenderer sr = silhouette.GetComponent<SpriteRenderer>();
+        SpriteRenderer originalSR = GetComponent<SpriteRenderer>();
+        if (sr == null || originalSR == null) return;
+
+        // 현재 위치, 스프라이트, 크기 및 flip 반영
+        silhouette.transform.position = transform.position + new Vector3(0, 0, -0.1f);
+        sr.sprite = originalSR.sprite;
+        sr.flipX = originalSR.flipX;
+        sr.flipY = originalSR.flipY;
+        silhouette.transform.localScale = transform.localScale;
+
+        // 일정한 잔상 색상 설정
+        sr.color = new Color(RedValue / 255f, GreenValue / 255f, BlueValue / 255f, 0.7f);
+
+        limit = (limit + 1) % SlideEA;
     }
 
     private void OnDestroy()

@@ -157,7 +157,7 @@ public class TestDeckManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("시작 버튼이 할당되지 않았습니다.");
+            Debug.LogError("시작 버튼이 할당되지 않았습니��.");
         }
 
         // 시작 버튼 초기 상태 설정
@@ -464,17 +464,19 @@ public class TestDeckManager : MonoBehaviour
 
     private void InitializeButtons()
     {
+        // 캐릭터 버튼 초기화
         for (int i = 0; i < characterButtons.Length; i++)
         {
             int index = i;
-            characterButtons[i].onClick.AddListener(() => OnCharacterButtonClick(index));
+            Button button = characterButtons[i];
+            if (button != null)
+            {
+                button.onClick.RemoveAllListeners(); // 기존 리스너 제거
+                button.onClick.AddListener(() => OnCharacterButtonClick(index));
+            }
         }
         
-        for (int i = 0; i < cardButtons.Count; i++)
-        {
-            int index = i;
-            cardButtons[i].onClick.AddListener(() => OnCardSelected(index));
-        }
+        // 카드 버튼은 여기서 초기화하지 않음 (LoadSkillCards에서 처리)
     }
 
     private void OnCardSelected(int cardIndex)
@@ -489,7 +491,7 @@ public class TestDeckManager : MonoBehaviour
         // 이미 선택된 카드인 경우 카운트만 증가
         if (selectedCardDict.ContainsKey(selectedSkill))
         {
-            int currentCount = cardCountDict[selectedSkill];
+            int currentCount = GetCurrentCardCount(selectedSkill);
             int maxCount = selectedSkill.maxCardCount > 0 ? selectedSkill.maxCardCount : MAX_CARD_COUNT;
             
             if (currentCount >= maxCount)
@@ -498,121 +500,107 @@ public class TestDeckManager : MonoBehaviour
                 return;
             }
 
-            cardCountDict[selectedSkill]++;
+            cardCountDict[selectedSkill] = currentCount + 1;
             UpdateCardCount(selectedCardDict[selectedSkill], cardCountDict[selectedSkill]);
+            UpdateAllCardCounts();
+            return;
         }
-        else // 새로운 카드 추가
+
+        // 새로운 카드 추가
+        GameObject newCard = Instantiate(cardPrefab, selectedCardPanel);
+        
+        // 기존 Image 컴포넌트를 AlphaRaycastImage로 교체
+        Image oldImage = newCard.GetComponent<Image>();
+        if (oldImage != null)
         {
-            GameObject newCard = Instantiate(cardPrefab, selectedCardPanel);
-            
-            // Canvas 설정을 먼저 수행
-            Canvas cardCanvas = newCard.AddComponent<Canvas>();
-            cardCanvas.overrideSorting = true;
-            cardCanvas.sortingOrder = 10 + selectedCards.Count;  // 기본 정렬 순서를 10부터 시작
+            DestroyImmediate(oldImage);
+        }
+        AlphaRaycastImage cardImage = newCard.AddComponent<AlphaRaycastImage>();
+        if (cardImage != null)
+        {
+            cardImage.sprite = selectedSkill.nomalSprite;
+            cardImage.preserveAspect = true;
+            cardImage.raycastTarget = true;
+            cardImage.type = Image.Type.Simple;
+        }
 
-            // GraphicRaycaster 추가
-            GraphicRaycaster raycaster = newCard.AddComponent<GraphicRaycaster>();
+        // Canvas 설정
+        Canvas cardCanvas = newCard.AddComponent<Canvas>();
+        cardCanvas.overrideSorting = true;
+        cardCanvas.sortingOrder = 10 + selectedCards.Count;
 
-            // 카드 크기 설정
-            RectTransform cardRect = newCard.GetComponent<RectTransform>();
-            if (cardRect != null)
+        // GraphicRaycaster 추가
+        newCard.AddComponent<GraphicRaycaster>();
+
+        // 카드 크기 설정
+        RectTransform cardRect = newCard.GetComponent<RectTransform>();
+        if (cardRect != null)
+        {
+            cardRect.sizeDelta = new Vector2(185.6f, 246.4f);
+            cardRect.localScale = Vector3.one;
+
+            // SkillName 설정
+            Transform skillNameTr = newCard.transform.Find("SkillName");
+            if (skillNameTr != null)
             {
-                cardRect.sizeDelta = new Vector2(185.6f, 246.4f);
-                cardRect.localScale = Vector3.one;
-
-                // SkillName 설정
-                Transform skillNameTr = newCard.transform.Find("SkillName");
-                if (skillNameTr != null)
+                TextMeshProUGUI skillNameText = skillNameTr.GetComponent<TextMeshProUGUI>();
+                if (skillNameText != null)
                 {
-                    TextMeshProUGUI skillNameText = skillNameTr.GetComponent<TextMeshProUGUI>();
-                    if (skillNameText != null)
-                    {
-                        skillNameText.text = selectedSkill.skillName;
-                    }
-                }
-
-                // SkillInfo 설정
-                Transform skillInfoTr = newCard.transform.Find("SkillInfo");
-                if (skillInfoTr != null)
-                {
-                    RectTransform skillInfoRect = skillInfoTr.GetComponent<RectTransform>();
-                    if (skillInfoRect != null)
-                    {
-                        skillInfoRect.anchorMin = new Vector2(0.5f, 0.5f);
-                        skillInfoRect.anchorMax = new Vector2(0.5f, 0.5f);
-                        skillInfoRect.sizeDelta = new Vector2(100f, 58.4557f);
-                        skillInfoRect.anchoredPosition = new Vector2(0f, -38.4f);
-                        skillInfoRect.localScale = new Vector3(1.209023f, 1.209023f, 1.209023f);
-                    }
-
-                    // SkillInfo 텍스트 - 텍스트 내용만 변경
-                    TextMeshProUGUI skillInfoText = skillInfoTr.GetComponent<TextMeshProUGUI>();
-                    if (skillInfoText != null)
-                    {
-                        skillInfoText.text = selectedSkill.skillEffect;
-                    }
-                }
-
-                // Count 설정
-                Transform countTr = newCard.transform.Find("Count");
-                if (countTr != null)
-                {
-                    RectTransform countRect = countTr.GetComponent<RectTransform>();
-                    if (countRect != null)
-                    {
-                        countRect.anchorMin = new Vector2(0.5f, 0.5f);
-                        countRect.anchorMax = new Vector2(0.5f, 0.5f);
-                        countRect.sizeDelta = new Vector2(60f, 60f);
-                        countRect.anchoredPosition = new Vector2(0f, -97.628f);
-                        countRect.localScale = new Vector3(0.6108197f, 0.6108197f, 0.6108197f);
-                    }
-
-                    TextMeshProUGUI countText = countTr.GetComponentInChildren<TextMeshProUGUI>();
-                    if (countText != null)
-                    {
-                        countText.text = "1";
-                    }
+                    skillNameText.text = selectedSkill.skillName;
                 }
             }
 
-            // 이미지 설정
-            Image cardImage = newCard.GetComponent<Image>();
-            if (cardImage != null)
+            // SkillInfo 설정
+            Transform skillInfoTr = newCard.transform.Find("SkillInfo");
+            if (skillInfoTr != null)
             {
-                cardImage.sprite = selectedSkill.nomalSprite;
-                cardImage.preserveAspect = true;
-                cardImage.raycastTarget = true;
+                TextMeshProUGUI skillInfoText = skillInfoTr.GetComponent<TextMeshProUGUI>();
+                if (skillInfoText != null)
+                {
+                    skillInfoText.text = selectedSkill.skillEffect;
+                }
             }
 
-            selectedCards.Add(newCard);
-            selectedCardDict.Add(selectedSkill, newCard);
-            cardCountDict.Add(selectedSkill, 1);
-            
-            newCard.AddComponent<SkillReference>().skill = selectedSkill;
-
-            // 이벤트 트리거 설정
-            EventTrigger eventTrigger = newCard.AddComponent<EventTrigger>();
-            eventTrigger.triggers.Clear();  // 기존 트리거 제거
-
-            // 마우스 진입 이벤트
-            EventTrigger.Entry enterEntry = new EventTrigger.Entry();
-            enterEntry.eventID = EventTriggerType.PointerEnter;
-            enterEntry.callback.AddListener((data) => { OnCardHoverEnter(newCard); });
-            eventTrigger.triggers.Add(enterEntry);
-
-            // 마우스 이탈 이벤트
-            EventTrigger.Entry exitEntry = new EventTrigger.Entry();
-            exitEntry.eventID = EventTriggerType.PointerExit;
-            exitEntry.callback.AddListener((data) => { OnCardHoverExit(newCard); });
-            eventTrigger.triggers.Add(exitEntry);
-
-            // 클릭 이벤트
-            Button button = newCard.GetComponent<Button>();
-            if (button != null)
+            // Count 설정
+            Transform countTr = newCard.transform.Find("Count");
+            if (countTr != null)
             {
-                button.onClick.RemoveAllListeners();
-                button.onClick.AddListener(() => UnselectCard(newCard));
+                TextMeshProUGUI countText = countTr.GetComponentInChildren<TextMeshProUGUI>();
+                if (countText != null)
+                {
+                    countText.text = "1";
+                }
             }
+        }
+
+        selectedCards.Add(newCard);
+        selectedCardDict.Add(selectedSkill, newCard);
+        cardCountDict[selectedSkill] = 1;
+        
+        newCard.AddComponent<SkillReference>().skill = selectedSkill;
+
+        // 이벤트 트리거 설정
+        EventTrigger eventTrigger = newCard.AddComponent<EventTrigger>();
+        eventTrigger.triggers.Clear();
+
+        // 마우스 진입 이벤트
+        EventTrigger.Entry enterEntry = new EventTrigger.Entry();
+        enterEntry.eventID = EventTriggerType.PointerEnter;
+        enterEntry.callback.AddListener((data) => { OnCardHoverEnter(newCard); });
+        eventTrigger.triggers.Add(enterEntry);
+
+        // 마우스 이탈 이벤트
+        EventTrigger.Entry exitEntry = new EventTrigger.Entry();
+        exitEntry.eventID = EventTriggerType.PointerExit;
+        exitEntry.callback.AddListener((data) => { OnCardHoverExit(newCard); });
+        eventTrigger.triggers.Add(exitEntry);
+
+        // 클릭 이벤트
+        Button button = newCard.GetComponent<Button>();
+        if (button != null)
+        {
+            button.onClick.RemoveAllListeners();
+            button.onClick.AddListener(() => UnselectCard(newCard));
         }
 
         // 카드 선택 후 모든 카드의 카운트 텍스트 업데이트
@@ -719,7 +707,7 @@ public class TestDeckManager : MonoBehaviour
         {
             OnCharacterDoubleClick(characterIndex);
         }
-        // 단일 클릭
+        // 일 클릭
         else
         {
             OnCharacterSingleClick(characterIndex);
@@ -868,7 +856,7 @@ public class TestDeckManager : MonoBehaviour
 
     private void UnselectCharacter(int characterIndex)
     {
-        // 선택된 캐릭터 목록에서 제거
+        // 선택된 캐릭 목록에서 제거
         if (selectedCharacterIndices.Contains(characterIndex))
         {
             int index = selectedCharacterIndices.IndexOf(characterIndex);
@@ -977,7 +965,7 @@ public class TestDeckManager : MonoBehaviour
         }
     }
 
-    // 기존 덱 로드 메서드 수정
+    // 기존  로드 메서드 수정
     private void LoadExistingDeck(int characterIndex)
     {
         if (characterPrefabDict.TryGetValue(characterButtons[characterIndex], out GameObject prefab))
@@ -1136,7 +1124,7 @@ public class TestDeckManager : MonoBehaviour
         }
     }
 
-    // UpdateCardCount 메서드 추가
+    // UpdateCardCount 메서드 수정
     private void UpdateCardCount(GameObject card, int count)
     {
         Transform countTransform = card.transform.Find("Count");

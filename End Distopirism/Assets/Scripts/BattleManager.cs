@@ -815,7 +815,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             if (silhouette != null)
             {
                 silhouette.Active = false;
-                // 실루엣 크 찾아서 제거
+                // 실루엣 크기 찾아서 제거
                 Transform bank = GameObject.Find($"{victim.gameObject.name}_SilhouetteBank")?.transform;
                 if (bank != null)
                 {
@@ -855,7 +855,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             break;
         }
 
-        // 잠시 대기하여 움직을 볼 수 있게 함
+        // 잠시 대기하여 움직임을 볼 수 있게 함
         yield return new WaitForSeconds(1f);
     }
 
@@ -892,7 +892,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     // 전투 종료 시 스킬 이펙트 제거
     attacker.DestroySkillEffect();
     
-    // 해자가 살아있을 때만 스킬 이펙트 거
+    // 해자가 존재할 때만 스킬 이펙트 거
     if (victim != null && victim.gameObject != null)
     {
         victim.DestroySkillEffect();
@@ -922,7 +922,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             // 상대에게 방어력 감소 효과 부여
             victim.GetPlayer.AddStatusEffect("방어력감소");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여��었습니다.");
         }
         else // 합 패배 시
         {
@@ -955,7 +955,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             // 공격자에게 2턴 출혈 효과 부여
             attacker.GetPlayer.AddStatusEffect("출혈2턴");
-            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
+            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부��되었습니다.");
             UIManager.Instance.CreateBloodEffect(attacker.transform.position);
         }
     }
@@ -1115,7 +1115,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 모든 캐릭터가 원위치로 돌아온 후 라인 비활성화
         if (battleLine != null)
         {
-            battleLine.SetLinesActive(false);
+            battleLine.SetLinesActive(false);  // 이것이 UI를 다시 활성화할 것입니다
         }
 
         // 대기 시간
@@ -1392,5 +1392,25 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
                 Debug.LogWarning($"캐릭터 {i + 1}의 생성 위치가 정의되지 않았습니다.");
             }
         }
+    }
+
+    // 승리 처리
+    public void HandleVictory()
+    {
+        if (battleLine != null)
+        {
+            battleLine.SetVictorySpeed();
+        }
+        // 기타 승리 처리...
+    }
+
+    // 패배 처리
+    public void HandleDefeat()
+    {
+        if (battleLine != null)
+        {
+            battleLine.SetDefeatSpeed();
+        }
+        // 기타 패배 처리...
     }
 }

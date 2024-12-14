@@ -1282,6 +1282,17 @@ MonoBehaviour:
   resetPosition: 1910
   leftLineObjects: []
   rightLineObjects: []
+  defaultSpeed: 700
+  combatSpeed: 1800
+  victorySpeed: 1100
+  defeatSpeed: 950
+  speedTransitionDuration: 0.5
+  uiElementsToToggle:
+  - {fileID: 1161267043}
+  - {fileID: 387363295}
+  - {fileID: 2052322387}
+  - {fileID: 1275995741}
+  - {fileID: 604871434}
 --- !u!223 &105325334
 Canvas:
   m_ObjectHideFlags: 0
@@ -1608,9 +1619,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player:
     charName: "\uC9C0\uD558 \uACBD\uCC30 1\uD638"
-    maxHp: 230
+    maxHp: 170
     charSkillCost: 0
-    hp: 230
+    hp: 170
     defLevel: 5
     dmgLevel: 35
     dmg: 0
@@ -7371,9 +7382,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   player:
     charName: "\uC9C0\uD558 \uACBD\uCC30 1\uD638"
-    maxHp: 230
+    maxHp: 170
     charSkillCost: 0
-    hp: 230
+    hp: 170
     defLevel: 5
     dmgLevel: 35
     dmg: 0

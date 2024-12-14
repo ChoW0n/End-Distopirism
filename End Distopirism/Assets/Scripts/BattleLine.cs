@@ -20,6 +20,21 @@ public class BattleLine : MonoBehaviour
     public List<GameObject> leftLineObjects = new List<GameObject>();
     public List<GameObject> rightLineObjects = new List<GameObject>();
 
+    [Header("Speed Settings")]
+    public float defaultSpeed = 100f;        // 기본 스크롤 속도
+    public float combatSpeed = 200f;         // 전투 시 스크롤 속도
+    public float victorySpeed = 300f;        // 승리 시 스크롤 속도
+    public float defeatSpeed = 50f;          // 패배 시 스크롤 속도
+    public float speedTransitionDuration = 0.5f;  // 속도 전환 시간
+    
+    private float currentSpeed;              // 현재 스크롤 속도
+    private float targetSpeed;               // 목표 스크롤 속도
+    private bool isTransitioning = false;    // 속도 전환 중인지 여부
+    private float transitionTimer = 0f;
+
+    [Header("UI Control")]
+    public List<GameObject> uiElementsToToggle = new List<GameObject>();  // 제어할 UI 요소들
+
     private void Start()
     {
         InitializeLines();
@@ -48,6 +63,13 @@ public class BattleLine : MonoBehaviour
 
         // 시작 시 모든 라인 비활성화
         SetLinesActive(false);
+
+        currentSpeed = defaultSpeed;
+        targetSpeed = defaultSpeed;
+        scrollSpeed = defaultSpeed;
+
+        // 시작 시 UI 요소들 활성화
+        SetUIElementsActive(true);
     }
 
     private void InitializeLines()
@@ -100,6 +122,25 @@ public class BattleLine : MonoBehaviour
     private void Update()
     {
         if (!initialized) return;
+
+        // 왼도 전환 처리
+        if (isTransitioning)
+        {
+            transitionTimer += Time.deltaTime;
+            float t = transitionTimer / speedTransitionDuration;
+            
+            if (t >= 1f)
+            {
+                isTransitioning = false;
+                currentSpeed = targetSpeed;
+                scrollSpeed = currentSpeed;
+            }
+            else
+            {
+                currentSpeed = Mathf.Lerp(scrollSpeed, targetSpeed, t);
+                scrollSpeed = currentSpeed;
+            }
+        }
 
         // 왼쪽 이동 라인 업데이트
         for (int i = 0; i < leftLines.Count; i++)
@@ -170,7 +211,7 @@ public class BattleLine : MonoBehaviour
         enabled = enable;
     }
 
-    // 라인 활성화/비활성화 메서드 추가
+    // 라인 활성화/비활성화 메서드 수정
     public void SetLinesActive(bool active)
     {
         Debug.Log($"라인 {(active ? "활성화" : "비활성화")} 시도");
@@ -195,7 +236,63 @@ public class BattleLine : MonoBehaviour
             }
         }
 
+        // UI 요소들 토글 (라인이 활성화될 때 UI는 비활성화)
+        SetUIElementsActive(!active);
+
         // 스크롤 활성화/비활성화
         enabled = active;
+    }
+
+    // UI 요소들의 활성화/비활성화를 제어하는 메서드
+    private void SetUIElementsActive(bool active)
+    {
+        foreach (var uiElement in uiElementsToToggle)
+        {
+            if (uiElement != null)
+            {
+                uiElement.SetActive(active);
+                Debug.Log($"UI 요소 {uiElement.name} {(active ? "활성화됨" : "비활성화됨")}");
+            }
+        }
+    }
+
+    // 전투 시작/공격 시 호출
+    public void SetCombatSpeed()
+    {
+        StartSpeedTransition(combatSpeed);
+    }
+
+    // 승리 시 호출
+    public void SetVictorySpeed()
+    {
+        StartSpeedTransition(victorySpeed);
+    }
+
+    // 패배 시 호출
+    public void SetDefeatSpeed()
+    {
+        StartSpeedTransition(defeatSpeed);
+    }
+
+    // 기본 속도로 복귀
+    public void ResetToDefaultSpeed()
+    {
+        StartSpeedTransition(defaultSpeed);
+    }
+
+    private void StartSpeedTransition(float newTargetSpeed)
+    {
+        targetSpeed = newTargetSpeed;
+        isTransitioning = true;
+        transitionTimer = 0f;
+    }
+
+    // 즉시 속도 변경 (트랜지션 없이)
+    public void SetSpeedImmediate(float speed)
+    {
+        currentSpeed = speed;
+        targetSpeed = speed;
+        scrollSpeed = speed;
+        isTransitioning = false;
     }
 } 

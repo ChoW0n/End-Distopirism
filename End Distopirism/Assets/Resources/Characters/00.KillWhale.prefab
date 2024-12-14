@@ -537,16 +537,7 @@ MonoBehaviour:
     maxCoin: 3
     coin: 3
     menTality: 100
-    skills:
-    - {fileID: 11400000, guid: 2538a751088a3da44a11f56da2283aaa, type: 2}
-    - {fileID: 11400000, guid: 21e1f48610487034595c76d312ddcda0, type: 2}
-    - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
-    - {fileID: 11400000, guid: 7c74f96862837314e9a54e91bfcdb657, type: 2}
-    - {fileID: 11400000, guid: 7bf5ba6f4a8b1a9489cc7b880851ed76, type: 2}
-    - {fileID: 11400000, guid: 1adb3973bef31524187bc2c436ed4807, type: 2}
-    - {fileID: 11400000, guid: 0aac1188631607640ac688a9a7e448af, type: 2}
-    - {fileID: 11400000, guid: 202be729fb35f6744b6ec9ae9c014e0f, type: 2}
-    - {fileID: 11400000, guid: 40179e5a78238564ea9d3c9a7b25d13b, type: 2}
+    skills: []
     charSprite: {fileID: 21300000, guid: 10fed5edae046ac439e8ced5274c0125, type: 3}
     nextTurnCoinModifier: 0
     isBleedingEffect: 0
