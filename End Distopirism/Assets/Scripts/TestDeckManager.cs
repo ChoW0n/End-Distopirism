@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using TMPro;
 using DG.Tweening;
 using UnityEngine.EventSystems;
+using System.Linq;
 
 #if UNITY_EDITOR
 using UnityEditor;
@@ -63,7 +64,7 @@ public class TestDeckManager : MonoBehaviour
     [SerializeField] private Transform characterScrollContent;
     [SerializeField] private GameObject characterButtonPrefab;
 
-    // 캐릭터 프리팹 참조 저장
+    // 캐릭터 프리팹 참�� 저장
     private Dictionary<Button, GameObject> characterPrefabDict = new Dictionary<Button, GameObject>();
 
     // 더블 클릭 감지를 위한 변수들
@@ -157,7 +158,7 @@ public class TestDeckManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("시작 버튼이 할당되지 않았습니��.");
+            Debug.LogError("시작 버튼이 할당되지 않았습니다.");
         }
 
         // 시작 버튼 초기 상태 설정
@@ -305,7 +306,7 @@ public class TestDeckManager : MonoBehaviour
         gridLayout.constraintCount = maxCardsPerRow;
         gridLayout.padding = new RectOffset(10, 10, 10, 10);
 
-        // Content에 Canvas 컴포넌트 추가
+        // Content에 Canvas 컴포넌�� 추가
         Canvas contentCanvas = cardScrollContent.GetComponent<Canvas>();
         if (contentCanvas == null)
         {
@@ -487,10 +488,27 @@ public class TestDeckManager : MonoBehaviour
         if (skillRef == null || skillRef.skill == null) return;
         
         Skill selectedSkill = skillRef.skill;
+        CharacterProfile profile = characterPrefabDict[characterButtons[currentCharacterIndex]].GetComponent<CharacterProfile>();
+
+        // 현재 덱의 총 카드 수 계산
+        int totalCardsInDeck = selectedCardDict.Sum(pair => cardCountDict[pair.Key]);
 
         // 이미 선택된 카드인 경우 카운트만 증가
         if (selectedCardDict.ContainsKey(selectedSkill))
         {
+            // 덱 크기 제한 체크
+            if (totalCardsInDeck >= profile.GetPlayer.maxDeckSize)
+            {
+                Debug.LogWarning($"덱이 가득 찼습니다. (최대 {profile.GetPlayer.maxDeckSize}장)");
+                return;
+            }
+
+            // 덱 제한 체크
+            if (!profile.GetPlayer.CanAddCardToDeck(selectedSkill))
+            {
+                return;
+            }
+
             int currentCount = GetCurrentCardCount(selectedSkill);
             int maxCount = selectedSkill.maxCardCount > 0 ? selectedSkill.maxCardCount : MAX_CARD_COUNT;
             
@@ -503,6 +521,19 @@ public class TestDeckManager : MonoBehaviour
             cardCountDict[selectedSkill] = currentCount + 1;
             UpdateCardCount(selectedCardDict[selectedSkill], cardCountDict[selectedSkill]);
             UpdateAllCardCounts();
+            return;
+        }
+
+        // 새로운 카드 추가 시 덱 크기 제한 체크
+        if (totalCardsInDeck >= profile.GetPlayer.maxDeckSize)
+        {
+            Debug.LogWarning($"덱이 가득 찼습니다. (최대 {profile.GetPlayer.maxDeckSize}장)");
+            return;
+        }
+
+        // 새로운 카드 추가 시 덱 제한 체크
+        if (!profile.GetPlayer.CanAddCardToDeck(selectedSkill))
+        {
             return;
         }
 
@@ -579,7 +610,7 @@ public class TestDeckManager : MonoBehaviour
         
         newCard.AddComponent<SkillReference>().skill = selectedSkill;
 
-        // 이벤트 트리거 설정
+        // 이벤트 트리거 정
         EventTrigger eventTrigger = newCard.AddComponent<EventTrigger>();
         eventTrigger.triggers.Clear();
 
@@ -614,7 +645,7 @@ public class TestDeckManager : MonoBehaviour
         {
             Skill skill = skillRef.skill;
             
-            // 카운트가 1보다 크면 카운트만 감소
+            // 카운트 1보다 크면 카운트만 감소
             if (cardCountDict[skill] > 1)
             {
                 cardCountDict[skill]--;

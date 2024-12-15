@@ -15,6 +15,8 @@ public class TargetArrowCreator : MonoBehaviour
     private List<(Transform player, Transform target)> connections = new List<(Transform, Transform)>();
     private List<Coroutine> activeCoroutines = new List<Coroutine>();
 
+    private const int ARROW_SORTING_ORDER = -1; // 스킬 카드보다 낮은 정렬 순서
+
     private void Start()
     {
         // 시작 시 초기화
@@ -31,6 +33,9 @@ public class TargetArrowCreator : MonoBehaviour
         newLineRenderer.endWidth = lineWidth;
         newLineRenderer.positionCount = 0;
         newLineRenderer.useWorldSpace = true;
+
+        // 레이어 설정
+        newLineRenderer.sortingOrder = ARROW_SORTING_ORDER;
 
         newLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
         newLineRenderer.startColor = new Color(1f, 0.8f, 0.2f);
@@ -99,7 +104,29 @@ public class TargetArrowCreator : MonoBehaviour
         Transform start = connection.player;
         Transform end = connection.target;
 
-        Vector3 startPoint = start.position + Vector3.up * 250f + Vector3.right * 70f;
+        // 선택된 카드의 위치를 찾아서 시작점으로 사용
+        CharacterProfile playerProfile = start.GetComponent<CharacterProfile>();
+        Vector3 startPoint;
+        if (playerProfile != null)
+        {
+            Vector3? selectedSkillPos = playerProfile.GetSelectedSkillPosition();
+            if (selectedSkillPos.HasValue)
+            {
+                // 선택된 스킬 카드의 중심점을 시작점으로 사용
+                startPoint = selectedSkillPos.Value;
+            }
+            else
+            {
+                // 기존 위치를 폴백으로 사용
+                startPoint = start.position + Vector3.up * 250f + Vector3.right * 70f;
+            }
+        }
+        else
+        {
+            // 기존 위치를 폴백으로 사용
+            startPoint = start.position + Vector3.up * 250f + Vector3.right * 70f;
+        }
+
         Vector3 endPoint = end.position + Vector3.up * 250f + Vector3.left * 70f;
         Vector3 controlPoint = (startPoint + endPoint) / 2f + Vector3.up * curveHeight;
 

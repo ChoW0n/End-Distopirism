@@ -23,4 +23,5 @@ MonoBehaviour:
   animationClip: {fileID: 0}
   successSprite: {fileID: 21300000, guid: 638a8aab847484e4ca66985a28ddc6fd, type: 3}
   nomalSprite: {fileID: 21300000, guid: 638a8aab847484e4ca66985a28ddc6fd, type: 3}
+  cardType: "\uC77C\uBC18"
   maxCardCount: 3

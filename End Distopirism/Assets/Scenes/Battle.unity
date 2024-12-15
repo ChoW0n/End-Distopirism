@@ -1644,6 +1644,8 @@ MonoBehaviour:
     confusionTurns: 0
     poisonTurns: 0
     defenseDownTurns: 0
+    maxDeckSize: 10
+    maxUniqueCardTypes: 3
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -1653,6 +1655,10 @@ MonoBehaviour:
   hitSound: {fileID: 8300000, guid: 773a78735cd3ddf46bbcc4721386294d, type: 3}
   skillHistories: []
   effectHistories: []
+  selectedCardSprite: {fileID: 0}
+  card1Sprite: {fileID: 0}
+  card2Sprite: {fileID: 0}
+  card3Sprite: {fileID: 0}
 --- !u!114 &219168969
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7407,6 +7413,8 @@ MonoBehaviour:
     confusionTurns: 0
     poisonTurns: 0
     defenseDownTurns: 0
+    maxDeckSize: 10
+    maxUniqueCardTypes: 3
   live: 0
   bonusDmg: 0
   coinBonus: 0
@@ -7416,6 +7424,10 @@ MonoBehaviour:
   hitSound: {fileID: 8300000, guid: 773a78735cd3ddf46bbcc4721386294d, type: 3}
   skillHistories: []
   effectHistories: []
+  selectedCardSprite: {fileID: 0}
+  card1Sprite: {fileID: 0}
+  card2Sprite: {fileID: 0}
+  card3Sprite: {fileID: 0}
 --- !u!114 &1899952471
 MonoBehaviour:
   m_ObjectHideFlags: 0

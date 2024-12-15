@@ -14,7 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   skillName: "\uC5F0\uC18D \uCC0C\uB974\uAE30"
   sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  maxDmg: 6
   minDmg: 3
   dmgUp: 2
   skillEffect: "\uD569 \uC2B9\uB9AC \uC2DC \uC0C1\uB300\uC5D0\uAC8C \uCD9C\uD608
@@ -23,4 +22,5 @@ MonoBehaviour:
   animationClip: {fileID: 0}
   successSprite: {fileID: 21300000, guid: d8908c34ce3161449a14146d7b116f4f, type: 3}
   nomalSprite: {fileID: 21300000, guid: d8908c34ce3161449a14146d7b116f4f, type: 3}
+  cardType: "\uC77C\uBC18"
   maxCardCount: 2

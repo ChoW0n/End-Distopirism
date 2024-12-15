@@ -15,6 +15,10 @@ public class Skill : ScriptableObject
 
     public Sprite nomalSprite; //카드 상태일때 스프라이트
 
+    [Header("카드 종류 설정")]
+    [Tooltip("카드의 종류 (일반/레어/에픽/레전드 등)")]
+    public string cardType = "일반";  // 기본값은 "일반"으로 설정
+
     [Header("덱 빌딩 설정")]
     [Tooltip("덱에 넣을 수 있는 최대 카드 수 (0 = 제한 없음)")]
     public int maxCardCount = 3;  // 덱에 넣을 수 있는 최대 카드 수

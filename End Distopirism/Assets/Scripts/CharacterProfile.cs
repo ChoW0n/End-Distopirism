@@ -85,6 +85,17 @@ public class CharacterProfile : MonoBehaviour
     private TextMeshProUGUI enemyHPText;
     private TextMeshProUGUI enemyMTText;
 
+    [Header("Skill Card Objects")]
+    [SerializeField] private Transform selectedSkillObject;  // SerializeField 추가
+    [SerializeField] private Transform skillCard1Object;     // SerializeField 추가
+    [SerializeField] private Transform skillCard2Object;     // SerializeField 추가
+    [SerializeField] private Transform skillCard3Object;     // SerializeField 추가
+
+    [Header("Skill Card Components")]
+    private SpriteRenderer skillCard1Renderer;
+    private SpriteRenderer skillCard2Renderer;
+    private SpriteRenderer skillCard3Renderer;
+
     void Start()
     {
         player.coin = player.maxCoin;
@@ -104,7 +115,7 @@ public class CharacterProfile : MonoBehaviour
         
         if (hpPosition == null)
         {
-            Debug.LogError($"캐릭터 {gameObject.name}에서 HPPosition을 찾을 수 없습니다.");
+            Debug.LogError($"캐릭터 {gameObject.name}에서 HPPosition을 찾을 수 없습니.");
             return;
         }
         if (mtPosition == null)
@@ -160,6 +171,83 @@ public class CharacterProfile : MonoBehaviour
             // 적 캐릭터는 왼쪽으로 20도 회전
         //    transform.rotation = Quaternion.Euler(0, 20f, 0);
         //}
+
+        // 참조가 없는 경우에만 자식 오브젝트에서 찾기
+        if (selectedSkillObject == null)
+            selectedSkillObject = transform.Find("SelectedSkill");
+        if (skillCard1Object == null)
+            skillCard1Object = transform.Find("SkillCard1");
+        if (skillCard2Object == null)
+            skillCard2Object = transform.Find("SkillCard2");
+        if (skillCard3Object == null)
+            skillCard3Object = transform.Find("SkillCard3");
+
+        // 찾지 못한 경우 경고
+        if (selectedSkillObject == null) 
+            Debug.LogError($"{gameObject.name}에서 SelectedSkill 오브젝트를 찾을 수 없습니다.");
+        if (skillCard1Object == null) 
+            Debug.LogError($"{gameObject.name}에서 SkillCard1 오브젝트를 찾을 수 없습니다.");
+        if (skillCard2Object == null) 
+            Debug.LogError($"{gameObject.name}에서 SkillCard2 오브젝트를 찾을 수 없습니다.");
+        if (skillCard3Object == null) 
+            Debug.LogError($"{gameObject.name}에서 SkillCard3 오브젝트를 찾을 수 없습니다.");
+
+        // 초기화 로그 추가
+        Debug.LogWarning($"[{gameObject.name}] 스킬 카드 참조 상태:");
+        Debug.LogWarning($"- SelectedSkill: {(selectedSkillObject != null ? "참조됨" : "참조 없음")}");
+        Debug.LogWarning($"- SkillCard1: {(skillCard1Object != null ? "참조됨" : "참조 없음")}");
+        Debug.LogWarning($"- SkillCard2: {(skillCard2Object != null ? "참조됨" : "참조 없음")}");
+        Debug.LogWarning($"- SkillCard3: {(skillCard3Object != null ? "참조됨" : "참조 없음")}");
+
+        InitializeCardRenderers();
+
+        // 초기에는 모든 카드 오브젝트 비활성화
+        HideCardObjects();
+        if (selectedSkillObject != null)
+            selectedSkillObject.gameObject.SetActive(false);
+    }
+
+    private void InitializeCardRenderers()
+    {
+        // 각 카드 오브젝트의 SpriteRenderer 컴포넌트 가져오기
+        if (skillCard1Object != null)
+            skillCard1Renderer = skillCard1Object.GetComponent<SpriteRenderer>();
+        if (skillCard2Object != null)
+            skillCard2Renderer = skillCard2Object.GetComponent<SpriteRenderer>();
+        if (skillCard3Object != null)
+            skillCard3Renderer = skillCard3Object.GetComponent<SpriteRenderer>();
+
+        // 각 카드에 클릭 이벤트 추가
+        if (skillCard1Object != null)
+        {
+            BoxCollider clickCollider = skillCard1Object.gameObject.AddComponent<BoxCollider>();
+            clickCollider.size = new Vector3(1f, 1f, 0.1f);
+            CardClickHandler clickHandler = skillCard1Object.gameObject.AddComponent<CardClickHandler>();
+            clickHandler.Initialize(this, 0);
+        }
+        if (skillCard2Object != null)
+        {
+            BoxCollider clickCollider = skillCard2Object.gameObject.AddComponent<BoxCollider>();
+            clickCollider.size = new Vector3(1f, 1f, 0.1f);
+            CardClickHandler clickHandler = skillCard2Object.gameObject.AddComponent<CardClickHandler>();
+            clickHandler.Initialize(this, 1);
+        }
+        if (skillCard3Object != null)
+        {
+            BoxCollider clickCollider = skillCard3Object.gameObject.AddComponent<BoxCollider>();
+            clickCollider.size = new Vector3(1f, 1f, 0.1f);
+            CardClickHandler clickHandler = skillCard3Object.gameObject.AddComponent<CardClickHandler>();
+            clickHandler.Initialize(this, 2);
+        }
+
+        // 선택한 스킬 오브젝트에 클릭 이벤트 추가
+        if (selectedSkillObject != null)
+        {
+            BoxCollider clickCollider = selectedSkillObject.gameObject.AddComponent<BoxCollider>();
+            clickCollider.size = new Vector3(1f, 1f, 0.1f);
+            CardClickHandler clickHandler = selectedSkillObject.gameObject.AddComponent<CardClickHandler>();
+            clickHandler.Initialize(this);
+        }
     }
 
     private IEnumerator WaitForScaleAndCreateBars()
@@ -348,19 +436,20 @@ public class CharacterProfile : MonoBehaviour
     {
         UIManager.Instance.ShowCharacterInfo(this, selectedSkill != null);
         
-        if (CompareTag("Player") && isSelected && BattleManager.Instance.state != GameState.enemyTurn)
+        if (CompareTag("Player") && BattleManager.Instance.state == GameState.playerTurn)
         {
-            if (skillManager != null)
-            {
-                // 항상 현재 캐릭터의 카드 정보로 업데이트
-                skillManager.AssignRandomSkillSprites(this);
-                skillManager.OnSkillSelected = (skill) => SelectSkill(skill);
-                ShowSkillCards();
-            }
-        }
-        else if (CompareTag("Enemy"))
-        {
-            UIManager.Instance.enemyProfilePanel.SetActive(true);
+            // 항상 선택된 스킬 오브젝트를 비활성화하고 카드 3장을 표시
+            if (selectedSkillObject != null)
+                selectedSkillObject.gameObject.SetActive(false);
+            
+            // 새로운 턴에서는 이전 선택을 초기화
+            selectedSkill = null;
+            
+            // 카드 1,2,3 표시
+            ShowCardObjects();
+            UpdateCardSprites();
+            
+            Debug.LogWarning($"{GetPlayer.charName}의 카드 선택 UI 표시 (새 턴)");
         }
     }
 
@@ -407,7 +496,7 @@ public class CharacterProfile : MonoBehaviour
         SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
         if (spriteRenderer != null)
         {
-            // 페이드 아웃 시퀀스 생성
+            // 이드 아이 시퀀스 생성
             Sequence deathSequence = DOTween.Sequence();
             
             // 캐릭터를 위로 살짝 띄우면서 페이드 아웃
@@ -452,7 +541,7 @@ public class CharacterProfile : MonoBehaviour
             transform.rotation = Quaternion.Euler(euler);
         }
 
-        // 상태바 위치와 회전 업데이트
+        // 상태바 위치 회전 업데이트
         if (healthBar != null && mentalityBar != null)
         {
             healthBar.transform.position = hpPosition.position;
@@ -470,7 +559,7 @@ public class CharacterProfile : MonoBehaviour
             UpdateStatusTexts();
         }
 
-        // 스킬 이펙트 위치와 회전 업데이트
+        // 스킬 이펙트 치와 회전 업데이
         if (currentSkillEffect != null && skillPosition != null)
         {
             currentSkillEffect.transform.position = skillPosition.position;
@@ -615,7 +704,7 @@ public class CharacterProfile : MonoBehaviour
         }
         
         // 최종 상태로 설정
-        dmgText.transform.localScale = originalScale; // 스케일을 원래대로 복구
+        dmgText.transform.localScale = originalScale; // 스케일을 원래대 복구
         dmgText.color = originalColor;
         dmgText.text = newDamage.ToString();
     }
@@ -660,14 +749,16 @@ public class CharacterProfile : MonoBehaviour
         selectedSkill = skill;
         ApplySelectedSkill();
         
-        // showPanel 파라미터가 true일 때만 패널 표시
+        // 카드 UI 상태 복귀
+        ReturnToSelectedSkill();
+        
         if (showPanel)
         {
             UIManager.Instance.ShowCharacterInfo(this, true);
         }
         
         UpdateSkillHistory(skill.skillName);
-        Debug.LogWarning($"[스킬 선택] {player.charName}이(가) {skill.skillName} 스킬을 선택했습니다.");
+        Debug.LogWarning($"[스킬 선택] {player.charName}이(가) {skill.skillName} 스킬을 선택습니다.");
     }
 
     private void ApplySelectedSkill()
@@ -678,7 +769,7 @@ public class CharacterProfile : MonoBehaviour
             int previousMinDmg = player.minDmg;
             int previousDmgUp = player.dmgUp;
             
-            // 새로운 스킬 스탯 ���용
+            // 새로운 스킬 스탯 적용
             player.minDmg = selectedSkill.minDmg;
             player.dmgUp = selectedSkill.dmgUp;
             
@@ -696,7 +787,7 @@ public class CharacterProfile : MonoBehaviour
                 player.skills.Add(selectedSkill);
             }
             
-            // 스탯 변경 로그 출력
+            // 스탯 변경 그 출력
             Debug.Log($"[스킬 적용] 캐릭터: {player.charName}, 스킬: {selectedSkill.skillName}");
             Debug.Log($"[스킬 스탯 변경] 최소 데미지: {previousMinDmg} -> {selectedSkill.minDmg} ({selectedSkill.minDmg - previousMinDmg:+#;-#;0})");
             Debug.Log($"[스킬 스탯 변경] 데미지 증가: {previousDmgUp} -> {selectedSkill.dmgUp} ({selectedSkill.dmgUp - previousDmgUp:+#;-#;0})");
@@ -821,7 +912,7 @@ public class CharacterProfile : MonoBehaviour
         }
     }
 
-    // 피해 사운드 재생 메서드 추가
+    // 피해 운드 재생 메서드 추가
     public void PlayHitSound()
     {
         if (audioSource != null && hitSound != null)
@@ -866,7 +957,7 @@ public class CharacterProfile : MonoBehaviour
         // 혼란 상태 체크
         if (player.isConfusionEffect)
         {
-            Debug.LogWarning($"[상태이상 체크] {player.charName}의 혼란 효과 (남은 지속시간: {player.confusionTurns}턴)");
+            Debug.LogWarning($"[태이상 체크] {player.charName}의 혼란 효과 (남은 지속시간: {player.confusionTurns}턴)");
         }
 
         // 독 상태 체크
@@ -888,7 +979,7 @@ public class CharacterProfile : MonoBehaviour
         UIManager.Instance.UpdateStatusEffectIcons(this);
     }
 
-    // 턴이 끝날 때 호출될 메서드 추가
+    // 턴이 끝날 때 호될 메서드 추가
     public void OnTurnEnd()
     {
         hasDrawnCards = false;
@@ -903,7 +994,7 @@ public class CharacterProfile : MonoBehaviour
         if (CompareTag("Enemy") && player.skills != null && player.skills.Count > 0)
         {
             int randomIndex = UnityEngine.Random.Range(0, player.skills.Count);
-            // 패널을 표시하지 않도록 false 전달
+            // 널을 표시하지 않도록 false 전달
             SelectSkill(player.skills[randomIndex], false);
             Debug.LogWarning($"[적 초기 스킬] {player.charName}이(가) {player.skills[randomIndex].skillName} 스킬을 선택");
         }
@@ -921,10 +1012,10 @@ public class CharacterProfile : MonoBehaviour
         }
     }
 
-    // 카드 초기화 및 랜덤 드로우 메서드
+    // 드 초기화 및 랜덤 드로우 메서드
     public void InitializeRandomCards()
     {
-        if (hasInitializedCards) return; // 이미 초기화되었다면 스킵
+        if (hasInitializedCards) return;
 
         drawnCards.Clear();
         List<Skill> availableSkills = new List<Skill>(player.skills);
@@ -938,6 +1029,10 @@ public class CharacterProfile : MonoBehaviour
         }
 
         hasInitializedCards = true;
+        
+        // 카드 스프라이트 업데이트
+        UpdateCardSprites();
+        
         Debug.LogWarning($"{player.charName}의 카드 초기화: {string.Join(", ", drawnCards.Select(s => s.skillName))}");
     }
 
@@ -1002,7 +1097,7 @@ public class CharacterProfile : MonoBehaviour
         }
     }
 
-    // 새로운 메서드 추가: 상태 텍스트 업데이트
+    // 새운 메서드 추가: 상태 텍스트 업데이트
     private void UpdateStatusTexts()
     {
         if (CompareTag("Player"))
@@ -1015,5 +1110,228 @@ public class CharacterProfile : MonoBehaviour
             if (enemyHPText) enemyHPText.text = player.hp.ToString();
             if (enemyMTText) enemyMTText.text = $"{Mathf.RoundToInt(player.menTality)}%";
         }
+    }
+
+    public void UpdateCardSprites()
+    {
+        List<Skill> currentCards = GetDrawnCards();
+        
+        // 모든 카드에 sprite 사용 (nomalSprite 대신)
+        if (currentCards.Count > 0 && skillCard1Renderer != null)
+        {
+            skillCard1Renderer.sprite = currentCards[0].sprite;  // nomalSprite 대신 sprite 사용
+            Debug.LogWarning($"카드1 스프라이트 설정: {currentCards[0].skillName} (sprite)");
+        }
+        
+        if (currentCards.Count > 1 && skillCard2Renderer != null)
+        {
+            skillCard2Renderer.sprite = currentCards[1].sprite;  // nomalSprite 대신 sprite 사용
+            Debug.LogWarning($"카드2 스프라이트 설정: {currentCards[1].skillName} (sprite)");
+        }
+        
+        if (currentCards.Count > 2 && skillCard3Renderer != null)
+        {
+            skillCard3Renderer.sprite = currentCards[2].sprite;  // nomalSprite 대신 sprite 사용
+            Debug.LogWarning($"카드3 스프라이트 설정: {currentCards[2].skillName} (sprite)");
+        }
+
+        // 선택된 스킬이 있다면 해당 스킬의 sprite 사용 (이미 sprite 사용 중)
+        if (selectedSkill != null && selectedSkillObject != null)
+        {
+            SpriteRenderer selectedRenderer = selectedSkillObject.GetComponent<SpriteRenderer>();
+            if (selectedRenderer != null)
+            {
+                selectedRenderer.sprite = selectedSkill.sprite;
+                Debug.LogWarning($"선택된 스킬 스프라이트 설정: {selectedSkill.skillName} (sprite)");
+            }
+        }
+    }
+
+    // 카드 1,2,3을 숨기는 메서드
+    private void HideCardObjects()
+    {
+        if (skillCard1Object == null) return;
+
+        Vector3 card1LocalPosition = skillCard1Object.transform.localPosition;
+
+        // Card2와 Card3를 Card1의 위치로 모으기 (로컬 좌표 사용)
+        if (skillCard2Object != null && skillCard2Object.gameObject.activeSelf)
+        {
+            skillCard2Object.transform.DOLocalMove(card1LocalPosition, 0.2f)
+                .SetEase(Ease.InQuart)
+                .OnComplete(() => skillCard2Object.gameObject.SetActive(false));
+        }
+        if (skillCard3Object != null && skillCard3Object.gameObject.activeSelf)
+        {
+            skillCard3Object.transform.DOLocalMove(card1LocalPosition, 0.2f)
+                .SetEase(Ease.InQuart)
+                .OnComplete(() => skillCard3Object.gameObject.SetActive(false));
+        }
+
+        // Card1은 약간 딜레이 후 비활성화
+        if (skillCard1Object.gameObject.activeSelf)
+        {
+            DOVirtual.DelayedCall(0.2f, () => skillCard1Object.gameObject.SetActive(false));
+        }
+
+        Debug.LogWarning("카드 모으기 애니메이션 시작");
+    }
+
+    // 카드 1,2,3을 표시하는 메서드
+    private void ShowCardObjects()
+    {
+        if (!CompareTag("Player") || BattleManager.Instance.state != GameState.playerTurn)
+            return;
+
+        // 먼저 모든 카드를 Card1의 위치에 배치
+        Vector3 card1LocalPosition = skillCard1Object.transform.localPosition;
+        if (skillCard2Object != null)
+            skillCard2Object.transform.localPosition = card1LocalPosition;
+        if (skillCard3Object != null)
+            skillCard3Object.transform.localPosition = card1LocalPosition;
+
+        // 카드 활성화
+        if (skillCard1Object != null)
+        {
+            skillCard1Object.gameObject.SetActive(true);
+        }
+        if (skillCard2Object != null)
+        {
+            skillCard2Object.gameObject.SetActive(true);
+            // Card2를 왼쪽으로 이동 (로컬 좌표 사용)
+            skillCard2Object.transform.DOLocalMove(card1LocalPosition + new Vector3(-0.9f, 0f, 0f), 0.3f)
+                .SetEase(Ease.OutQuart);
+        }
+        if (skillCard3Object != null)
+        {
+            skillCard3Object.gameObject.SetActive(true);
+            // Card3를 오른쪽으로 이동 (로컬 좌표 사용)
+            skillCard3Object.transform.DOLocalMove(card1LocalPosition + new Vector3(0.9f, 0f, 0f), 0.3f)
+                .SetEase(Ease.OutQuart);
+        }
+
+        Debug.LogWarning("카드 펼치기 애니메이션 시작");
+    }
+
+    // 선택한 스킬 카드 클릭 이벤트 처리
+    public void OnSelectedSkillClicked()
+    {
+        if (selectedSkillObject != null)
+        {
+            selectedSkillObject.gameObject.SetActive(false);
+            ShowCardObjects();
+            UpdateCardSprites(); // 카드 스프라이트 업데이트
+        }
+    }
+
+    // 카드 선택 후 원래 상태로 돌아가기
+    public void ReturnToSelectedSkill()
+    {
+        HideCardObjects();
+        if (selectedSkillObject != null)
+            selectedSkillObject.gameObject.SetActive(true);
+    }
+
+    // 스킬 카드 1,2,3 중 하나가 선택되었을 때 호출
+    public void OnSkillCardSelected(int cardIndex)
+    {
+        List<Skill> currentCards = GetDrawnCards();
+        if (cardIndex < 0 || cardIndex >= currentCards.Count) return;
+
+        // 선택된 스킬 설정
+        Skill selectedCard = currentCards[cardIndex];
+        
+        // 선택한 스킬 오브젝트의 스프라이트 업데이트
+        SpriteRenderer selectedRenderer = selectedSkillObject?.GetComponent<SpriteRenderer>();
+        if (selectedRenderer != null)
+        {
+            selectedRenderer.sprite = selectedCard.sprite;
+        }
+
+        // 스킬 선택 처리
+        SelectSkill(selectedCard);
+        
+        // 카드 UI 상태 복귀
+        ReturnToSelectedSkill();
+
+        // 적 선택 모드로 전환
+        BattleManager.Instance.OnSkillSelected();
+
+        Debug.LogWarning($"카드 {cardIndex + 1} 선택됨: {selectedCard.skillName}");
+    }
+
+    // 캐릭터 선택 해제 시 호출되는 메서드
+    public void OnDeselected()
+    {
+        if (CompareTag("Player"))
+        {
+            HideCardObjects();
+            if (selectedSkillObject != null)
+                selectedSkillObject.gameObject.SetActive(false);
+        }
+    }
+
+    // 전투 시작 시 호출될 메서드 추가
+    public void OnBattleStart()
+    {
+        // 모든 카드 비활성화
+        HideCardObjects();
+        if (selectedSkillObject != null)
+            selectedSkillObject.gameObject.SetActive(false);
+        
+        selectedSkill = null;
+        Debug.LogWarning($"{GetPlayer.charName}의 카드 상태 초기화 (전투 시작)");
+    }
+
+    // 전투 종료 시 호출될 메서드 추가
+    public void OnBattleEnd()
+    {
+        // 모든 카드 비활성화
+        HideCardObjects();
+        if (selectedSkillObject != null)
+            selectedSkillObject.gameObject.SetActive(false);
+        
+        // 상태 초기화
+        selectedSkill = null;
+        hasDrawnCards = false;
+        hasInitializedCards = false;
+        drawnCards.Clear();
+        
+        Debug.LogWarning($"{GetPlayer.charName}의 카드 상태 초기화 (전투 종료)");
+    }
+
+    // PlayerAttackButton에서 호출될 메서드 추가
+    public void OnAttackStart()
+    {
+        // 모든 카드 비활성화
+        HideCardObjects();
+        if (selectedSkillObject != null)
+            selectedSkillObject.gameObject.SetActive(false);
+        
+        Debug.LogWarning($"{GetPlayer.charName}의 카드 숨 (공격 시작)");
+    }
+
+    // 선택된 스킬 오브젝트의 위치를 반환하는 public 메서드
+    public Vector3? GetSelectedSkillPosition()
+    {
+        if (selectedSkillObject != null)
+            return selectedSkillObject.position;
+        return null;
+    }
+
+    // 스킬 선택을 완전히 초기화하는 메서드 추가
+    public void ResetSkillSelection()
+    {
+        selectedSkill = null;
+        
+        // 선택된 스킬 카드 비활성화
+        if (selectedSkillObject != null)
+            selectedSkillObject.gameObject.SetActive(false);
+        
+        // 카드들 초기 상태로
+        ShowCardObjects();
+        UpdateCardSprites();
+        
+        Debug.LogWarning($"{GetPlayer.charName}의 스킬 선택 초기화");
     }
 }

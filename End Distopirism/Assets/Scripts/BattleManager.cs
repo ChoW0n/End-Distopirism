@@ -144,6 +144,12 @@ public class BattleManager : MonoBehaviour
         {
             Debug.LogWarning("BattleLine 컴포넌트를 찾을 수 없습니다.");
         }
+
+        // 모든 캐릭터의 카드 상태 초기화
+        foreach (var character in FindObjectsOfType<CharacterProfile>())
+        {
+            character.OnBattleStart();
+        }
     }
 
     public void Update()
@@ -183,7 +189,7 @@ public class BattleManager : MonoBehaviour
         foreach (var player in players)
         {
             player.gameObject.SetActive(true);
-            // 스프라이트 렌더러의 알파값을 1로 설정하여 완전히 보이게 함
+            // 스프라이트 렌더러의 ���파값을 1로 설정하여 완전히 보이게 함
             SpriteRenderer spriteRenderer = player.GetComponent<SpriteRenderer>();
             if (spriteRenderer != null)
             {
@@ -217,7 +223,7 @@ public class BattleManager : MonoBehaviour
                 .DOScale(targetScale, 0.5f) // Vector3.one 대신 targetScale 사용
                 .SetDelay(delay * i)
                 .SetEase(Ease.OutBack)
-                .OnStart(() => Debug.Log($"플레이어 캐릭터 {i} 등장 시작"))
+                .OnStart(() => Debug.Log($"플���이어 캐릭터 {i} 등장 시작"))
                 .OnComplete(() => Debug.Log($"플레이어 캐릭터 {i} 등장 완료"));
         }
 
@@ -254,21 +260,21 @@ public class BattleManager : MonoBehaviour
 
         isAttacking = true;
 
+        // 모든 캐릭터의 카드 비활성화
+        foreach (var player in playerObjects)
+        {
+            player.OnAttackStart();
+        }
+        foreach (var target in targetObjects)
+        {
+            target.OnAttackStart();
+        }
+
         // 공격 시작 시 라인 활성화
         if (battleLine != null)
         {
             Debug.Log("전투 시작: 라인 활성화");
             battleLine.SetLinesActive(true);
-        }
-        else
-        {
-            Debug.LogWarning("BattleLine 컴포넌트를 찾을 수 없습니다!");
-            // BattleLine 컴포넌트 다시 찾기 시도
-            battleLine = FindObjectOfType<BattleLine>();
-            if (battleLine != null)
-            {
-                battleLine.SetLinesActive(true);
-            }
         }
 
         // 공격 시작 시 화살표 제거
@@ -334,42 +340,89 @@ public class BattleManager : MonoBehaviour
         if (!skillSelected && !selecting)
         {
             GameObject clickObject = UIManager.Instance.MouseGetObject();
-            if (clickObject != null && clickObject.CompareTag("Player"))
+            if (clickObject != null)
             {
-                CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
-                
-                // 이전 선택된 플레이어의 선택 해제
-                if (playerObjects.Count > 0 && targetObjects.Count == 0)
+                if (clickObject.CompareTag("Enemy"))
                 {
-                    CharacterProfile previousPlayer = playerObjects[playerObjects.Count - 1];
-                    previousPlayer.isSelected = false;
-                    previousPlayer.HideSkillCards();
-                    playerObjects.Clear();
-                }
-
-                // 새로운 플레이어 선택
-                if (!playerObjects.Contains(selectedPlayer))
-                {
-                    playerObjects.Add(selectedPlayer);
-                    selectedPlayer.isSelected = true;
-                    selectedPlayer.ShowCharacterInfo();
-                    
-                    // 해당 캐릭터의 카드로 UI 갱신
-                    SkillManager skillManager = selectedPlayer.GetComponent<SkillManager>();
-                    if (skillManager != null)
+                    // 선택 진행중이 아닐 때 적 클릭
+                    CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
+                    if (selectedEnemy != null && targetObjects.Contains(selectedEnemy))
                     {
-                        skillManager.AssignRandomSkillSprites(selectedPlayer);
+                        // 해당 적과 연결된 플레이어 찾기
+                        int enemyIndex = targetObjects.IndexOf(selectedEnemy);
+                        if (enemyIndex >= 0 && enemyIndex < playerObjects.Count)
+                        {
+                            // 화살표 제거
+                            arrowCreator.RemoveConnection(playerObjects[enemyIndex].transform, selectedEnemy.transform);
+                            
+                            // 선택 상태 해제
+                            selectedEnemy.isSelected = false;
+                            playerObjects[enemyIndex].isSelected = false;
+                            
+                            // 플레이어의 스킬 선택 초기화 및 카드 숨기기
+                            playerObjects[enemyIndex].OnDeselected();
+                            
+                            // 리스트에서 제거
+                            targetObjects.RemoveAt(enemyIndex);
+                            playerObjects.RemoveAt(enemyIndex);
+
+                            // 선택 상태 초기화
+                            skillSelected = false;
+                            selecting = false;
+                            
+                            Debug.LogWarning($"선택 해제: 처음 상태��� 돌아감");
+                        }
+                    }
+                }
+                else if (clickObject.CompareTag("Player"))
+                {
+                    CharacterProfile selectedPlayer = clickObject.GetComponent<CharacterProfile>();
+                    
+                    // 살아있는 적의 수 확인
+                    int aliveEnemies = GameObject.FindGameObjectsWithTag("Enemy").Length;
+                    
+                    // 이미 최대 선택 가능한 플레이어 수에 도달했는지 확인
+                    if (playerObjects.Count >= aliveEnemies && !playerObjects.Contains(selectedPlayer))
+                    {
+                        Debug.LogWarning($"더 이상 플레이어를 선택할 수 없습니다. (살아있는 적: {aliveEnemies}명)");
+                        return;
+                    }
+
+                    // 이전 선택된 플레이어의 선택 해제
+                    if (playerObjects.Count > 0 && targetObjects.Count == 0)
+                    {
+                        CharacterProfile previousPlayer = playerObjects[playerObjects.Count - 1];
+                        previousPlayer.isSelected = false;
+                        previousPlayer.OnDeselected();
+                        previousPlayer.ResetSkillSelection(); // 스킬 선택도 초기화
+                        playerObjects.Clear();
+                    }
+
+                    // 새로운 플레이어 선택
+                    if (!playerObjects.Contains(selectedPlayer))
+                    {
+                        playerObjects.Add(selectedPlayer);
+                        selectedPlayer.isSelected = true;
+                        selectedPlayer.ShowCharacterInfo();
                     }
                 }
             }
         }
         else if (skillSelected && selecting)
         {
-            // 적 선택 로직
+            // 기존 적 선택 로직...
             GameObject clickObject = UIManager.Instance.MouseGetObject();
             if (clickObject != null && clickObject.CompareTag("Enemy"))
             {
                 CharacterProfile selectedEnemy = clickObject.GetComponent<CharacterProfile>();
+                
+                // 이미 선택된 적인지 확인
+                if (targetObjects.Contains(selectedEnemy))
+                {
+                    Debug.LogWarning($"{selectedEnemy.GetPlayer.charName}는 이미 선택된 적입니다.");
+                    return;
+                }
+
                 CharacterProfile currentPlayer = playerObjects[playerObjects.Count - 1];
 
                 // 이미 이 플레이어의 타겟이 있는 경우, 기존 타겟과 화살표 제거
@@ -396,16 +449,15 @@ public class BattleManager : MonoBehaviour
                 
                 // 화살표 연결
                 arrowCreator.AddConnection(currentPlayer.transform, selectedEnemy.transform);
+
+                Debug.LogWarning($"{currentPlayer.GetPlayer.charName}가 {selectedEnemy.GetPlayer.charName}를 타겟으로 선택");
             }
         }
 
         // 선택 상태 업데이트
         playerSelect = playerObjects.Count > 0;
         enemySelect = targetObjects.Count > 0;
-        
-        // allTargetSelected 조건 수정
-        allTargetSelected = playerObjects.Count > 0 && 
-                           targetObjects.Count == playerObjects.Count;
+        allTargetSelected = playerObjects.Count > 0 && targetObjects.Count == playerObjects.Count;
     }
 
     private void RedrawAllConnections()
@@ -502,7 +554,7 @@ public class BattleManager : MonoBehaviour
                         player.UpdateStatus();
                         UIManager.Instance.ShowDamageTextNearCharacter(bleedDamage, player.transform);
                         UIManager.Instance.CreateBloodEffect(player.transform.position);
-                        Debug.LogWarning($"[출혈 피해] {player.GetPlayer.charName}이(가) 출혈로 {bleedDamage}의 피해를 입음");
+                        Debug.LogWarning($"[출혈 피해] {player.GetPlayer.charName}이(가) 출혈로 {bleedDamage}의 해를 입음");
                     }
                     effect.duration--;
                     Debug.LogWarning($"[상태이상 지속시간] {player.GetPlayer.charName}의 {effect.effectName} 효과 남은 지속시간: {effect.duration}턴");
@@ -592,7 +644,7 @@ public class BattleManager : MonoBehaviour
 
         yield return new WaitUntil(() => AllCombatantsStoppedMoving());
 
-        // 턴 종료 처리
+        //  종료 처리
         CheckBattleEnd();
         if (state == GameState.playerTurn)
         {
@@ -728,7 +780,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             }
         }
 
-        // 피해량 계산 시 독 효과와 방어력 감소 효과 적용
+        // 피해량 계산 시 독 효과와 방어력 감소 ���과 적용
         float finalDamage = attacker.GetPlayer.dmg;
         float originalDamage = finalDamage;
 
@@ -764,7 +816,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             if (effect.effectName == "방어력감소")
             {
                 defenseModifier = effect.defenseModifier;
-                Debug.LogWarning($"[방어 감소] {victim.GetPlayer.charName}의 방어력이 {defenseModifier * 100}%로 감소됨");
+                Debug.LogWarning($"[방어 소] {victim.GetPlayer.charName}의 방어력이 {defenseModifier * 100}%로 감소됨");
                 Debug.LogWarning($"[방어력 감소] 원래 방어력: {originalDefense} -> 감소된 방어력: {Mathf.RoundToInt(originalDefense * defenseModifier)}");
             }
         }
@@ -797,7 +849,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         Debug.LogWarning($"- 방어력: {modifiedDefense} (원래: {originalDefense}, 감소: {originalDefense - modifiedDefense})");
         Debug.LogWarning($"- 최종 피해: {finalDamageInt}");
 
-        // 피해를 입을 때 100% 확률로 정신력 소 (기존 50% 확률에서 변경)
+        // 피해를 입을 때 100% 확률 정신력 소 (기존 50% 확률에서 변경)
         victim.GetPlayer.menTality = Mathf.Max(0, victim.GetPlayer.menTality - 2);
         victim.UpdateStatus();
         Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력 2 감소 (피해로 인한 감소)");
@@ -860,7 +912,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     }
 
     // 정신력 변경
-    // 합 패배 시 정신력 -10
+    // 합 패배  정신력 -10
     victim.GetPlayer.menTality = Mathf.Max(0, victim.GetPlayer.menTality - 10);
     victim.UpdateStatus();
     Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력 10 감소 (합 패배)");
@@ -904,8 +956,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
         {
             victim.GetPlayer.AddStatusEffect("출혈");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에 출혈 효과가 부여되었습니다.");
-            // 출혈 이펙트 시
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 출혈 효과가 부여되었습니다.");
+            // 출혈 이트 시
             UIManager.Instance.CreateBloodEffect(victim.transform.position);
         }
         else // 합 패배 시
@@ -921,8 +973,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승 시
         {
             // 상대에게 방어력 감소 효과 부여
-            victim.GetPlayer.AddStatusEffect("방어력감소");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여��었습니다.");
+            victim.GetPlayer.AddStatusEffect("방어력 감소");
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
         }
         else // 합 패배 시
         {
@@ -949,13 +1001,13 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             // 상대에게 방어력 감 효과 부여
             victim.GetPlayer.AddStatusEffect("방어력감소");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니.");
+            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
         }
         else // 합 패배 시
         {
             // 공격자에게 2턴 출혈 효과 부여
             attacker.GetPlayer.AddStatusEffect("출혈2턴");
-            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부��되었습니다.");
+            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
             UIManager.Instance.CreateBloodEffect(attacker.transform.position);
         }
     }
@@ -1027,7 +1079,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             winner = playerObject;
             loser = targetObject;
             
-            // 일힐 시 정신력 2 회복 (최대 100)
+            // 일힐 시 ���신력 2 회복 (최대 100)
             if (winner.GetPlayer.menTality < 100)
             {
                 winner.GetPlayer.menTality = Mathf.Min(100, winner.GetPlayer.menTality + 2);
@@ -1137,6 +1189,12 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             battleCamera.isBattle = false;  // 명시적으로 isBattle 상태 해제
             battleCamera.ResetCamera();
         }
+
+        // 모든 캐릭터의 카드 상태 초기화
+        foreach (var character in FindObjectsOfType<CharacterProfile>())
+        {
+            character.OnBattleEnd();
+        }
     }
 
     IEnumerator EnemyTurn()
@@ -1166,19 +1224,15 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             CharacterProfile profile = player.GetComponent<CharacterProfile>();
             if (profile != null)
             {
-                // 코인 초화
+                // 코인 초기화
                 profile.GetPlayer.coin = profile.GetPlayer.maxCoin + profile.GetPlayer.nextTurnCoinModifier;
                 profile.GetPlayer.nextTurnCoinModifier = 0;
                 profile.UpdateStatus();
-                Debug.LogWarning($"{profile.GetPlayer.charName}의 코인이 {profile.GetPlayer.coin}개로 설정");
-
-                // 스킬 카드 갱신
-                SkillManager skillManager = player.GetComponent<SkillManager>();
-                if (skillManager != null)
-                {
-                    skillManager.OnCharacterSelected(); // 불투명화 해제
-                    skillManager.RefreshCards(profile); // CharacterProfile 객체 전달
-                }
+                
+                // 선택된 스킬 초기화
+                profile.ResetSkillSelection();
+                
+                Debug.LogWarning($"{profile.GetPlayer.charName}의 상태 초기화 (새 턴)");
             }
         }
 
@@ -1312,7 +1366,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     {
         if (character == null || !character.gameObject.activeSelf) yield break;
         
-        // 대시 사운드 재생
+        // 대시 사운드 생
         character.PlayDashSound();
         
         // 약간의 딜레이

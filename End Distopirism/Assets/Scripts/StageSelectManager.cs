@@ -7,7 +7,7 @@ public class StageSelectManager : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private GameObject stageInfoPanel;
-    [SerializeField] private TextMeshProUGUI titleText;
+    [SerializeField] private Transform titleParent;
     [SerializeField] private Transform enemyInfoParent;
     [SerializeField] private Transform mapInfoParent;
     [SerializeField] private Button startButton;
@@ -72,6 +72,7 @@ public class StageSelectManager : MonoBehaviour
     // 스테이지 버튼 클릭 시 호출되는 메서드
     public void OnStageButtonClick(int stageNumber)
     {
+        // Button 컴포넌트의 onClick 이벤트에 연결
         DeckData.currentStage = stageNumber;
         UpdateStageInfo(stageNumber);
         ShowStageInfo();
@@ -128,15 +129,28 @@ public class StageSelectManager : MonoBehaviour
 
     private void UpdateStageInfo(int stageNumber)
     {
-        // 타이틀 텍스트 업데이트
-        if (titleText != null)
-            titleText.text = $"{stageNumber}-1\n스테이지 이름";
+        // 타이틀 정보 업데이트
+        UpdateTitleInfo(stageNumber);
 
         // 적 정보 업데이트
         UpdateEnemyInfo(stageNumber);
 
         // 맵 정보 업데이트
         UpdateMapInfo(stageNumber);
+    }
+
+    private void UpdateTitleInfo(int stageNumber)
+    {
+        // 모든 타이틀 정보 비활성화
+        foreach (Transform child in titleParent)
+        {
+            child.gameObject.SetActive(false);
+        }
+
+        // 해당 스테이지의 타이틀 정보만 활성화
+        Transform stageTitle = titleParent.Find($"Stage{stageNumber}Title");
+        if (stageTitle != null)
+            stageTitle.gameObject.SetActive(true);
     }
 
     private void UpdateEnemyInfo(int stageNumber)
