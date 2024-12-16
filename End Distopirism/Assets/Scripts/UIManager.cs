@@ -295,18 +295,32 @@ public class UIManager : MonoBehaviour
         dmgUpText.text = "+" + character.GetPlayer.dmgUp.ToString();
         coinText.text = character.GetPlayer.coin.ToString();
 
-        // 스킬 정보 표시
-        if (showSkill && character.GetPlayer.skills != null && character.GetPlayer.skills.Count > 0)
+        // 스킬 정보 표시 로직 수정
+        if (character.GetPlayer.skills != null && character.GetPlayer.skills.Count > 0)
         {
             skillIcon.gameObject.SetActive(true);
             skillName.gameObject.SetActive(true);
-            skillIcon.sprite = character.GetPlayer.skills[0].sprite;
-            skillName.text = character.GetPlayer.skills[0].skillName;
+
+            // 적의 경우 현재 선택된 스킬 표시
+            if (!isPlayer)
+            {
+                skillIcon.sprite = character.GetPlayer.skills[0].sprite;
+                skillName.text = character.GetPlayer.skills[0].skillName;
+                Debug.LogWarning($"적 {character.GetPlayer.charName}의 스킬 정보 표시: {character.GetPlayer.skills[0].skillName}");
+            }
+            // 플레이어의 경우 showSkill이 true일 때만 선택된 스킬 표시
+            else if (showSkill)
+            {
+                skillIcon.sprite = character.GetPlayer.skills[0].sprite;
+                skillName.text = character.GetPlayer.skills[0].skillName;
+                Debug.LogWarning($"플레이어 {character.GetPlayer.charName}의 스킬 정보 표시: {character.GetPlayer.skills[0].skillName}");
+            }
         }
         else
         {
             skillIcon.gameObject.SetActive(false);
             skillName.gameObject.SetActive(false);
+            Debug.LogWarning($"{character.GetPlayer.charName}의 스킬 정보가 없습니다.");
         }
 
         // SkillCards는 플레이어 패널에서만 사용
@@ -516,7 +530,7 @@ public class UIManager : MonoBehaviour
 
     private IEnumerator LoadMainSceneCoroutine()
     {
-        // 로딩 화면 활성화
+        // 로딩 화면 활성��
         if (loadingScreen != null)
         {
             loadingScreen.SetActive(true);
@@ -617,7 +631,7 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    // 방어 효과 생성 메서드
+    // ���어 효과 생성 메서드
     public void CreateDefenseEffect(Vector3 position)
     {
         // 현재는 혈흔 이펙트를 파란색으로 변경하여 사용

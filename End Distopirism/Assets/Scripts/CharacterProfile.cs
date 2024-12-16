@@ -205,6 +205,23 @@ public class CharacterProfile : MonoBehaviour
         HideCardObjects();
         if (selectedSkillObject != null)
             selectedSkillObject.gameObject.SetActive(false);
+
+        // 마우스 오버 이벤트를 위한 컴포넌트 추가
+        if (CompareTag("Enemy"))
+        {
+            // BoxCollider가 없다면 추가
+            BoxCollider boxCollider = GetComponent<BoxCollider>();
+            if (boxCollider == null)
+            {
+                boxCollider = gameObject.AddComponent<BoxCollider>();
+                boxCollider.size = new Vector3(1f, 1f, 0.1f); // 적절한 크기로 조정
+                boxCollider.isTrigger = true;
+            }
+
+            // MouseOverHandler 추가
+            MouseOverHandler mouseHandler = gameObject.AddComponent<MouseOverHandler>();
+            mouseHandler.Initialize(this);
+        }
     }
 
     private void InitializeCardRenderers()
@@ -331,7 +348,7 @@ public class CharacterProfile : MonoBehaviour
         playerMTText = mentalityBar.transform.Find("PlayerMT")?.GetComponent<TextMeshProUGUI>();
         enemyMTText = mentalityBar.transform.Find("EnemyMT")?.GetComponent<TextMeshProUGUI>();
 
-        // 태그에 따라 적절한 텍스트 활성화/비활성화
+        // 태그��� 따라 적절한 텍스트 활성화/비활성화
         if (CompareTag("Player"))
         {
             if (enemyHPText) enemyHPText.gameObject.SetActive(false);
@@ -369,7 +386,7 @@ public class CharacterProfile : MonoBehaviour
     // 체력이나 정신력이 변경될 때 호출할 메서드
     public void UpdateStatus()
     {
-        // 이전 값 저장
+        // 이전 값 ���장
         float prevHealth = GetPlayer.hp;
         float prevMentality = GetPlayer.menTality;
 
@@ -1333,5 +1350,68 @@ public class CharacterProfile : MonoBehaviour
         UpdateCardSprites();
         
         Debug.LogWarning($"{GetPlayer.charName}의 스킬 선택 초기화");
+    }
+}
+
+public class MouseOverHandler : MonoBehaviour
+{
+    private CharacterProfile characterProfile;
+    private bool isMouseOver = false;
+
+    public void Initialize(CharacterProfile profile)
+    {
+        characterProfile = profile;
+    }
+
+    private void OnMouseEnter()
+    {
+        if (characterProfile == null || 
+            BattleManager.Instance.state == GameState.win || 
+            BattleManager.Instance.state == GameState.lose ||
+            BattleManager.Instance.targetObjects.Contains(characterProfile)) // 이미 선택된 적인지 확인
+        {
+            return;
+        }
+
+        isMouseOver = true;
+        characterProfile.ShowCharacterInfo();
+        Debug.LogWarning($"마우스 오버: {characterProfile.GetPlayer.charName}의 정보 표시");
+    }
+
+    private void OnMouseExit()
+    {
+        if (characterProfile == null || 
+            BattleManager.Instance.state == GameState.win || 
+            BattleManager.Instance.state == GameState.lose)
+        {
+            return;
+        }
+
+        isMouseOver = false;
+        
+        // 약간의 딜레이 후에 패널 비활성화 체크
+        StartCoroutine(CheckPanelDeactivation());
+    }
+
+    private IEnumerator CheckPanelDeactivation()
+    {
+        // 0.1초 대기
+        yield return new WaitForSeconds(0.1f);
+
+        // 마우스가 벗어난 상태이고, 해당 적이 선택되지 않은 경우에만 패널 비활성화
+        if (!isMouseOver && !BattleManager.Instance.targetObjects.Contains(characterProfile))
+        {
+            UIManager.Instance.enemyProfilePanel.SetActive(false);
+            Debug.LogWarning($"마우스 아웃: {characterProfile.GetPlayer.charName}의 정보 숨김");
+        }
+    }
+
+    private void OnDisable()
+    {
+        // 컴포넌트가 비활성화될 때 패널도 비활성화
+        if (!BattleManager.Instance.targetObjects.Contains(characterProfile))
+        {
+            UIManager.Instance.enemyProfilePanel.SetActive(false);
+        }
     }
 }
