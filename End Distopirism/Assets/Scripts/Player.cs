@@ -47,22 +47,8 @@ public class Player
 
     public Sprite charSprite; // 캐릭터 스프라이트
 
-    // 상태 효과 리스트 추가
-    public List<StatusEffect> statusEffects = new List<StatusEffect>();
-
     // 다음 턴 코인 수정치 추가
     public int nextTurnCoinModifier = 0;
-
-    public bool isBleedingEffect = false;    // 출혈
-    public bool isConfusionEffect = false;   // 혼란
-    public bool isPoisonEffect = false;      // 독
-    public bool isDefenseDownEffect = false; // 방어력감소
-
-    // 각 상태이상의 남은 턴 수
-    public int bleedingTurns = 0;
-    public int confusionTurns = 0;
-    public int poisonTurns = 0;
-    public int defenseDownTurns = 0;
 
     [Header("덱 제한 설정")]
     public int maxDeckSize = 10;  // 전체 덱 크기 제한
@@ -77,89 +63,9 @@ public class Player
         hp = maxHp;
     }
 
-    // 상태 효과 관련 메서드들
-    public void AddStatusEffect(string effectName)
-    {
-        // 기존 효과 찾기
-        var existingEffect = statusEffects.Find(e => e.effectName == effectName);
-        
-        if (existingEffect != null)
-        {
-            // 기존 효과가 있다면 지속시간 증가
-            existingEffect.duration += GetNewEffectDuration(effectName);
-            Debug.Log($"{effectName} 효과가 중첩되어 지속시간이 {existingEffect.duration}턴이 되었습니다.");
-        }
-        else
-        {
-            switch (effectName)
-            {
-                case "출혈":
-                    isBleedingEffect = true;
-                    bleedingTurns = 3;
-                    break;
-                case "혼란":
-                    isConfusionEffect = true;
-                    confusionTurns = 1;
-                    break;
-                case "독":
-                    isPoisonEffect = true;
-                    poisonTurns = 3;
-                    break;
-                case "방어력감소":
-                    isDefenseDownEffect = true;
-                    defenseDownTurns = 1;
-                    break;
-                case "출혈2턴":
-                    isBleedingEffect = true;
-                    bleedingTurns = 2;
-                    break;
-            }
-        }
-    }
-
-    private int GetNewEffectDuration(string effectName)
-    {
-        switch (effectName)
-        {
-            case "출혈": return 3;
-            case "혼란": return 1;
-            case "독": return 3;
-            case "방어력감소": return 1;
-            case "출혈2턴": return 2;
-            default: return 1;
-        }
-    }
-
-    public void UpdateStatusEffects()
-    {
-        // 턴 감소 및 상태이상 해제
-        if (bleedingTurns > 0) bleedingTurns--;
-        if (confusionTurns > 0) confusionTurns--;
-        if (poisonTurns > 0) poisonTurns--;
-        if (defenseDownTurns > 0) defenseDownTurns--;
-
-        // 턴이 0이 되면 상태이상 해제
-        if (bleedingTurns <= 0) isBleedingEffect = false;
-        if (confusionTurns <= 0) isConfusionEffect = false;
-        if (poisonTurns <= 0) isPoisonEffect = false;
-        if (defenseDownTurns <= 0) isDefenseDownEffect = false;
-    }
-
-
-    public float GetTotalMentalityModifier()
-    {
-        float totalModifier = 0;
-        foreach (var effect in statusEffects)
-        {
-            totalModifier += effect.mentalityModifier;
-        }
-        return totalModifier;
-    }
-
-    // 덱에 카드를 추가할 수 있는지 확인하는 메서드
+    // 덱 관련 메서드들
     public bool CanAddCardToDeck(Skill skill)
     {
-        // 1. 전체 덱 크기 제한 체크 (최우선)
         int totalCardsInDeck = skills.Count;
         if (totalCardsInDeck >= maxDeckSize)
         {
@@ -167,7 +73,6 @@ public class Player
             return false;
         }
 
-        // 2. 개별 카드의 최대 개수 제한 체크
         if (skill.maxCardCount > 0)
         {
             int currentCount = skills.Count(s => s == skill);
@@ -178,20 +83,16 @@ public class Player
             }
         }
 
-        // 3. 서로 다른 종류의 카드 제한 체크 (일반 카드 제외)
         if (skill.cardType.ToLower() != "일반")
         {
-            // 새로운 종류의 카드인 경우에만 체크
             if (!currentCardTypes.Contains(skill.cardType))
             {
-                // 현재 덱에 있는 서로 다른 종류의 카드 수 계산 (일반 제외)
                 var uniqueTypes = skills
                     .Where(s => s.cardType.ToLower() != "일반")
                     .Select(s => s.cardType)
                     .Distinct()
                     .Count();
 
-                // 새로운 종류를 추가했을 때 제한을 넘는지 체크
                 if (uniqueTypes >= maxUniqueCardTypes)
                 {
                     Debug.LogWarning($"서로 다른 종류의 카드는 최대 {maxUniqueCardTypes}종류까지만 추가할 수 있습니다. (일반 카드 제외)");
@@ -203,7 +104,6 @@ public class Player
         return true;
     }
 
-    // 덱에 카드를 추가하는 메서드
     public bool AddCardToDeck(Skill skill)
     {
         if (!CanAddCardToDeck(skill))
@@ -217,12 +117,10 @@ public class Player
         return true;
     }
 
-    // 덱에서 카드를 제거하는 메서드
     public bool RemoveCardFromDeck(Skill skill)
     {
         if (skills.Remove(skill))
         {
-            // 해당 종류의 카드가 더 이상 없다면 currentCardTypes에서 제거
             if (skill.cardType.ToLower() != "일반" && 
                 !skills.Exists(s => s.cardType == skill.cardType))
             {

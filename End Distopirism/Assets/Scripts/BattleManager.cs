@@ -475,17 +475,7 @@ public class BattleManager : MonoBehaviour
         float maxMenTality = 100f;
         float maxProbability = 0.6f;
 
-        // 정신력 계산 시 혼란 효과 특별 처리
-        float effectiveMentality = Object.GetPlayer.menTality;
-        bool isConfused = Object.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
-        
-        if (isConfused)
-        {
-            effectiveMentality -= 20f;
-            Debug.LogWarning($"[혼란 효과] {Object.GetPlayer.charName}의 코인 굴림 시 정신력 {Object.GetPlayer.menTality} -> {effectiveMentality}");
-        }
-
-        float currentProbability = Mathf.Max(0f, maxProbability * (effectiveMentality / maxMenTality));
+        float currentProbability = Mathf.Max(0f, maxProbability * maxMenTality);
         Debug.LogWarning($"[코인 확률] {Object.GetPlayer.charName}의 현재 성공 확률: {currentProbability * 100:F1}%");
 
         Object.successCount = 0; // 코인 성공 횟수 초기화
@@ -702,50 +692,12 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 전진과 후퇴가 끝날 때까지 기달림
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
 
-        // 피해량 계산 시 독 효과와 방어력 감소 ���과 적용
+        // 피해량 계산
         float finalDamage = attacker.GetPlayer.dmg;
         float originalDamage = finalDamage;
 
-        // 공격자의 독 효과로 인한 피해량 감소
-        foreach (var effect in attacker.GetPlayer.statusEffects)
-        {
-            if (effect.effectName == "독")
-            {
-                float beforePoison = finalDamage;
-                finalDamage *= (1f + effect.outgoingDamageModifier);
-                float poisonReduction = beforePoison - finalDamage;
-                Debug.LogWarning($"[독 효과 - 공격자] {attacker.GetPlayer.charName}의 독으로 인한 피해량 감소: {poisonReduction:F1} ({effect.outgoingDamageModifier * 100}%)");
-            }
-        }
 
-        // 피해자의 독 효과로 인한 피해량 증가
-        foreach (var effect in victim.GetPlayer.statusEffects)
-        {
-            if (effect.effectName == "독")
-            {
-                float beforePoison = finalDamage;
-                finalDamage *= (1f + effect.incomingDamageModifier);
-                float poisonIncrease = finalDamage - beforePoison;
-                Debug.LogWarning($"[독 효과 - 피해자] {victim.GetPlayer.charName}가 받는 추가 피해: {poisonIncrease:F1} ({effect.incomingDamageModifier * 100}%)");
-            }
-        }
-
-        // 방어력 정치 계산
-        float defenseModifier = 1f;
-        int originalDefense = victim.GetPlayer.defLevel;
-        foreach (var effect in victim.GetPlayer.statusEffects)
-        {
-            if (effect.effectName == "방어력감소")
-            {
-                defenseModifier = effect.defenseModifier;
-                Debug.LogWarning($"[방어 소] {victim.GetPlayer.charName}의 방어력이 {defenseModifier * 100}%로 감소됨");
-                Debug.LogWarning($"[방어력 감소] 원래 방어력: {originalDefense} -> 감소된 방어력: {Mathf.RoundToInt(originalDefense * defenseModifier)}");
-            }
-        }
-
-        // 최종 피해 적용
-        int modifiedDefense = Mathf.RoundToInt(victim.GetPlayer.defLevel * defenseModifier);
-        int finalDamageInt = Mathf.RoundToInt(finalDamage) - modifiedDefense;
+        int finalDamageInt = Mathf.RoundToInt(finalDamage);
 
         victim.GetPlayer.hp -= finalDamageInt;
         victim.UpdateStatus();
@@ -767,8 +719,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // 피해 상세 로그
         Debug.LogWarning($"[피해 상세 - {victim.GetPlayer.charName}]");
         Debug.LogWarning($"- 기본 피해량: {originalDamage}");
-        Debug.LogWarning($"- 상태이상 적용 후 피해량: {finalDamage:F1} (차이: {finalDamage - originalDamage:+0.0;-0.0;0.0})");
-        Debug.LogWarning($"- 방어력: {modifiedDefense} (원래: {originalDefense}, 감소: {originalDefense - modifiedDefense})");
         Debug.LogWarning($"- 최종 피해: {finalDamageInt}");
 
         // 피해를 입을 때 100% 확률 정신력 소 (기존 50% 확률에서 변경)
@@ -866,34 +816,10 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     // 전투 종료 시 스킬 이펙트 제거
     attacker.DestroySkillEffect();
     
-    // 해자가 존재할 때만 스킬 이펙트 거
+    // 피해자가 존재할 때만 스킬 이펙트 제거
     if (victim != null && victim.gameObject != null)
     {
         victim.DestroySkillEffect();
-    }
-
-    // 피해 적용 후 정신력 20 미만 체크 (혼란 자연 발생)
-    if (victim.GetPlayer.menTality < 20 && !victim.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란"))
-    {
-        victim.GetPlayer.AddStatusEffect("혼란");
-        Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력이 20 미만으로 떨어져 란 상태가 되었습니다.");
-    }
-
-    // 혼 상태에서의 자해 체크 (정신력 20 미만에서 자연 발생한 경우)
-    bool isNaturalConfusion = attacker.GetPlayer.menTality < 20 && 
-                             attacker.GetPlayer.statusEffects.Exists(e => e.effectName == "혼란");
-    
-    if (isNaturalConfusion && attacker.GetPlayer.dmg > victim.GetPlayer.dmg)
-    {
-        if (Random.value < 0.1f) // 10% 확률로 자해
-        {
-            int selfDamage = Mathf.RoundToInt(attacker.GetPlayer.dmg * 0.5f); // 자신의 피해량의 50%
-            attacker.GetPlayer.hp -= selfDamage;
-            attacker.UpdateStatus();
-            UIManager.Instance.ShowDamageTextNearCharacter(selfDamage, attacker.transform);
-            UIManager.Instance.CreateBloodEffect(attacker.transform.position);
-            Debug.LogWarning($"[혼란 자해] {attacker.GetPlayer.charName}이(가) 혼란으로 인해 {selfDamage}의 자해 피해를 입음");
-        }
     }
 
 }
@@ -939,7 +865,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             winner = playerObject;
             loser = targetObject;
             
-            // 일힐 시 ���신력 2 회복 (최대 100)
+            // 이길 시 정신력 2 회복 (최대 100)
             if (winner.GetPlayer.menTality < 100)
             {
                 winner.GetPlayer.menTality = Mathf.Min(100, winner.GetPlayer.menTality + 2);
@@ -952,7 +878,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             winner = targetObject;
             loser = playerObject;
             
-            // 일힐 시 정신력 2 회복 (최대 100)
+            // 이길 시 정신력 2 회복 (최대 100)
             if (winner.GetPlayer.menTality < 100)
             {
                 winner.GetPlayer.menTality = Mathf.Min(100, winner.GetPlayer.menTality + 2);
@@ -1214,7 +1140,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         // false를 전달하여 마지막 전투가 아님을 표시
         yield return StartCoroutine(ApplyDamageAndMoveCoroutine(attacker, victim, false));
         
-        // 든 데미지 적용 움직임이 끝 후에 체력 확인 및 전투 종료 처리
+        // 모든 데미지 적용 움직임이 끝 후에 체력 확인 및 전투 종료 처리
         CheckHealth(attacker, victim);
         CheckBattleEnd();
     }

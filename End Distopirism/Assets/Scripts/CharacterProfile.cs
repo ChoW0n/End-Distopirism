@@ -348,7 +348,7 @@ public class CharacterProfile : MonoBehaviour
         playerMTText = mentalityBar.transform.Find("PlayerMT")?.GetComponent<TextMeshProUGUI>();
         enemyMTText = mentalityBar.transform.Find("EnemyMT")?.GetComponent<TextMeshProUGUI>();
 
-        // 태그��� 따라 적절한 텍스트 활성화/비활성화
+        // 태그 따라 적절한 텍스트 활성화/비활성화
         if (CompareTag("Player"))
         {
             if (enemyHPText) enemyHPText.gameObject.SetActive(false);
@@ -386,14 +386,10 @@ public class CharacterProfile : MonoBehaviour
     // 체력이나 정신력이 변경될 때 호출할 메서드
     public void UpdateStatus()
     {
-        // 이전 값 ���장
-        float prevHealth = GetPlayer.hp;
-        float prevMentality = GetPlayer.menTality;
-
         // 체력이 0 미만으로 내려가지 않도록
         GetPlayer.hp = Mathf.Max(0, GetPlayer.hp);
         
-        // 정신력이 0~100 범위를 벗어나 않도록
+        // 정신력이 0~100 범위를 벗어나지 않도록
         GetPlayer.menTality = Mathf.Clamp(GetPlayer.menTality, 0f, 100f);
 
         // 체력바 색상 업데이트 및 피해 효과
@@ -401,52 +397,17 @@ public class CharacterProfile : MonoBehaviour
         {
             float healthPercentage = (float)GetPlayer.hp / GetPlayer.maxHp;
             healthBarFill.color = Color.Lerp(Color.red, Color.green, healthPercentage);
-
-            // 체력이 감소했을 때 반짝임 효과
-            if (GetPlayer.hp < prevHealth)
-            {
-                Sequence seq = DOTween.Sequence();
-                seq.Append(healthBarFill.DOColor(Color.white, 0.1f));
-                seq.Append(healthBarFill.DOColor(healthBarFill.color, 0.1f));
-                seq.SetLoops(2);
-            }
         }
 
-        // 정신력바 색상 업데이트 및 피해 효과
+        // 정신력바 색상 업데이트
         if (mentalityBarFill != null)
         {
             float mentalityPercentage = GetPlayer.menTality / 100f;
             mentalityBarFill.color = Color.Lerp(Color.red, Color.blue, mentalityPercentage);
-
-            // 정신력이 감소했을 때 반짝임 효과
-            if (GetPlayer.menTality < prevMentality)
-            {
-                Sequence seq = DOTween.Sequence();
-                seq.Append(mentalityBarFill.DOColor(Color.white, 0.1f));
-                seq.Append(mentalityBarFill.DOColor(mentalityBarFill.color, 0.1f));
-                seq.SetLoops(2);
-            }
         }
 
-        // 텍스트 업데이트 및 강조 효과
+        // 텍스트 업데이트
         UpdateStatusTexts();
-        if (GetPlayer.hp < prevHealth || GetPlayer.menTality < prevMentality)
-        {
-            if (CompareTag("Player"))
-            {
-                if (GetPlayer.hp < prevHealth && playerHPText != null)
-                    playerHPText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
-                if (GetPlayer.menTality < prevMentality && playerMTText != null)
-                    playerMTText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
-            }
-            else
-            {
-                if (GetPlayer.hp < prevHealth && enemyHPText != null)
-                    enemyHPText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
-                if (GetPlayer.menTality < prevMentality && enemyMTText != null)
-                    enemyMTText.transform.DOPunchScale(Vector3.one * 0.3f, 0.2f);
-            }
-        }
     }
 
     public void ShowCharacterInfo()
@@ -553,7 +514,7 @@ public class CharacterProfile : MonoBehaviour
             Vector3 euler = transform.rotation.eulerAngles;
             euler.x = mainCamera.transform.eulerAngles.x; // X 회전 카메라를 따라감
             euler.y = mainCamera.transform.eulerAngles.y; // Y 회전 카메라를 따라감
-            euler.z = mainCamera.transform.eulerAngles.z; // Z 회전 카메라를 따라감
+            euler.z = mainCamera.transform.eulerAngles.z; // Z 회전 카메라를 ��라감
             // Y축과 Z축은 현재 값을 유지
             transform.rotation = Quaternion.Euler(euler);
         }
@@ -569,8 +530,6 @@ public class CharacterProfile : MonoBehaviour
 
             // 상태바 값 업데이트
             UpdateStatusBars();
-
-            CheckStatusEffectsRealtime();
 
             // 텍스트 업데이트 추가
             UpdateStatusTexts();
@@ -866,58 +825,6 @@ public class CharacterProfile : MonoBehaviour
         }
     }
 
-    // 상태이상 효과 종료 시 호출
-    public void DeactivateEffect(string effectName)
-    {
-        var history = effectHistories.Find(h => h.effectName == effectName);
-        if (history != null)
-        {
-            history.isActive = false;
-        }
-    }
-
-    // Player 클래스의 AddStatusEffect 메서드 수정
-    public void AddStatusEffect(string effectName)
-    {
-        Debug.LogWarning($"[상태이상 적용] {player.charName}에게 {effectName} 효과 적용 시도");
-        
-        var existingEffect = player.statusEffects.Find(e => e.effectName == effectName);
-        
-        if (existingEffect != null)
-        {
-            existingEffect.duration += GetNewEffectDuration(effectName);
-            Debug.LogWarning($"[상태이상 중첩] {effectName} 효과의 지속시간이 {existingEffect.duration}턴으로 증가");
-        }
-        else
-        {
-            StatusEffect newEffect = CreateStatusEffect(effectName);
-            if (newEffect != null)
-            {
-                player.statusEffects.Add(newEffect);
-                Debug.LogWarning($"[상태이상 적용] {effectName} 효과가 {newEffect.duration}턴 동안 부여됨");
-            }
-        }
-    }
-
-    private StatusEffect CreateStatusEffect(string effectName)
-    {
-        switch (effectName)
-        {
-            case "출혈":
-                return new StatusEffect("출혈", 3, 0, 0.01f);
-            case "혼란":
-                return new StatusEffect("혼란", 1, -20f, 0);
-            case "독":
-                return new StatusEffect("독", 3, 0, 0, 0.05f, -0.10f);
-            case "방어력감소":
-                return new StatusEffect("방어력감소", 1, 0, 0, 0, 0, 0.5f);
-            case "출혈2턴":
-                return new StatusEffect("출혈", 2, 0, 0.01f);
-            default:
-                Debug.LogWarning($"알 수 없는 상태이상: {effectName}");
-                return null;
-        }
-    }
 
     // 대시 사운드 재생 메서드 추가
     public void PlayDashSound()
@@ -929,7 +836,7 @@ public class CharacterProfile : MonoBehaviour
         }
     }
 
-    // 피해 운드 재생 메서드 추가
+    // 피해 사운드 재생 메서드 추가
     public void PlayHitSound()
     {
         if (audioSource != null && hitSound != null)
@@ -939,62 +846,7 @@ public class CharacterProfile : MonoBehaviour
         }
     }
 
-    // GetNewEffectDuration 메서드 추가
-    private int GetNewEffectDuration(string effectName)
-    {
-        switch (effectName)
-        {
-            case "출혈":
-                return 3;
-            case "혼란":
-                return 1;
-            case "독":
-                return 3;
-            case "방어력감소":
-                return 1;
-            case "출혈2턴":
-                return 2;
-            default:
-                Debug.LogWarning($"알 수 없는 효과: {effectName}, 기본 지속시간 1턴 적용");
-                return 1;
-        }
-    }
 
-    // 상태이상 효과 체크 메서드 수정
-    public void CheckStatusEffects()
-    {
-        Player player = GetPlayer;
-
-        // 출혈 상태 체크
-        if (player.isBleedingEffect)
-        {
-            Debug.LogWarning($"[상태이상 체크] {player.charName}의 출혈 효과 (남은 지속시간: {player.bleedingTurns}턴)");
-        }
-
-        // 혼란 상태 체크
-        if (player.isConfusionEffect)
-        {
-            Debug.LogWarning($"[태이상 체크] {player.charName}의 혼란 효과 (남은 지속시간: {player.confusionTurns}턴)");
-        }
-
-        // 독 상태 체크
-        if (player.isPoisonEffect)
-        {
-            Debug.LogWarning($"[상태이상 체크] {player.charName}의 독 효과 (남은 지속시간: {player.poisonTurns}턴)");
-        }
-
-        // 방어력감소 상태 체크
-        if (player.isDefenseDownEffect)
-        {
-            Debug.LogWarning($"[상태이상 체크] {player.charName}의 방어력감소 효과 (남은 지속시간: {player.defenseDownTurns}턴)");
-        }
-
-        // 상태이상 업데이트
-        player.UpdateStatusEffects();
-        
-        // 아이콘 업데이트
-        UIManager.Instance.UpdateStatusEffectIcons(this);
-    }
 
     // 턴이 끝날 때 호될 메서드 추가
     public void OnTurnEnd()
@@ -1059,60 +911,6 @@ public class CharacterProfile : MonoBehaviour
         return drawnCards;
     }
 
-    private void CheckStatusEffectsRealtime()
-    {
-        Player player = GetPlayer;
-        Transform statusIconsParent = transform.Find("StatusIcons");
-        if (statusIconsParent == null) return;
-
-        // 출혈 상태 체크 및 아이콘 업데이트
-        SpriteRenderer bleedingIcon = statusIconsParent.Find("BleedingIcon")?.GetComponent<SpriteRenderer>();
-        if (bleedingIcon != null)
-        {
-            bleedingIcon.gameObject.SetActive(player.isBleedingEffect);
-            if (player.isBleedingEffect)
-            {
-                TextMeshPro durationText = bleedingIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.bleedingTurns.ToString();
-            }
-        }
-
-        // 혼란 상태 체크 및 아이콘 업데이트
-        SpriteRenderer confusionIcon = statusIconsParent.Find("ConfusionIcon")?.GetComponent<SpriteRenderer>();
-        if (confusionIcon != null)
-        {
-            confusionIcon.gameObject.SetActive(player.isConfusionEffect);
-            if (player.isConfusionEffect)
-            {
-                TextMeshPro durationText = confusionIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.confusionTurns.ToString();
-            }
-        }
-
-        // 독 상태 체크 및 아이콘 업데이트
-        SpriteRenderer poisonIcon = statusIconsParent.Find("PoisonIcon")?.GetComponent<SpriteRenderer>();
-        if (poisonIcon != null)
-        {
-            poisonIcon.gameObject.SetActive(player.isPoisonEffect);
-            if (player.isPoisonEffect)
-            {
-                TextMeshPro durationText = poisonIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.poisonTurns.ToString();
-            }
-        }
-
-        // 방어력감소 상태 체크 및 아이콘 업데이트
-        SpriteRenderer defenseDownIcon = statusIconsParent.Find("DefenseDownIcon")?.GetComponent<SpriteRenderer>();
-        if (defenseDownIcon != null)
-        {
-            defenseDownIcon.gameObject.SetActive(player.isDefenseDownEffect);
-            if (player.isDefenseDownEffect)
-            {
-                TextMeshPro durationText = defenseDownIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.defenseDownTurns.ToString();
-            }
-        }
-    }
 
     // 새운 메서드 추가: 상태 텍스트 업데이트
     private void UpdateStatusTexts()
@@ -1215,7 +1013,7 @@ public class CharacterProfile : MonoBehaviour
         if (skillCard2Object != null)
         {
             skillCard2Object.gameObject.SetActive(true);
-            // Card2를 왼쪽으로 이동 (로컬 좌표 사용)
+            // Card2를 왼쪽으로 이동 (로컬 좌표 사��)
             skillCard2Object.transform.DOLocalMove(card1LocalPosition + new Vector3(-0.9f, 0f, 0f), 0.3f)
                 .SetEase(Ease.OutQuart);
         }
@@ -1336,7 +1134,7 @@ public class CharacterProfile : MonoBehaviour
         return null;
     }
 
-    // 스킬 선택을 완전히 초기화하는 메서드 추가
+    // 스킬 선택을 완전히 초기화하는 메서��� 추가
     public void ResetSkillSelection()
     {
         selectedSkill = null;
