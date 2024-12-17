@@ -40,9 +40,6 @@ public class BattleManager : MonoBehaviour
     public Transform[] playerBattlePositions; // 플레이어 전투 위치
     public Transform[] enemyBattlePositions;  // 적 전투 위치
 
-    private float shakeDuration = 0.3f;  // 진동 지속 시간
-    private float shakeIntensity = 4f; // 진동 강도
-
     private bool skillSelected = false;
 
     [Header("스테이지 설정")]
@@ -189,7 +186,7 @@ public class BattleManager : MonoBehaviour
         foreach (var player in players)
         {
             player.gameObject.SetActive(true);
-            // 스프라이트 렌더러의 ���파값을 1로 설정하여 완전히 보이게 함
+            // 스프라이트 렌더러의 알파값을 1로 설정하여 완전히 보이게 함
             SpriteRenderer spriteRenderer = player.GetComponent<SpriteRenderer>();
             if (spriteRenderer != null)
             {
@@ -459,15 +456,6 @@ public class BattleManager : MonoBehaviour
         allTargetSelected = playerObjects.Count > 0 && targetObjects.Count == playerObjects.Count;
     }
 
-    private void RedrawAllConnections()
-    {
-        arrowCreator.ClearConnections();
-        for (int i = 0; i < Mathf.Min(playerObjects.Count, targetObjects.Count); i++)
-        {
-            arrowCreator.AddConnection(playerObjects[i].transform, targetObjects[i].transform);
-        }
-    }
-
     void CoinRoll(CharacterProfile Object, ref int successCount)
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
@@ -496,7 +484,7 @@ public class BattleManager : MonoBehaviour
         Debug.LogWarning($"{Object.GetPlayer.charName}의 남은 코인: {Object.GetPlayer.coin} / {Object.GetPlayer.maxCoin}");
     }
 
-    void DiffCheck()// 공격 레벨과 방 레벨을 비교하 보너스 및 널티 적용
+    void DiffCheck()// 공격 레벨과 방어 레벨을 비교하 보너스 및 패널티 적용
     {
         int matchCount = Mathf.Min(playerObjects.Count, targetObjects.Count);
         for (int i = 0; i < matchCount; i++)
@@ -530,7 +518,7 @@ public class BattleManager : MonoBehaviour
             // null 체크 추가
             if (i >= playerObjects.Count || i >= targetObjects.Count)
             {
-                Debug.LogWarning("전 참가자 수가 일치하지 않습니다.");
+                Debug.LogWarning("전투 참가자 수가 일치하지 않습니다.");
                 break;
             }
 
@@ -553,12 +541,12 @@ public class BattleManager : MonoBehaviour
             }
 
             //카메라 공격자에게 줌 인
-            var battleCamera = FindObjectOfType<CameraFollow>();
-            if (battleCamera != null)
-            {
-                battleCamera.ZoomInOnTarget(playerObject.transform);
-                battleCamera.isFollowing = true;
-            }
+            //var battleCamera = FindObjectOfType<CameraFollow>();
+            //if (battleCamera != null)
+            //{
+            //    battleCamera.ZoomInOnTarget(playerObject.transform);
+            //    battleCamera.isFollowing = true;
+            //}
 
             playerObject.successCount = targetObject.successCount = 0;
             Debug.Log($"플레이어: {playerObject.GetPlayer.charName}, 적: {targetObject.GetPlayer.charName}");
@@ -656,11 +644,22 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     BattleMove attackerMove = attacker.GetComponent<BattleMove>();
     BattleMove victimMove = victim.GetComponent<BattleMove>();
 
-    if (attackerMove != null)
+     // Hit 애니메이션 재생 및 애니메이션 길이 가져오기
+    float animationLength = 0f;
+    Animator attackerAnimator = attacker.GetComponent<Animator>();
+    if (attackerAnimator != null)
     {
-        attackerMove.Attack(); // Hit 애니메이션 재
-        attacker.ShowSkillEffect(attacker.GetPlayer.dmg);
+        AnimatorStateInfo stateInfo = attackerAnimator.GetCurrentAnimatorStateInfo(0);
+        animationLength = stateInfo.length;
+        attackerMove?.Attack(); // Hit 애니메이션 재생
     }
+    else
+    {
+        attackerMove?.Attack();
+        animationLength = 4f; // 애니메이터가 없는 경우 기본값
+    }
+    attacker.ShowSkillEffect(attacker.GetPlayer.dmg);
+   
 
     for (int j = 0; j < attacker.GetPlayer.coin; j++)
     {
@@ -705,16 +704,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         UIManager.Instance.CreateBloodEffect(victim.transform.position);
         attacker.PlayHitSound();
 
-        // 카메라 설정
-        var battleCamera = FindObjectOfType<CameraFollow>();
-        if (battleCamera != null)
-        {
-            yield return new WaitForSeconds(0.5f);
-
-            battleCamera.currentTarget = attacker.transform;
-            battleCamera.ZoomInOnTarget(attacker.transform);
-            battleCamera.isFollowing = true;  // 따라가기 활성화
-        }
 
         // 피해 상세 로그
         Debug.LogWarning($"[피해 상세 - {victim.GetPlayer.charName}]");
@@ -726,9 +715,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         victim.UpdateStatus();
         Debug.LogWarning($"{victim.GetPlayer.charName}의 정신력 2 감소 (피해로 인한 감소)");
 
-        StartCoroutine(CameraShake.Instance.Shake(shakeDuration, shakeIntensity));
 
-        // 피해자가 사망는지 확인
+        // 피해자가 사망했는지 확인
         if (victim != null && 0 >= victim.GetPlayer.hp)
         {
             // OnDeath 메서드 호출 전에 필요한 정리 작업 수행
@@ -780,7 +768,7 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         }
 
         // 잠시 대기하여 움직임을 볼 수 있게 함
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(animationLength);
     }
 
     // 정신력 변경
@@ -1021,9 +1009,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
                 Debug.LogWarning($"{profile.GetPlayer.charName}의 상태 초기화 (새 턴)");
             }
         }
-
-        Debug.LogWarning("적 공격");
-
         state = GameState.playerTurn;
         allTargetSelected = false;
     }
