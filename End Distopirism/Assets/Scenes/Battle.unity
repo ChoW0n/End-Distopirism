@@ -3187,13 +3187,13 @@ MonoBehaviour:
   normalFOV: 60
   combatHeight: 500
   combatAngle: 60
-  sideViewAngle: 30
+  sideViewAngle: 5
   heightOffset: 0
   distanceOffset: 600
   transitionDuration: 0.28
   currentTarget: {fileID: 0}
-  isFollowing: 1
-  isBattle: 1
+  isFollowing: 0
+  isBattle: 0
   cursorFollowIntensity: 110.2
   cursorFollowSmoothness: 5
   zoomSpeed: 20
@@ -5389,11 +5389,6 @@ MonoBehaviour:
   effectFadeOutDuration: 0.7
   effectScaleMin: 1.4
   effectScaleMax: 2.01
-  statusEffectIconPrefab: {fileID: 5292691513511370727, guid: a73dc9da0d4a62b47aa82c168a16abb4, type: 3}
-  bleedingSprite: {fileID: 21300000, guid: 6d46e42aeb5c4af48a2e4a6625852795, type: 3}
-  confusionSprite: {fileID: 21300000, guid: 68bb6c19fe83ab14eaf83f4bb3a653c8, type: 3}
-  poisonSprite: {fileID: 21300000, guid: 1656e27d6e517f14296e0c073aac3280, type: 3}
-  defenseDownSprite: {fileID: 21300000, guid: 968cdda19482c694eae21eee10f26615, type: 3}
   battleResultPrefab: {fileID: 1758907937922634839, guid: 912c049b18db48244acd93fca3b55fc2, type: 3}
   victorySprite: {fileID: 21300000, guid: adae89e9032d0e44d9605db771a2ceca, type: 3}
   defeatSprite: {fileID: 21300000, guid: 88f1e84e72072844b8b68f5f7f6ff793, type: 3}
@@ -5507,7 +5502,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 4f8ae52692ed93d48bdab2661b7772ab, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -5515,7 +5510,7 @@ SpriteRenderer:
   m_Size: {x: 5.12, y: 5.12}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1544909908
@@ -6770,14 +6765,6 @@ MonoBehaviour:
     - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
     charSprite: {fileID: 0}
     nextTurnCoinModifier: 0
-    isBleedingEffect: 0
-    isConfusionEffect: 0
-    isPoisonEffect: 0
-    isDefenseDownEffect: 0
-    bleedingTurns: 0
-    confusionTurns: 0
-    poisonTurns: 0
-    defenseDownTurns: 0
     maxDeckSize: 10
     maxUniqueCardTypes: 3
   live: 0
@@ -6994,7 +6981,7 @@ SpriteRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Sprite: {fileID: 21300000, guid: 4f8ae52692ed93d48bdab2661b7772ab, type: 3}
+  m_Sprite: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -7002,7 +6989,7 @@ SpriteRenderer:
   m_Size: {x: 5.12, y: 5.12}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 1
+  m_WasSpriteAssigned: 0
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
 --- !u!1 &1732674564
@@ -8288,14 +8275,6 @@ MonoBehaviour:
     - {fileID: 11400000, guid: bf27f77f6a6ab6348981cd6c8161d8e6, type: 2}
     charSprite: {fileID: 0}
     nextTurnCoinModifier: 0
-    isBleedingEffect: 0
-    isConfusionEffect: 0
-    isPoisonEffect: 0
-    isDefenseDownEffect: 0
-    bleedingTurns: 0
-    confusionTurns: 0
-    poisonTurns: 0
-    defenseDownTurns: 0
     maxDeckSize: 10
     maxUniqueCardTypes: 3
   live: 0

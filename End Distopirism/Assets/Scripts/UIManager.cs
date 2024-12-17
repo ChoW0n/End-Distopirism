@@ -3,8 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using TMPro;  
-using UnityEngine.EventSystems;
+using TMPro;
 using DG.Tweening;
 
 public class UIManager : MonoBehaviour
@@ -57,12 +56,6 @@ public class UIManager : MonoBehaviour
     public float effectScaleMin = 0.8f;
     public float effectScaleMax = 1.2f;
 
-    [Header("Status Effect Icons")]
-    [SerializeField] private GameObject statusEffectIconPrefab;
-    [SerializeField] private Sprite bleedingSprite;
-    [SerializeField] private Sprite confusionSprite;
-    [SerializeField] private Sprite poisonSprite;
-    [SerializeField] private Sprite defenseDownSprite;
 
     private Dictionary<CharacterProfile, List<GameObject>> characterStatusIcons = new Dictionary<CharacterProfile, List<GameObject>>();
 
@@ -692,65 +685,4 @@ public class UIManager : MonoBehaviour
         }
     }
 
-    public void UpdateStatusEffectIcons(CharacterProfile character)
-    {
-        Transform statusIconsParent = character.transform.Find("StatusIcons");
-        if (statusIconsParent == null)
-        {
-            Debug.LogError($"{character.name}에 StatusIcons가 없습니다!");
-            return;
-        }
-
-        // 각 상태이상 스프라이트 렌더러 찾기
-        SpriteRenderer bleedingIcon = statusIconsParent.Find("BleedingIcon")?.GetComponent<SpriteRenderer>();
-        SpriteRenderer confusionIcon = statusIconsParent.Find("ConfusionIcon")?.GetComponent<SpriteRenderer>();
-        SpriteRenderer poisonIcon = statusIconsParent.Find("PoisonIcon")?.GetComponent<SpriteRenderer>();
-        SpriteRenderer defenseDownIcon = statusIconsParent.Find("DefenseDownIcon")?.GetComponent<SpriteRenderer>();
-
-        Player player = character.GetPlayer;
-
-        // 출혈 상태 아이콘
-        if (bleedingIcon != null)
-        {
-            bleedingIcon.gameObject.SetActive(player.isBleedingEffect);
-            if (player.isBleedingEffect)
-            {
-                TextMeshPro durationText = bleedingIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.bleedingTurns.ToString();
-            }
-        }
-
-        // 혼란 상태 아이콘
-        if (confusionIcon != null)
-        {
-            confusionIcon.gameObject.SetActive(player.isConfusionEffect);
-            if (player.isConfusionEffect)
-            {
-                TextMeshPro durationText = confusionIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.confusionTurns.ToString();
-            }
-        }
-
-        // 독 상태 아이콘
-        if (poisonIcon != null)
-        {
-            poisonIcon.gameObject.SetActive(player.isPoisonEffect);
-            if (player.isPoisonEffect)
-            {
-                TextMeshPro durationText = poisonIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.poisonTurns.ToString();
-            }
-        }
-
-        // 방어력감소 상태 아이콘
-        if (defenseDownIcon != null)
-        {
-            defenseDownIcon.gameObject.SetActive(player.isDefenseDownEffect);
-            if (player.isDefenseDownEffect)
-            {
-                TextMeshPro durationText = defenseDownIcon.GetComponentInChildren<TextMeshPro>();
-                if (durationText != null) durationText.text = player.defenseDownTurns.ToString();
-            }
-        }
-    }
 }
