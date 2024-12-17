@@ -194,7 +194,6 @@ public class BattleMove : MonoBehaviour
         if (characterProfile != null)
         {
             characterProfile.PlayDashSound();
-            StartCoroutine(CameraShake.Instance.Shake(dashShakeDuration, dashShakeIntensity));
         }
     }
 }

@@ -82,7 +82,7 @@ public class BattleManager : MonoBehaviour
             }
         }
 
-        // 선택된 캐릭터들이 는지 확인
+        // 선택된 캐릭터들이 있는지 확인
         if (DeckData.selectedCharacterPrefabs == null || DeckData.selectedCharacterPrefabs.Count == 0)
         {
             Debug.LogError("선택된 캐릭터가 없습니다.");
@@ -410,7 +410,6 @@ public class BattleManager : MonoBehaviour
         }
         else if (skillSelected && selecting)
         {
-            // 기존 적 선택 로직...
             GameObject clickObject = UIManager.Instance.MouseGetObject();
             if (clickObject != null && clickObject.CompareTag("Enemy"))
             {
@@ -499,13 +498,6 @@ public class BattleManager : MonoBehaviour
                 Object.successCount++;
                 // 코인 성공 시마다 UI 업데이트
                 Object.UpdateCoinCount(Object.successCount);
-                
-                // "화염 공격" 스킬의 코인 성공 보너스
-                if (Object.GetPlayer.skills[0].skillName == "화염 공격")
-                {
-                    Object.GetPlayer.dmgUp += 2;
-                    Debug.LogWarning($"{Object.GetPlayer.charName}의 화염 공격으로 공격력 2 증가");
-                }
             }
         }
         
@@ -538,30 +530,6 @@ public class BattleManager : MonoBehaviour
     {
         isAttacking = true;
         yield return new WaitForSeconds(1f);
-
-        // 출혈 효과 적용
-        foreach (var player in playerObjects.Where(p => p != null))
-        {
-            // 플레이어가 가진 스킬이 있는지 확인
-            if (player.GetPlayer.skills != null && player.GetPlayer.skills.Count > 0)
-            {
-                foreach (var effect in player.GetPlayer.statusEffects.ToList())
-                {
-                    if (effect.effectName == "출혈")
-                    {
-                        int bleedDamage = Mathf.RoundToInt(player.GetPlayer.maxHp * effect.healthPercentDamage);
-                        player.GetPlayer.hp -= bleedDamage;
-                        player.UpdateStatus();
-                        UIManager.Instance.ShowDamageTextNearCharacter(bleedDamage, player.transform);
-                        UIManager.Instance.CreateBloodEffect(player.transform.position);
-                        Debug.LogWarning($"[출혈 피해] {player.GetPlayer.charName}이(가) 출혈로 {bleedDamage}의 해를 입음");
-                    }
-                    effect.duration--;
-                    Debug.LogWarning($"[상태이상 지속시간] {player.GetPlayer.charName}의 {effect.effectName} 효과 남은 지속시간: {effect.duration}턴");
-                }
-                player.CheckStatusEffects();
-            }
-        }
 
         Debug.Log("플레이어 공격");
         DiffCheck();
@@ -731,54 +699,8 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
             victimMove.Retreat();
         }
 
-        // 전진과 후퇴가 끝날 때까 기
+        // 전진과 후퇴가 끝날 때까지 기달림
         yield return StartCoroutine(WaitForMovement(attackerMove, victimMove));
-
-        // 피해를 적용하기 전에 스킬 효과 확인
-        if (attacker.GetPlayer.skills[0].skillName == "무모한 일격" && attacker.GetPlayer.dmg > victim.GetPlayer.dmg)
-        {
-            // 공격자의 체력 감소
-            attacker.GetPlayer.hp -= 10;
-            attacker.UpdateStatus();
-            UIManager.Instance.ShowDamageTextNearCharacter(10, attacker.transform);
-            Debug.LogWarning($"{attacker.GetPlayer.charName}이(가) 무모한 일격으로 10의 자해 피해");
-
-            // 코인 성공 횟수에 른 추가 피해
-            int additionalDamage = attacker.successCount * 2;
-            attacker.GetPlayer.dmg += additionalDamage;
-            Debug.LogWarning($"{attacker.GetPlayer.charName}의 무모한 일격 추가 피해: {additionalDamage}");
-        }
-
-        // "강력한 한 방" 스킬 처리
-        if (attacker.GetPlayer.skills[0].skillName == "강력한 한 방")
-        {
-            if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
-            {
-                // 공격자의 피해량 8 증가
-                attacker.GetPlayer.dmg += 8;
-                Debug.LogWarning($"{attacker.GetPlayer.charName}의 강력한 한 방으로 피해량 8 증가");
-                attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
-            }
-            else // 합 패배 시
-            {
-                // 태이상의 피해량 12 증가
-                victim.GetPlayer.dmg += 12;
-                Debug.LogWarning($"{attacker.GetPlayer.charName}의 강한 한 방 실패로 {victim.GetPlayer.charName}의 피해량 12 증가");
-                victim.UpdateSkillEffectDamage(victim.GetPlayer.dmg);
-            }
-        }
-
-        // "독바르기" 스킬 처리
-        if (attacker.GetPlayer.skills[0].skillName == "독바르기")
-        {
-            if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 리 시
-            {
-                victim.GetPlayer.AddStatusEffect("독");
-                Debug.LogWarning($"{victim.GetPlayer.charName}에게 독 효과가 부여되었습니다.");
-                // 독 효과 시각화 (예: 초록색 파티클 등)
-                UIManager.Instance.CreatePoisonEffect(victim.transform.position);
-            }
-        }
 
         // 피해량 계산 시 독 효과와 방어력 감소 ���과 적용
         float finalDamage = attacker.GetPlayer.dmg;
@@ -948,68 +870,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     if (victim != null && victim.gameObject != null)
     {
         victim.DestroySkillEffect();
-    }
-
-    // "연속 찌르기" 스킬 처리
-    if (attacker.GetPlayer.skills[0].skillName == "연속 찌르기")
-    {
-        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
-        {
-            victim.GetPlayer.AddStatusEffect("출혈");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 출혈 효과가 부여되었습니다.");
-            // 출혈 이트 시
-            UIManager.Instance.CreateBloodEffect(victim.transform.position);
-        }
-        else // 합 패배 시
-        {
-            attacker.GetPlayer.AddStatusEffect("혼란");
-            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 혼란 효과가 부여되었습니다.");
-        }
-    }
-
-    // "사기 진작" 스킬 처리
-    if (attacker.GetPlayer.skills[0].skillName == "사기 진작")
-    {
-        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승 시
-        {
-            // 상대에게 방어력 감소 효과 부여
-            victim.GetPlayer.AddStatusEffect("방어력 감소");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
-        }
-        else // 합 패배 시
-        {
-            // 공격자에게 2턴 출혈 효과 부여
-            attacker.GetPlayer.AddStatusEffect("출혈2턴");
-            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
-            UIManager.Instance.CreateBloodEffect(attacker.transform.position);
-        }
-    }
-
-    // "화염 공격" 스킬의 가 피해 계산
-    if (attacker.GetPlayer.skills[0].skillName == "화염 공격")
-    {
-        int additionalDamage = attacker.successCount * 2;
-        attacker.GetPlayer.dmg += additionalDamage;
-        Debug.LogWarning($"{attacker.GetPlayer.charName}의 화염 공격 추가 피해: {additionalDamage} (성공한 코인 수: {attacker.successCount})");
-        attacker.UpdateSkillEffectDamage(attacker.GetPlayer.dmg);
-    }
-
-    // "파열" 스킬 처리
-    if (attacker.GetPlayer.skills[0].skillName == "파열")
-    {
-        if (attacker.GetPlayer.dmg > victim.GetPlayer.dmg) // 합 승리 시
-        {
-            // 상대에게 방어력 감 효과 부여
-            victim.GetPlayer.AddStatusEffect("방어력감소");
-            Debug.LogWarning($"{victim.GetPlayer.charName}에게 방어력 감소 효과가 부여되었습니다.");
-        }
-        else // 합 패배 시
-        {
-            // 공격자에게 2턴 출혈 효과 부여
-            attacker.GetPlayer.AddStatusEffect("출혈2턴");
-            Debug.LogWarning($"{attacker.GetPlayer.charName}에게 2턴 출혈 효과가 부여되었습니다.");
-            UIManager.Instance.CreateBloodEffect(attacker.transform.position);
-        }
     }
 
     // 피해 적용 후 정신력 20 미만 체크 (혼란 자연 발생)
@@ -1318,9 +1178,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
 
     private IEnumerator MoveWithDashSound(CharacterProfile character, Vector3 targetPosition)
     {
-        // 대시 사운드 재생
-        character.PlayDashSound();
-        
         // 약간의 딜레이
         yield return new WaitForSeconds(0.1f);
         
@@ -1365,9 +1222,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
     public IEnumerator ReturnCharacterToInitialPosition(CharacterProfile character)
     {
         if (character == null || !character.gameObject.activeSelf) yield break;
-        
-        // 대시 사운드 생
-        character.PlayDashSound();
         
         // 약간의 딜레이
         yield return new WaitForSeconds(0.1f);
@@ -1455,7 +1309,6 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             battleLine.SetVictorySpeed();
         }
-        // 기타 승리 처리...
     }
 
     // 패배 처리
@@ -1465,6 +1318,5 @@ IEnumerator ApplyDamageAndMoveCoroutine(CharacterProfile attacker, CharacterProf
         {
             battleLine.SetDefeatSpeed();
         }
-        // 기타 패배 처리...
     }
 }
