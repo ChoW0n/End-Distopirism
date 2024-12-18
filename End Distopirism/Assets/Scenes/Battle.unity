@@ -6723,7 +6723,7 @@ Animator:
   m_GameObject: {fileID: 1678492018}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 0989c699561b8f34eb22887f859bebcd, type: 2}
+  m_Controller: {fileID: 9100000, guid: f0c3c45fd589df941a2f1cf7202389b2, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -6796,7 +6796,6 @@ MonoBehaviour:
   spacingDistance: 200
   advanceDistance: 80
   retreatDistance: 80
-  animator: {fileID: 0}
 --- !u!114 &1678492024
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8233,7 +8232,7 @@ Animator:
   m_GameObject: {fileID: 1899952466}
   m_Enabled: 1
   m_Avatar: {fileID: 0}
-  m_Controller: {fileID: 9100000, guid: 0989c699561b8f34eb22887f859bebcd, type: 2}
+  m_Controller: {fileID: 9100000, guid: f0c3c45fd589df941a2f1cf7202389b2, type: 2}
   m_CullingMode: 0
   m_UpdateMode: 0
   m_ApplyRootMotion: 0
@@ -8306,7 +8305,6 @@ MonoBehaviour:
   spacingDistance: 200
   advanceDistance: 80
   retreatDistance: 80
-  animator: {fileID: 0}
 --- !u!114 &1899952472
 MonoBehaviour:
   m_ObjectHideFlags: 0
